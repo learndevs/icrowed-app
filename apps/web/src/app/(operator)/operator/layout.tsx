@@ -1,0 +1,51 @@
+import { ReactNode } from "react";
+import Link from "next/link";
+import { ClipboardList, Truck, LayoutDashboard, Smartphone } from "lucide-react";
+
+const NAV = [
+  { href: "/operator", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/operator/orders", label: "Orders", icon: ClipboardList },
+  { href: "/operator/track", label: "Tracking", icon: Truck },
+];
+
+export default function OperatorLayout({ children }: { children: ReactNode }) {
+  return (
+    <div className="flex h-screen overflow-hidden bg-[var(--surface)]">
+      <aside className="w-56 shrink-0 border-r border-[var(--border)] bg-white flex flex-col">
+        <div className="h-16 px-4 flex items-center gap-2 border-b border-[var(--border)]">
+          <div className="w-8 h-8 rounded-lg bg-[var(--color-primary)] flex items-center justify-center">
+            <Smartphone className="w-4 h-4 text-white" />
+          </div>
+          <div>
+            <p className="font-bold text-sm leading-none">iCrowed</p>
+            <p className="text-[10px] text-[var(--muted)]">Operator Panel</p>
+          </div>
+        </div>
+        <nav className="flex-1 p-3 space-y-0.5">
+          {NAV.map(({ href, label, icon: Icon }) => (
+            <Link
+              key={href}
+              href={href}
+              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-[var(--muted)] hover:text-[var(--foreground)] hover:bg-[var(--surface)] transition-colors group"
+            >
+              <Icon className="w-4 h-4 shrink-0" />
+              {label}
+            </Link>
+          ))}
+        </nav>
+        <div className="p-3 border-t border-[var(--border)]">
+          <Link href="/" className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-[var(--muted)] hover:bg-[var(--surface)] transition-colors">
+            ← Back to Store
+          </Link>
+        </div>
+      </aside>
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <header className="h-16 bg-white border-b border-[var(--border)] px-6 flex items-center justify-between shrink-0">
+          <h1 className="font-semibold">Operator Panel</h1>
+          <div className="w-8 h-8 rounded-full bg-[var(--brand-100)] flex items-center justify-center text-sm font-bold text-[var(--brand-700)]">O</div>
+        </header>
+        <main className="flex-1 overflow-y-auto p-6">{children}</main>
+      </div>
+    </div>
+  );
+}

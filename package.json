@@ -1,0 +1,31 @@
+{
+  "name": "icrowed",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "npm@10.9.2",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "type-check": "turbo type-check",
+    "db:generate": "turbo db:generate --filter=@icrowed/database",
+    "db:push": "turbo db:push --filter=@icrowed/database",
+    "db:studio": "turbo db:studio --filter=@icrowed/database",
+    "db:migrate": "turbo db:migrate --filter=@icrowed/database"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "turbo": "^2.5.0",
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/icons-material": "^7.3.9",
+    "@mui/material": "^7.3.9"
+  }
+}
