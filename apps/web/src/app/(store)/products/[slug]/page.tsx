@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { ProductDetailClient } from "./ProductDetailClient";
 import { ProductImages } from "./ProductImages";
+import { ProductReviews } from "./ProductReviews";
 import { getProductBySlug } from "@icrowed/database/queries";
 
 interface Props {
@@ -209,13 +210,11 @@ export default async function ProductDetailPage({ params }: Props) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {product.specifications.map((group) => (
               <div key={group.group} className="rounded-2xl overflow-hidden border border-gray-100">
-                {/* Group header */}
                 <div className="bg-gray-900 px-4 py-2.5">
                   <p className="text-[11px] font-extrabold tracking-widest text-gray-300 uppercase">
                     {group.group}
                   </p>
                 </div>
-                {/* Rows */}
                 <div className="divide-y divide-gray-50">
                   {group.specs.map((spec, i) => (
                     <div
@@ -235,6 +234,9 @@ export default async function ProductDetailPage({ params }: Props) {
             ))}
           </div>
         </div>
+
+        {/* ── Reviews ─────────────────────────────────────────────────────── */}
+        <ProductReviews productId={product.id} />
 
       </div>
     </div>
