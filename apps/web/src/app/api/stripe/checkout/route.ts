@@ -3,7 +3,7 @@ import { stripe } from "@/lib/stripe";
 
 export async function POST(req: NextRequest) {
   try {
-    const { items, successUrl, cancelUrl } = await req.json();
+    const { items, orderNumber, successUrl, cancelUrl } = await req.json();
 
     if (!items || items.length === 0) {
       return NextResponse.json({ error: "Cart is empty" }, { status: 400 });
@@ -37,6 +37,7 @@ export async function POST(req: NextRequest) {
       },
       metadata: {
         source: "icrowed-store",
+        ...(orderNumber ? { orderNumber } : {}),
       },
     });
 

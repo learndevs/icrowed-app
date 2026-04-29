@@ -177,7 +177,7 @@ export default async function ProductDetailPage({ params }: Props) {
             </div>
 
             {/* Variants */}
-            <ProductDetailClient product={{ id: product.id, stock: product.stock, variants: product.variants }} />
+            <ProductDetailClient product={{ id: product.id, name: product.name, price: product.price, stock: product.stock, variants: product.variants }} />
 
             {/* Trust strip */}
             <div className="grid grid-cols-3 gap-2 pt-3 border-t border-gray-100">

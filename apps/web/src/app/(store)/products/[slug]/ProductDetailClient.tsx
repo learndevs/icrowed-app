@@ -13,6 +13,8 @@ interface Variant {
 interface Props {
   product: {
     id: string;
+    name: string;
+    price: number;
     stock: number;
     variants: Variant[];
   };
@@ -32,8 +34,10 @@ export function ProductDetailClient({ product }: Props) {
     addItem({
       id: selectedVariant?.id ?? product.id,
       productId: product.id,
-      name: selectedVariant?.name ?? "Product",
-      price: 0, // price is passed from server — extend as needed
+      variantId: selectedVariant?.id,
+      name: product.name,
+      variantName: selectedVariant?.name,
+      price: product.price,
     });
     setAdded(true);
     setTimeout(() => setAdded(false), 1800);
