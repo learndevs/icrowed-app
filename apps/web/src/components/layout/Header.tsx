@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { ShoppingCart, Search, User, Menu, X, Smartphone, LogOut } from "lucide-react";
+import { Heart, ShoppingCart, Search, User, Menu, X, Smartphone, LogOut, Package } from "lucide-react";
 import { useCart } from "@/context/CartContext";
+import { useWishlist } from "@/context/WishlistContext";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
@@ -17,6 +18,7 @@ const NAV_LINKS = [
 
 export default function Header() {
   const { itemCount } = useCart();
+  const { count: wishlistCount } = useWishlist();
   const pathname = usePathname();
   const router = useRouter();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -112,11 +114,21 @@ export default function Header() {
                           <User className="w-4 h-4" /> My Account
                         </Link>
                         <Link
-                          href="/track"
+                          href="/account/orders"
                           onClick={() => setUserMenuOpen(false)}
                           className="flex items-center gap-2 px-3 py-2.5 text-sm hover:bg-[var(--surface)] transition-colors"
                         >
-                          <ShoppingCart className="w-4 h-4" /> My Orders
+                          <Package className="w-4 h-4" /> My Orders
+                        </Link>
+                        <Link
+                          href="/wishlist"
+                          onClick={() => setUserMenuOpen(false)}
+                          className="flex items-center gap-2 px-3 py-2.5 text-sm hover:bg-[var(--surface)] transition-colors"
+                        >
+                          <Heart className="w-4 h-4" /> Wishlist
+                          {wishlistCount > 0 && (
+                            <span className="ml-auto text-[10px] font-bold bg-rose-100 text-rose-600 rounded-full px-1.5 py-0.5">{wishlistCount}</span>
+                          )}
                         </Link>
                         <button
                           onClick={handleSignOut}
@@ -139,6 +151,20 @@ export default function Header() {
                 </Link>
               )}
             </div>
+
+            {/* Wishlist */}
+            <Link
+              href="/wishlist"
+              aria-label={`Wishlist (${wishlistCount} items)`}
+              className="relative h-10 w-10 hidden sm:flex items-center justify-center rounded-lg hover:bg-[var(--surface)] text-[var(--muted)] hover:text-rose-500 transition-colors"
+            >
+              <Heart className="w-5 h-5" />
+              {wishlistCount > 0 && (
+                <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center">
+                  {wishlistCount > 99 ? "99+" : wishlistCount}
+                </span>
+              )}
+            </Link>
 
             {/* Cart */}
             <Link

@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { Package, User, MapPin, LogOut } from "lucide-react";
+import { Heart, Package, User, MapPin, LogOut } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/Card";
 import Link from "next/link";
 import { SignOutButton } from "./SignOutButton";
@@ -26,10 +26,16 @@ export default async function AccountPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {[
           {
-            href: "/track",
+            href: "/account/orders",
             icon: Package,
             label: "My Orders",
             sub: "Track & view order history",
+          },
+          {
+            href: "/wishlist",
+            icon: Heart,
+            label: "Wishlist",
+            sub: "Products you've saved",
           },
           {
             href: "/account/profile",

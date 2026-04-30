@@ -2,8 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ShoppingCart, Star, Smartphone } from "lucide-react";
+import { Heart, ShoppingCart, Star, Smartphone } from "lucide-react";
 import { useCart } from "@/context/CartContext";
+import { useWishlist } from "@/context/WishlistContext";
 
 const GRADIENTS = [
   "from-indigo-500 to-blue-600",
@@ -40,6 +41,7 @@ export interface ProductCardData {
 
 export function ProductCard({ product }: { product: ProductCardData }) {
   const { addItem } = useCart();
+  const { isWishlisted, toggle: toggleWishlist } = useWishlist();
 
   const gradient =
     product.color ?? GRADIENTS[parseInt(product.id, 10) % GRADIENTS.length];
@@ -99,6 +101,19 @@ export function ProductCard({ product }: { product: ProductCardData }) {
             </span>
           )}
         </div>
+
+        {/* Wishlist heart */}
+        <button
+          onClick={(e) => { e.preventDefault(); toggleWishlist(product.id); }}
+          className="absolute top-2 right-2 w-7 h-7 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-sm hover:scale-110 transition-transform"
+          aria-label={isWishlisted(product.id) ? "Remove from wishlist" : "Save to wishlist"}
+        >
+          <Heart
+            className={`w-3.5 h-3.5 transition-colors ${
+              isWishlisted(product.id) ? "fill-rose-500 text-rose-500" : "text-gray-400"
+            }`}
+          />
+        </button>
 
         {product.stock === 0 && (
           <div className="absolute inset-0 bg-black/40 rounded-2xl flex items-center justify-center">

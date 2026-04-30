@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { ShoppingCart, Zap } from "lucide-react";
+import { Heart, ShoppingCart, Zap } from "lucide-react";
 import { useCart } from "@/context/CartContext";
+import { useWishlist } from "@/context/WishlistContext";
 
 interface Variant {
   id: string;
@@ -26,6 +27,7 @@ interface Props {
 
 export function ProductDetailClient({ product }: Props) {
   const { addItem } = useCart();
+  const { isWishlisted, toggle: toggleWishlist } = useWishlist();
   const [selectedVariant, setSelectedVariant] = useState<Variant | null>(
     product.variants.find((v) => v.stock > 0) ?? null
   );
@@ -140,6 +142,18 @@ export function ProductDetailClient({ product }: Props) {
         >
           <Zap className="w-4 h-4" />
           Buy Now
+        </button>
+
+        <button
+          onClick={() => toggleWishlist(product.id)}
+          className={`w-12 h-12 rounded-2xl flex items-center justify-center border-2 transition-all duration-200 active:scale-[0.97] ${
+            isWishlisted(product.id)
+              ? "border-rose-300 bg-rose-50 text-rose-500"
+              : "border-gray-200 bg-white text-gray-400 hover:border-rose-200 hover:text-rose-400"
+          }`}
+          aria-label={isWishlisted(product.id) ? "Remove from wishlist" : "Save to wishlist"}
+        >
+          <Heart className={`w-5 h-5 ${isWishlisted(product.id) ? "fill-rose-500" : ""}`} />
         </button>
       </div>
     </div>
