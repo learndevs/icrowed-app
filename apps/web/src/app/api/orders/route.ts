@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db, orders, orderItems, orderStatusHistory } from "@icrowed/database";
-import { eq } from "drizzle-orm";
+import { db, orders, orderItems, coupons } from "@icrowed/database";
+import { eq, sql } from "drizzle-orm";
 import { generateOrderNumber } from "@/lib/utils";
 import { sendEmail } from "@/lib/email";
 import { orderConfirmationTemplate } from "@/lib/email-templates/orderConfirmation";
@@ -42,6 +42,7 @@ export async function POST(req: NextRequest) {
       paymentMethod,
       shippingCost = 0,
       discount = 0,
+      couponCode,
       customerNote,
     } = body;
 
@@ -69,11 +70,20 @@ export async function POST(req: NextRequest) {
         subtotal: String(subtotal),
         shippingCost: String(shippingCost),
         discount: String(discount),
+        couponCode: couponCode ?? null,
         total: String(total),
         paymentMethod,
         customerNote,
       })
       .returning();
+
+    // Increment coupon usedCount if a coupon was applied
+    if (couponCode) {
+      await db
+        .update(coupons)
+        .set({ usedCount: sql`${coupons.usedCount} + 1` })
+        .where(eq(coupons.code, couponCode));
+    }
 
     // Insert order items
     if (items.length > 0) {

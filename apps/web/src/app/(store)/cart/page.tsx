@@ -1,15 +1,29 @@
 "use client";
 
+import { useState } from "react";
 import { useCart } from "@/context/CartContext";
 import { formatPrice } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
-import { Minus, Plus, Trash2, ShoppingBag } from "lucide-react";
+import { Minus, Plus, Trash2, ShoppingBag, Tag, X } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
 export default function CartPage() {
-  const { items, updateQuantity, removeItem, subtotal, clearCart } = useCart();
+  const { items, updateQuantity, removeItem, subtotal, coupon, applyCoupon, removeCoupon } = useCart();
+  const [couponInput, setCouponInput] = useState("");
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [couponError, setCouponError] = useState<string | null>(null);
+
+  async function handleApplyCoupon() {
+    if (!couponInput.trim()) return;
+    setCouponLoading(true);
+    setCouponError(null);
+    const result = await applyCoupon(couponInput.trim());
+    if (!result.success) setCouponError(result.message);
+    setCouponLoading(false);
+    if (result.success) setCouponInput("");
+  }
 
   if (items.length === 0) {
     return (
@@ -27,7 +41,8 @@ export default function CartPage() {
   }
 
   const shippingFee = subtotal >= 500000 ? 0 : 35000;
-  const total = subtotal + shippingFee;
+  const couponDiscount = coupon?.discount ?? 0;
+  const total = subtotal + shippingFee - couponDiscount;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
@@ -108,11 +123,57 @@ export default function CartPage() {
                     Add {formatPrice(500000 - subtotal)} more for free shipping
                   </p>
                 )}
+                {coupon && (
+                  <div className="flex justify-between text-green-600">
+                    <span className="flex items-center gap-1">
+                      <Tag className="w-3 h-3" />
+                      {coupon.code}
+                    </span>
+                    <span>− {formatPrice(coupon.discount)}</span>
+                  </div>
+                )}
                 <div className="border-t border-[var(--border)] pt-2 flex justify-between font-bold text-base">
                   <span>Total</span>
                   <span>{formatPrice(total)}</span>
                 </div>
               </div>
+
+              {/* Coupon input */}
+              {coupon ? (
+                <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-green-50 border border-green-200 text-sm">
+                  <span className="text-green-700 font-medium flex items-center gap-1.5">
+                    <Tag className="w-3.5 h-3.5" />
+                    {coupon.message}
+                  </span>
+                  <button onClick={removeCoupon} className="text-green-600 hover:text-green-800">
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-1.5">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={couponInput}
+                      onChange={(e) => { setCouponInput(e.target.value); setCouponError(null); }}
+                      onKeyDown={(e) => e.key === "Enter" && handleApplyCoupon()}
+                      placeholder="Coupon code"
+                      className="flex-1 h-9 px-3 rounded-lg border border-[var(--border)] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent uppercase placeholder:normal-case"
+                    />
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={handleApplyCoupon}
+                      disabled={couponLoading || !couponInput.trim()}
+                    >
+                      {couponLoading ? "..." : "Apply"}
+                    </Button>
+                  </div>
+                  {couponError && (
+                    <p className="text-xs text-red-600">{couponError}</p>
+                  )}
+                </div>
+              )}
 
               <Link href="/checkout" className="block">
                 <Button size="lg" className="w-full">Proceed to Checkout</Button>

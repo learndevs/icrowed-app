@@ -7,6 +7,7 @@ import {
   ShoppingBag,
   BarChart3,
   Megaphone,
+  Ticket,
   Settings,
   Smartphone,
 } from "lucide-react";
@@ -18,6 +19,7 @@ const NAV = [
   { href: "/admin/orders", label: "Orders", icon: ShoppingBag },
   { href: "/admin/inventory", label: "Inventory", icon: BarChart3 },
   { href: "/admin/offers", label: "Offers / Banners", icon: Megaphone },
+  { href: "/admin/coupons", label: "Coupons", icon: Ticket },
   { href: "/admin/settings", label: "Settings", icon: Settings },
 ];
 

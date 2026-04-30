@@ -64,7 +64,13 @@ async function getProduct(slug: string) {
     images: (p.images as { id: string; url: string; altText: string | null; isPrimary: boolean; sortOrder: number }[]) ?? [],
     variants: ((p as any).variants ?? [])
       .filter((v: any) => v.isActive !== false)
-      .map((v: any) => ({ id: v.id, name: v.name, stock: v.stock ?? 0 })),
+      .map((v: any) => ({
+        id: v.id,
+        name: v.name,
+        stock: v.stock ?? 0,
+        price: v.price ? Number(v.price) : null,
+        sku: v.sku ?? null,
+      })),
   };
 }
 
@@ -80,11 +86,9 @@ export default async function ProductDetailPage({ params }: Props) {
   const product = await getProduct(slug);
   if (!product) notFound();
 
-  const discount = product.comparePrice
+  const baseDiscount = product.comparePrice
     ? Math.round((1 - product.price / product.comparePrice) * 100)
     : null;
-
-  const fmt = (p: number) => "LKR " + p.toLocaleString("en-LK");
 
   return (
     <div className="bento-bg min-h-screen">
@@ -107,7 +111,7 @@ export default async function ProductDetailPage({ params }: Props) {
             images={product.images}
             productName={product.name}
             gradient={product.gradient}
-            discount={discount}
+            discount={baseDiscount}
             brand={product.brand}
           />
 
@@ -155,19 +159,6 @@ export default async function ProductDetailPage({ params }: Props) {
               </div>
             </div>
 
-            {/* Price */}
-            <div className="flex items-baseline gap-3">
-              <span className="text-3xl font-black text-gray-900">{fmt(product.price)}</span>
-              {product.comparePrice && (
-                <span className="text-base text-gray-400 line-through">{fmt(product.comparePrice)}</span>
-              )}
-              {discount && (
-                <span className="text-sm font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg">
-                  Save {fmt(product.comparePrice! - product.price)}
-                </span>
-              )}
-            </div>
-
             {/* Highlights */}
             <div className="flex flex-wrap gap-2">
               {product.highlights.map((h) => (
@@ -177,8 +168,18 @@ export default async function ProductDetailPage({ params }: Props) {
               ))}
             </div>
 
-            {/* Variants */}
-            <ProductDetailClient product={{ id: product.id, name: product.name, price: product.price, stock: product.stock, variants: product.variants }} />
+            {/* Price + Variants (client — price updates on variant selection) */}
+            <ProductDetailClient
+              product={{
+                id: product.id,
+                name: product.name,
+                price: product.price,
+                comparePrice: product.comparePrice,
+                stock: product.stock,
+                variants: product.variants,
+                primaryImageUrl: product.images.find((i) => i.isPrimary)?.url ?? product.images[0]?.url ?? null,
+              }}
+            />
 
             {/* Trust strip */}
             <div className="grid grid-cols-3 gap-2 pt-3 border-t border-gray-100">

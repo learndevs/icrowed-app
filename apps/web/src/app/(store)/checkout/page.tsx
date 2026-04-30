@@ -8,7 +8,7 @@ import { formatPrice } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import { CreditCard, Building2, ChevronRight } from "lucide-react";
+import { CreditCard, Building2, ChevronRight, Tag, X } from "lucide-react";
 
 type PaymentMethod = "stripe" | "bank_transfer";
 type DeliveryType = "standard" | "express";
@@ -37,7 +37,7 @@ const EMPTY_ADDRESS: AddressForm = {
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { items, subtotal, clearCart } = useCart();
+  const { items, subtotal, coupon, removeCoupon, clearCart } = useCart();
 
   const [step, setStep] = useState<"address" | "payment" | "review">("address");
   const [address, setAddress] = useState<AddressForm>(EMPTY_ADDRESS);
@@ -49,7 +49,8 @@ export default function CheckoutPage() {
 
   const shippingFee =
     delivery === "express" ? 75000 : subtotal >= 500000 ? 0 : 35000;
-  const total = subtotal + shippingFee;
+  const couponDiscount = coupon?.discount ?? 0;
+  const total = subtotal + shippingFee - couponDiscount;
 
   const STEPS = [
     { key: "address", label: "Address" },
@@ -101,6 +102,8 @@ export default function CheckoutPage() {
           shippingPostalCode: address.postalCode || null,
           paymentMethod,
           shippingCost: shippingFee,
+          discount: couponDiscount,
+          couponCode: coupon?.code ?? null,
           customerNote: customerNote || null,
           items: items.map((i) => ({
             productId: i.productId,
@@ -145,10 +148,12 @@ export default function CheckoutPage() {
 
         const { url } = await sessionRes.json();
         clearCart();
+        removeCoupon();
         window.location.href = url;
       } else {
         // bank transfer — go straight to success page
         clearCart();
+        removeCoupon();
         router.push(`/checkout/success?orderNumber=${orderNumber}&method=bank`);
       }
     } catch (err: unknown) {
@@ -414,6 +419,16 @@ export default function CheckoutPage() {
         <Card className="self-start sticky top-24">
           <CardContent className="space-y-3">
             <h2 className="font-semibold">Summary</h2>
+            {coupon && (
+              <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-green-50 border border-green-200 text-xs">
+                <span className="text-green-700 font-medium flex items-center gap-1">
+                  <Tag className="w-3 h-3" />{coupon.message}
+                </span>
+                <button onClick={removeCoupon} className="text-green-600 hover:text-green-800 ml-2">
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-[var(--muted)]">Items ({items.length})</span>
@@ -435,6 +450,14 @@ export default function CheckoutPage() {
                   {paymentMethod === "stripe" ? "Card" : "Bank Transfer"}
                 </Badge>
               </div>
+              {coupon && (
+                <div className="flex justify-between text-green-600">
+                  <span className="flex items-center gap-1 text-xs">
+                    <Tag className="w-3 h-3" />{coupon.code}
+                  </span>
+                  <span>− {formatPrice(coupon.discount)}</span>
+                </div>
+              )}
               <div className="border-t border-[var(--border)] pt-2 flex justify-between font-bold">
                 <span>Total</span>
                 <span>{formatPrice(total)}</span>

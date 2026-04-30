@@ -8,6 +8,8 @@ interface Variant {
   id: string;
   name: string;
   stock: number;
+  price: number | null;
+  sku: string | null;
 }
 
 interface Props {
@@ -15,8 +17,10 @@ interface Props {
     id: string;
     name: string;
     price: number;
+    comparePrice?: number;
     stock: number;
     variants: Variant[];
+    primaryImageUrl: string | null;
   };
 }
 
@@ -27,7 +31,14 @@ export function ProductDetailClient({ product }: Props) {
   );
   const [added, setAdded] = useState(false);
 
+  const displayPrice = selectedVariant?.price ?? product.price;
   const outOfStock = selectedVariant ? selectedVariant.stock === 0 : product.stock === 0;
+
+  const fmt = (p: number) => "LKR " + p.toLocaleString("en-LK");
+
+  const discount = product.comparePrice
+    ? Math.round((1 - displayPrice / product.comparePrice) * 100)
+    : null;
 
   function handleAddToCart() {
     if (outOfStock) return;
@@ -37,7 +48,9 @@ export function ProductDetailClient({ product }: Props) {
       variantId: selectedVariant?.id,
       name: product.name,
       variantName: selectedVariant?.name,
-      price: product.price,
+      price: displayPrice,
+      sku: selectedVariant?.sku ?? undefined,
+      imageUrl: product.primaryImageUrl ?? undefined,
     });
     setAdded(true);
     setTimeout(() => setAdded(false), 1800);
@@ -45,6 +58,19 @@ export function ProductDetailClient({ product }: Props) {
 
   return (
     <div className="flex flex-col gap-4">
+      {/* Price — reactive to variant selection */}
+      <div className="flex items-baseline gap-3">
+        <span className="text-3xl font-black text-gray-900">{fmt(displayPrice)}</span>
+        {product.comparePrice && (
+          <span className="text-base text-gray-400 line-through">{fmt(product.comparePrice)}</span>
+        )}
+        {discount && discount > 0 && (
+          <span className="text-sm font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg">
+            Save {fmt(product.comparePrice! - displayPrice)}
+          </span>
+        )}
+      </div>
+
       {/* Variants */}
       {product.variants.length > 0 && (
         <div>
@@ -54,7 +80,7 @@ export function ProductDetailClient({ product }: Props) {
           <div className="flex flex-wrap gap-2">
             {product.variants.map((v) => {
               const isSelected = selectedVariant?.id === v.id;
-              const soldOut   = v.stock === 0;
+              const soldOut = v.stock === 0;
               return (
                 <button
                   key={v.id}
@@ -69,6 +95,11 @@ export function ProductDetailClient({ product }: Props) {
                   }`}
                 >
                   {v.name}
+                  {v.price && v.price !== product.price && (
+                    <span className={`ml-1.5 ${isSelected ? "text-gray-300" : "text-gray-400"}`}>
+                      {fmt(v.price)}
+                    </span>
+                  )}
                   {!soldOut && v.stock <= 3 && (
                     <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-amber-400 rounded-full text-[8px] font-black text-white flex items-center justify-center">
                       {v.stock}
