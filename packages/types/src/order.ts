@@ -45,6 +45,8 @@ export interface Order {
   paymentStatus: PaymentStatus;
   stripePaymentIntentId?: string | null;
   bankTransferReference?: string | null;
+  bankTransferPayerName?: string | null;
+  bankTransferProofUrl?: string | null;
   paidAt?: Date | null;
   courierName?: string | null;
   trackingNumber?: string | null;

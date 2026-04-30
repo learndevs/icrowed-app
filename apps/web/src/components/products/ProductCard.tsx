@@ -55,6 +55,7 @@ export function ProductCard({ product }: { product: ProductCardData }) {
       id: product.id,
       productId: product.id,
       name: product.name,
+      slug: product.slug,
       price: product.price,
       imageUrl: product.imageUrl,
     });

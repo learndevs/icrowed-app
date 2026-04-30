@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
@@ -14,38 +15,82 @@ const COURIERS = [
   { name: "PickMe Delivery", url: "https://delivery.pickme.lk", prefix: "PMD" },
 ];
 
-const DEMO_TRACKING = {
-  orderNumber: "ICR-260329-4823",
-  status: "shipped",
-  courierName: "Domex",
-  trackingNumber: "DOMEX-2603291234",
-  estimatedDelivery: "2026-03-31",
-  shippingName: "Sandun Perera",
-  shippingAddress: "123 Main Street, Colombo 03",
-  history: [
-    { status: "Order Placed", time: "2026-03-29 10:00", done: true },
-    { status: "Payment Confirmed", time: "2026-03-29 10:45", done: true },
-    { status: "Processing & Packed", time: "2026-03-29 14:00", done: true },
-    { status: "Shipped — Handed to Courier", time: "2026-03-29 18:00", done: true },
-    { status: "Out for Delivery", time: "2026-03-31 (estimated)", done: false },
-    { status: "Delivered", time: "—", done: false },
-  ],
+type TrackingState = {
+  orderNumber: string;
+  status: string;
+  courierName?: string | null;
+  trackingNumber?: string | null;
+  estimatedDelivery?: string;
+  shippingAddress: string;
+  history: { status: string; time: string; done: boolean }[];
 };
 
 export default function TrackOrderPage() {
-  const [orderNumber, setOrderNumber] = useState("");
-  const [tracking, setTracking] = useState<typeof DEMO_TRACKING | null>(null);
+  const searchParams = useSearchParams();
+  const initialOrderNumber = useMemo(
+    () => searchParams.get("orderNumber") ?? "",
+    [searchParams]
+  );
+  const [orderNumber, setOrderNumber] = useState(initialOrderNumber);
+  const [tracking, setTracking] = useState<TrackingState | null>(null);
   const [searched, setSearched] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  function handleSearch() {
+  async function handleSearch(target?: string) {
+    const orderToSearch = (target ?? orderNumber).trim();
+    if (!orderToSearch) return;
+    setLoading(true);
     setSearched(true);
-    // TODO: query API /api/orders/track?orderNumber=...
-    if (orderNumber.startsWith("ICR-")) {
-      setTracking(DEMO_TRACKING);
-    } else {
+
+    try {
+      const res = await fetch(`/api/orders?orderNumber=${encodeURIComponent(orderToSearch)}`);
+      if (!res.ok) {
+        setTracking(null);
+        return;
+      }
+      const order = await res.json();
+      const history = (order.statusHistory ?? []).map((entry: { status: string; createdAt: string }) => ({
+        status: entry.status,
+        time: new Date(entry.createdAt).toLocaleString("en-LK"),
+        done: true,
+      }));
+      setTracking({
+        orderNumber: order.orderNumber,
+        status: order.status,
+        courierName: order.courierName,
+        trackingNumber: order.trackingNumber,
+        estimatedDelivery: order.estimatedDeliveryDate
+          ? new Date(order.estimatedDeliveryDate).toLocaleDateString("en-LK")
+          : undefined,
+        shippingAddress: [
+          order.shippingAddressLine1,
+          order.shippingAddressLine2,
+          order.shippingCity,
+          order.shippingDistrict,
+          order.shippingProvince,
+        ]
+          .filter(Boolean)
+          .join(", "),
+        history:
+          history.length > 0
+            ? history
+            : [{ status: "Order placed", time: new Date(order.createdAt).toLocaleString("en-LK"), done: true }],
+      });
+    } catch (error) {
+      console.error(error);
       setTracking(null);
+    } finally {
+      setLoading(false);
     }
   }
+
+  useEffect(() => {
+    if (initialOrderNumber) {
+      setOrderNumber(initialOrderNumber);
+      void handleSearch(initialOrderNumber);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialOrderNumber]);
 
   const courier = tracking
     ? COURIERS.find((c) => c.name === tracking.courierName)
@@ -69,8 +114,8 @@ export default function TrackOrderPage() {
             placeholder="e.g. ICR-260329-4823"
             className="flex-1 h-11 px-4 rounded-lg border border-[var(--border)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
           />
-          <Button onClick={handleSearch} size="lg" className="shrink-0">
-            <Search className="w-4 h-4" /> Track Order
+          <Button onClick={() => void handleSearch()} size="lg" className="shrink-0">
+            <Search className="w-4 h-4" /> {loading ? "Searching..." : "Track Order"}
           </Button>
         </CardContent>
       </Card>
@@ -127,14 +172,14 @@ export default function TrackOrderPage() {
                   <Package className="w-4 h-4 mt-0.5 text-[var(--muted)] shrink-0" />
                   <div>
                     <p className="text-xs text-[var(--muted)]">Tracking #</p>
-                    <p className="font-medium font-mono text-xs">{tracking.trackingNumber}</p>
+                    <p className="font-medium font-mono text-xs">{tracking.trackingNumber ?? "Pending"}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-2">
                   <Clock className="w-4 h-4 mt-0.5 text-[var(--muted)] shrink-0" />
                   <div>
                     <p className="text-xs text-[var(--muted)]">Est. Delivery</p>
-                    <p className="font-medium">{tracking.estimatedDelivery}</p>
+                    <p className="font-medium">{tracking.estimatedDelivery ?? "To be announced"}</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-2">

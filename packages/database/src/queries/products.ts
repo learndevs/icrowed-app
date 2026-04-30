@@ -1,5 +1,5 @@
 import { eq, ilike, and, desc, sql, count } from "drizzle-orm";
-import { db } from "../index";
+import { db } from "../db";
 import { products, productImages, productVariants, categories, brands } from "../schema";
 
 export async function getProducts(opts?: {
@@ -50,6 +50,7 @@ export async function getProductsAdmin(opts?: {
         price: products.price,
         comparePrice: products.comparePrice,
         stock: products.stock,
+        lowStockThreshold: products.lowStockThreshold,
         isActive: products.isActive,
         isFeatured: products.isFeatured,
         categoryId: products.categoryId,
@@ -108,11 +109,4 @@ export async function deleteProduct(id: string) {
     .where(eq(products.id, id))
     .returning();
   return product;
-}
-
-export async function decrementStock(productId: string, qty: number) {
-  await db
-    .update(products)
-    .set({ stock: sql`${products.stock} - ${qty}` })
-    .where(eq(products.id, productId));
 }

@@ -28,10 +28,26 @@ export async function POST(req: NextRequest) {
         const session = event.data.object as Stripe.Checkout.Session;
         const orderNumber = session.metadata?.orderNumber;
         if (orderNumber) {
-          await db
+          const pi = session.payment_intent;
+          const stripePaymentIntentId = typeof pi === "string" ? pi : pi?.id ?? null;
+          const [order] = await db
             .update(orders)
-            .set({ paymentStatus: "paid", status: "confirmed" })
-            .where(eq(orders.orderNumber, orderNumber));
+            .set({
+              paymentStatus: "paid",
+              status: "confirmed",
+              paidAt: new Date(),
+              ...(stripePaymentIntentId ? { stripePaymentIntentId } : {}),
+            })
+            .where(eq(orders.orderNumber, orderNumber))
+            .returning();
+
+          if (order) {
+            await db.insert(orderStatusHistory).values({
+              orderId: order.id,
+              status: "confirmed",
+              note: "Payment confirmed via Stripe",
+            });
+          }
         }
         break;
       }

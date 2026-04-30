@@ -1,5 +1,5 @@
 import { eq, and, lte, gte, or, isNull } from "drizzle-orm";
-import { db } from "../index";
+import { db } from "../db";
 import { offers } from "../schema";
 
 export async function getActiveOffers() {

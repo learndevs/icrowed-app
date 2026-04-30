@@ -1,5 +1,5 @@
 import { eq } from "drizzle-orm";
-import { db } from "../index";
+import { db } from "../db";
 import { profiles, addresses } from "../schema";
 
 export async function getProfile(userId: string) {

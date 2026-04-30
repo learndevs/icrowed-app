@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
+import { useSearchParams } from "next/navigation";
 import { SlidersHorizontal, X, Star, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { ProductCard, type ProductCardData } from "@/components/products/ProductCard";
 
@@ -37,11 +38,32 @@ const DEFAULT_FILTERS: Filters = {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 export function ProductsClient({ products }: { products: ProductCardData[] }) {
+  const searchParams = useSearchParams();
+  const urlSyncKey = useRef<string | null>(null);
+
   const [sort, setSort]           = useState<SortValue>("latest");
   const [filters, setFilters]     = useState<Filters>(DEFAULT_FILTERS);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [search, setSearch]       = useState("");
   const [page, setPage]           = useState(1);
+
+  useEffect(() => {
+    const key = searchParams.toString();
+    if (urlSyncKey.current === key) return;
+    const cat = searchParams.get("category");
+    const brand = searchParams.get("brand");
+    if (!cat && !brand) {
+      urlSyncKey.current = key;
+      return;
+    }
+    urlSyncKey.current = key;
+    setFilters((prev) => ({
+      ...prev,
+      ...(cat ? { categories: [decodeURIComponent(cat)] } : {}),
+      ...(brand ? { brands: [decodeURIComponent(brand)] } : {}),
+    }));
+    setPage(1);
+  }, [searchParams]);
 
   // ── Derived filter options from passed products ─────────────────────────────
   const CATEGORIES = useMemo(

@@ -8,3 +8,4 @@ export * from "./users";
 export * from "./orders";
 export * from "./reviews";
 export * from "./offers";
+export * from "./shop_shipping_rates";

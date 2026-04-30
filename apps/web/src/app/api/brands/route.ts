@@ -22,15 +22,20 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { name, logoUrl, isActive } = body;
+    const { name, slug: slugInput, logoUrl, isActive } = body;
 
     if (!name) {
       return NextResponse.json({ error: "name is required" }, { status: 400 });
     }
 
+    const slug =
+      typeof slugInput === "string" && slugInput.trim()
+        ? slugify(slugInput.trim()) || slugify(name) || `brand-${Date.now()}`
+        : slugify(name) || `brand-${Date.now()}`;
+
     const brand = await createBrand({
       name,
-      slug: slugify(name) || `brand-${Date.now()}`,
+      slug,
       logoUrl: logoUrl ?? null,
       isActive: isActive ?? true,
     });

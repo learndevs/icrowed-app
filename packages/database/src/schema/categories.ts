@@ -43,3 +43,7 @@ export const categoriesRelations = relations(categories, ({ many, one }) => ({
   }),
   children: many(categories, { relationName: "subcategories" }),
 }));
+
+export const brandsRelations = relations(brands, ({ many }) => ({
+  products: many(products),
+}));

@@ -61,9 +61,22 @@ async function getProduct(slug: string) {
     reviewCount: 0,
     gradient: productGradient(p.id),
     images: (p.images as { id: string; url: string; altText: string | null; isPrimary: boolean; sortOrder: number }[]) ?? [],
-    variants: ((p as any).variants ?? [])
-      .filter((v: any) => v.isActive !== false)
-      .map((v: any) => ({ id: v.id, name: v.name, stock: v.stock ?? 0 })),
+    variants: ((p as { variants?: { id: string; name: string; stock: number; price: unknown; isActive?: boolean }[] }).variants ?? [])
+      .filter((v) => v.isActive !== false)
+      .map((v) => ({
+        id: v.id,
+        name: v.name,
+        stock: v.stock ?? 0,
+        price:
+          v.price != null && String(v.price).trim() !== ""
+            ? Number(v.price)
+            : Number(p.price),
+      })),
+    imageUrl:
+      (p.images as { url: string; isPrimary?: boolean }[] | undefined)?.find((img) => img.isPrimary)
+        ?.url ??
+      (p.images as { url: string }[] | undefined)?.[0]?.url,
+    sku: p.sku,
   };
 }
 
@@ -177,7 +190,18 @@ export default async function ProductDetailPage({ params }: Props) {
             </div>
 
             {/* Variants */}
-            <ProductDetailClient product={{ id: product.id, stock: product.stock, variants: product.variants }} />
+            <ProductDetailClient
+              product={{
+                id: product.id,
+                name: product.name,
+                slug: product.slug,
+                price: product.price,
+                stock: product.stock,
+                sku: product.sku,
+                imageUrl: product.imageUrl,
+                variants: product.variants,
+              }}
+            />
 
             {/* Trust strip */}
             <div className="grid grid-cols-3 gap-2 pt-3 border-t border-gray-100">

@@ -1,3 +1,6 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
@@ -14,25 +17,78 @@ const STATUS_BADGE: Record<string, "default" | "primary" | "success" | "warning"
   refunded: "error",
 };
 
-const ORDERS = [
-  { id: "ICR-260329-4823", customer: "Sandun Perera", phone: "077-1234567", total: 419900, status: "shipped", payment: "stripe", date: "Mar 29, 2026", tracking: "DOMEX-2603291234" },
-  { id: "ICR-260329-4822", customer: "Nimal Silva", phone: "071-9876543", total: 89900, status: "processing", payment: "bank_transfer", date: "Mar 29, 2026", tracking: "" },
-  { id: "ICR-260329-4821", customer: "Kamala Fernando", phone: "076-5556789", total: 249900, status: "pending", payment: "bank_transfer", date: "Mar 28, 2026", tracking: "" },
-  { id: "ICR-260328-4820", customer: "Sunil Mendis", phone: "072-3334455", total: 15900, status: "delivered", payment: "stripe", date: "Mar 28, 2026", tracking: "LSE-2603281111" },
-];
+type DashboardOrder = {
+  id: string;
+  orderNumber: string;
+  customerName: string;
+  customerPhone: string;
+  total: string;
+  status: string;
+  paymentMethod: "stripe" | "bank_transfer";
+  paymentStatus: string;
+  trackingNumber?: string | null;
+  createdAt: string;
+};
 
 export default function AdminOrdersPage() {
+  const [orders, setOrders] = useState<DashboardOrder[]>([]);
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [loading, setLoading] = useState(false);
+
+  const tabs = useMemo(
+    () => ["all", "pending", "confirmed", "processing", "shipped", "delivered", "cancelled"],
+    []
+  );
+
+  useEffect(() => {
+    const controller = new AbortController();
+    async function loadOrders() {
+      setLoading(true);
+      try {
+        const query =
+          statusFilter === "all"
+            ? "/api/orders"
+            : `/api/orders?status=${encodeURIComponent(statusFilter)}`;
+        const res = await fetch(query, { signal: controller.signal });
+        if (!res.ok) throw new Error("Failed to load orders");
+        const data = await res.json();
+        setOrders(data);
+      } catch (error) {
+        if ((error as Error).name !== "AbortError") {
+          console.error(error);
+        }
+      } finally {
+        setLoading(false);
+      }
+    }
+    void loadOrders();
+    return () => controller.abort();
+  }, [statusFilter]);
+
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold">Orders</h2>
-        <div className="flex gap-2">
-          {["All", "Pending", "Processing", "Shipped", "Delivered", "Cancelled"].map((s) => (
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <h2 className="text-xl font-bold">Orders</h2>
+          <p className="text-xs text-[var(--muted)] mt-1">
+            Shipping rates for checkout:{" "}
+            <Link href="/admin/settings" className="text-[var(--color-primary)] hover:underline">
+              Settings
+            </Link>
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {tabs.map((s) => (
             <button
               key={s}
-              className="px-3 py-1.5 rounded-lg text-xs font-medium border border-[var(--border)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)] transition-colors first:bg-[var(--color-primary)] first:text-white first:border-transparent"
+              onClick={() => setStatusFilter(s)}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                statusFilter === s
+                  ? "bg-[var(--color-primary)] text-white border-transparent"
+                  : "border-[var(--border)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]"
+              }`}
             >
-              {s}
+              {s[0].toUpperCase() + s.slice(1)}
             </button>
           ))}
         </div>
@@ -46,7 +102,8 @@ export default function AdminOrdersPage() {
                 <th className="px-4 py-3 font-medium">Order #</th>
                 <th className="px-4 py-3 font-medium">Customer</th>
                 <th className="px-4 py-3 font-medium">Total</th>
-                <th className="px-4 py-3 font-medium">Payment</th>
+                <th className="px-4 py-3 font-medium">Pay method</th>
+                <th className="px-4 py-3 font-medium">Pay status</th>
                 <th className="px-4 py-3 font-medium">Tracking</th>
                 <th className="px-4 py-3 font-medium">Status</th>
                 <th className="px-4 py-3 font-medium">Date</th>
@@ -54,37 +111,51 @@ export default function AdminOrdersPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--border)]">
-              {ORDERS.map((o) => (
+              {orders.map((o) => (
                 <tr key={o.id} className="hover:bg-[var(--surface)]">
                   <td className="px-4 py-3">
-                    <Link href={`/admin/orders/${o.id}`} className="text-[var(--color-primary)] hover:underline font-mono text-xs">
-                      {o.id}
+                    <Link href={`/admin/orders/${o.orderNumber}`} className="text-[var(--color-primary)] hover:underline font-mono text-xs">
+                      {o.orderNumber}
                     </Link>
                   </td>
                   <td className="px-4 py-3">
-                    <p className="font-medium">{o.customer}</p>
-                    <p className="text-xs text-[var(--muted)]">{o.phone}</p>
+                    <p className="font-medium">{o.customerName}</p>
+                    <p className="text-xs text-[var(--muted)]">{o.customerPhone}</p>
                   </td>
                   <td className="px-4 py-3 font-semibold">{formatPrice(o.total)}</td>
                   <td className="px-4 py-3">
-                    <Badge variant={o.payment === "stripe" ? "primary" : "warning"}>
-                      {o.payment === "stripe" ? "Card" : "Bank"}
+                    <Badge variant={o.paymentMethod === "stripe" ? "primary" : "warning"}>
+                      {o.paymentMethod === "stripe" ? "Card" : "Bank"}
+                    </Badge>
+                  </td>
+                  <td className="px-4 py-3">
+                    <Badge variant={o.paymentStatus === "paid" ? "success" : "warning"}>
+                      {o.paymentStatus}
                     </Badge>
                   </td>
                   <td className="px-4 py-3 font-mono text-xs text-[var(--muted)]">
-                    {o.tracking || "—"}
+                    {o.trackingNumber || "—"}
                   </td>
                   <td className="px-4 py-3">
                     <Badge variant={STATUS_BADGE[o.status] ?? "default"}>{o.status}</Badge>
                   </td>
-                  <td className="px-4 py-3 text-[var(--muted)]">{o.date}</td>
+                  <td className="px-4 py-3 text-[var(--muted)]">
+                    {new Date(o.createdAt).toLocaleDateString("en-LK")}
+                  </td>
                   <td className="px-4 py-3">
-                    <Link href={`/admin/orders/${o.id}`}>
+                    <Link href={`/admin/orders/${o.orderNumber}`}>
                       <Button size="sm" variant="outline">View</Button>
                     </Link>
                   </td>
                 </tr>
               ))}
+              {!loading && orders.length === 0 && (
+                <tr>
+                  <td className="px-4 py-6 text-sm text-[var(--muted)]" colSpan={9}>
+                    No orders found.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

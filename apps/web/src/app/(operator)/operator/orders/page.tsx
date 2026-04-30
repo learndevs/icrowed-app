@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useEffect } from "react";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
@@ -17,29 +18,86 @@ const STATUS_BADGE: Record<string, "default" | "primary" | "success" | "warning"
 
 const STATUSES = ["pending", "confirmed", "processing", "shipped", "delivered", "cancelled"];
 
-const ORDERS = [
-  { id: "ICR-260329-4823", customer: "Sandun Perera", phone: "077-1234567", address: "123 Main St, Colombo 03", total: 419900, status: "shipped", tracking: "DOMEX-2603291234", courier: "Domex" },
-  { id: "ICR-260329-4822", customer: "Nimal Silva", phone: "071-9876543", address: "45 Galle Rd, Moratuwa", total: 89900, status: "processing", tracking: "", courier: "" },
-  { id: "ICR-260329-4821", customer: "Kamala Fernando", phone: "076-5556789", address: "78 Kings St, Kandy", total: 249900, status: "pending", tracking: "", courier: "" },
-];
+type OperatorOrder = {
+  id: string;
+  orderNumber: string;
+  customerName: string;
+  customerPhone: string;
+  shippingAddressLine1: string;
+  shippingAddressLine2?: string | null;
+  shippingCity: string;
+  shippingDistrict: string;
+  shippingProvince?: string | null;
+  total: string;
+  status: string;
+  trackingNumber?: string | null;
+  courierName?: string | null;
+};
 
 export default function OperatorOrdersPage() {
-  const [orders, setOrders] = useState(ORDERS);
+  const [orders, setOrders] = useState<OperatorOrder[]>([]);
   const [editId, setEditId] = useState<string | null>(null);
   const [updates, setUpdates] = useState<{ status: string; tracking: string; courier: string }>({ status: "", tracking: "", courier: "" });
+  const [saving, setSaving] = useState(false);
 
-  function startEdit(order: typeof ORDERS[0]) {
+  useEffect(() => {
+    async function loadOrders() {
+      try {
+        const res = await fetch("/api/orders");
+        if (!res.ok) throw new Error("Failed to load orders");
+        const data = await res.json();
+        setOrders(data);
+      } catch (error) {
+        console.error(error);
+      }
+    }
+    void loadOrders();
+  }, []);
+
+  function startEdit(order: OperatorOrder) {
     setEditId(order.id);
-    setUpdates({ status: order.status, tracking: order.tracking, courier: order.courier });
+    setUpdates({
+      status: order.status,
+      tracking: order.trackingNumber ?? "",
+      courier: order.courierName ?? "",
+    });
   }
 
-  function saveEdit(id: string) {
-    setOrders((prev) =>
-      prev.map((o) =>
-        o.id === id ? { ...o, ...updates } : o
-      )
-    );
-    setEditId(null);
+  async function saveEdit(id: string) {
+    setSaving(true);
+    try {
+      const res = await fetch("/api/orders", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          orderId: id,
+          status: updates.status,
+          trackingNumber: updates.tracking,
+          courierName: updates.courier,
+          note: "Updated by operator dashboard",
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to save order update");
+
+      setOrders((prev) =>
+        prev.map((o) =>
+          o.id === id
+            ? {
+                ...o,
+                status: updates.status,
+                trackingNumber: updates.tracking,
+                courierName: updates.courier,
+              }
+            : o
+        )
+      );
+      setEditId(null);
+    } catch (error) {
+      console.error(error);
+      alert("Unable to update order.");
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
@@ -51,9 +109,11 @@ export default function OperatorOrdersPage() {
             <CardContent className="space-y-3">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <p className="font-mono text-xs text-[var(--muted)]">{o.id}</p>
-                  <p className="font-semibold">{o.customer}</p>
-                  <p className="text-sm text-[var(--muted)]">{o.phone} · {o.address}</p>
+                  <p className="font-mono text-xs text-[var(--muted)]">{o.orderNumber}</p>
+                  <p className="font-semibold">{o.customerName}</p>
+                  <p className="text-sm text-[var(--muted)]">
+                    {o.customerPhone} · {[o.shippingAddressLine1, o.shippingAddressLine2, o.shippingCity, o.shippingDistrict, o.shippingProvince].filter(Boolean).join(", ")}
+                  </p>
                 </div>
                 <div className="flex items-center gap-2">
                   <Badge variant={STATUS_BADGE[o.status] ?? "default"}>{o.status}</Badge>
@@ -61,9 +121,9 @@ export default function OperatorOrdersPage() {
                 </div>
               </div>
 
-              {o.tracking && (
+              {o.trackingNumber && (
                 <p className="text-xs text-[var(--muted)]">
-                  Tracking: <span className="font-mono font-medium">{o.tracking}</span> via {o.courier}
+                  Tracking: <span className="font-mono font-medium">{o.trackingNumber}</span> via {o.courierName}
                 </p>
               )}
 
@@ -104,7 +164,7 @@ export default function OperatorOrdersPage() {
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <Button size="sm" onClick={() => saveEdit(o.id)}>Save</Button>
+                    <Button size="sm" loading={saving} onClick={() => saveEdit(o.id)}>Save</Button>
                     <Button size="sm" variant="outline" onClick={() => setEditId(null)}>Cancel</Button>
                   </div>
                 </div>

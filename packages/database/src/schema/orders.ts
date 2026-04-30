@@ -50,6 +50,10 @@ export const orders = pgTable("orders", {
   paymentStatus: paymentStatusEnum("payment_status").default("pending").notNull(),
   stripePaymentIntentId: text("stripe_payment_intent_id"),
   bankTransferReference: text("bank_transfer_reference"),
+  /** Name on payer account / branch (customer-reported). */
+  bankTransferPayerName: varchar("bank_transfer_payer_name", { length: 255 }),
+  /** Link to deposit slip image (URL) if customer provides one. */
+  bankTransferProofUrl: text("bank_transfer_proof_url"),
   paidAt: timestamp("paid_at"),
 
   // Delivery

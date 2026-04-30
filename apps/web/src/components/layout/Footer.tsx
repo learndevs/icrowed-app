@@ -26,7 +26,7 @@ export default function Footer() {
               <li><Link href="/products" className="hover:text-[var(--foreground)] transition-colors">All Products</Link></li>
               <li><Link href="/categories" className="hover:text-[var(--foreground)] transition-colors">Categories</Link></li>
               <li><Link href="/offers" className="hover:text-[var(--foreground)] transition-colors">Offers</Link></li>
-              <li><Link href="/brands" className="hover:text-[var(--foreground)] transition-colors">Brands</Link></li>
+              <li><Link href="/categories#shop-by-brand" className="hover:text-[var(--foreground)] transition-colors">Brands</Link></li>
             </ul>
           </div>
 
