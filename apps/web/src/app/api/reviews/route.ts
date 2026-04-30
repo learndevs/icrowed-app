@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
-import { createReview, getAllReviews, getPendingReviews } from "@icrowed/database/queries";
+import { createReview, getAllReviews, getPendingReviews, hasUserPurchasedProduct } from "@icrowed/database/queries";
 import { clientEnv } from "@icrowed/env";
 
 export async function GET(req: NextRequest) {
@@ -35,6 +35,10 @@ export async function POST(req: NextRequest) {
 
     const { data: { user } } = await supabase.auth.getUser();
 
+    if (!user) {
+      return NextResponse.json({ error: "You must be signed in to write a review" }, { status: 401 });
+    }
+
     const body = await req.json();
     const { productId, rating, title, body: reviewBody } = body;
 
@@ -45,13 +49,15 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "rating must be between 1 and 5" }, { status: 400 });
     }
 
+    const isVerifiedPurchase = await hasUserPurchasedProduct(user.id, productId);
+
     const review = await createReview({
       productId,
-      userId: user?.id ?? null,
+      userId: user.id,
       rating: Number(rating),
       title: title?.trim() || null,
       body: reviewBody?.trim() || null,
-      isVerifiedPurchase: false,
+      isVerifiedPurchase,
       isApproved: false,
     });
 

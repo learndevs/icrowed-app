@@ -6,18 +6,17 @@ import {
   Star,
   TrendingUp,
   Smartphone,
+  Shield,
+  Zap,
+  Headphones,
+  Cable,
+  Watch,
+  BadgeCheck,
+  Truck,
+  CircleDollarSign,
+  RefreshCw,
 } from "lucide-react";
 import { PhoneMockup } from "@/components/home/PhoneMockup";
-import SmartphoneIcon from "@mui/icons-material/Smartphone";
-import ShieldIcon from "@mui/icons-material/Shield";
-import BoltIcon from "@mui/icons-material/Bolt";
-import HeadphonesIcon from "@mui/icons-material/Headphones";
-import CableIcon from "@mui/icons-material/Cable";
-import WatchIcon from "@mui/icons-material/Watch";
-import VerifiedIcon from "@mui/icons-material/Verified";
-import LocalShippingIcon from "@mui/icons-material/LocalShipping";
-import PriceCheckIcon from "@mui/icons-material/PriceCheck";
-import AutorenewIcon from "@mui/icons-material/Autorenew";
 import { getProducts } from "@icrowed/database/queries";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -67,12 +66,12 @@ const PHONE_COLORS = [
 ];
 
 const CATEGORIES = [
-  { name: "Smartphones", Icon: SmartphoneIcon, href: "/products?category=smartphones", count: "200+", circle: "bg-sky-400",    text: "text-sky-600",    cardBg: "bg-sky-50",    border: "border-sky-200" },
-  { name: "Cases",       Icon: ShieldIcon,     href: "/products?category=cases",       count: "500+", circle: "bg-teal-400",   text: "text-teal-600",   cardBg: "bg-teal-50",   border: "border-teal-200" },
-  { name: "Chargers",   Icon: BoltIcon,       href: "/products?category=chargers",    count: "80+",  circle: "bg-orange-400", text: "text-orange-600", cardBg: "bg-orange-50", border: "border-orange-200" },
-  { name: "Earbuds",    Icon: HeadphonesIcon, href: "/products?category=earbuds",     count: "60+",  circle: "bg-pink-400",   text: "text-pink-600",   cardBg: "bg-pink-50",   border: "border-pink-200" },
-  { name: "Cables",     Icon: CableIcon,      href: "/products?category=cables",      count: "120+", circle: "bg-violet-500", text: "text-violet-600", cardBg: "bg-violet-50", border: "border-violet-200" },
-  { name: "Smartwatch", Icon: WatchIcon,      href: "/products?category=smartwatches",count: "30+",  circle: "bg-amber-400",  text: "text-amber-600",  cardBg: "bg-amber-50",  border: "border-amber-200" },
+  { name: "Smartphones", Icon: Smartphone,  href: "/products?category=smartphones", count: "200+", circle: "bg-sky-400",    text: "text-sky-600",    cardBg: "bg-sky-50",    border: "border-sky-200" },
+  { name: "Cases",       Icon: Shield,      href: "/products?category=cases",       count: "500+", circle: "bg-teal-400",   text: "text-teal-600",   cardBg: "bg-teal-50",   border: "border-teal-200" },
+  { name: "Chargers",   Icon: Zap,         href: "/products?category=chargers",    count: "80+",  circle: "bg-orange-400", text: "text-orange-600", cardBg: "bg-orange-50", border: "border-orange-200" },
+  { name: "Earbuds",    Icon: Headphones,  href: "/products?category=earbuds",     count: "60+",  circle: "bg-pink-400",   text: "text-pink-600",   cardBg: "bg-pink-50",   border: "border-pink-200" },
+  { name: "Cables",     Icon: Cable,       href: "/products?category=cables",      count: "120+", circle: "bg-violet-500", text: "text-violet-600", cardBg: "bg-violet-50", border: "border-violet-200" },
+  { name: "Smartwatch", Icon: Watch,       href: "/products?category=smartwatches",count: "30+",  circle: "bg-amber-400",  text: "text-amber-600",  cardBg: "bg-amber-50",  border: "border-amber-200" },
 ];
 
 function formatPrice(p: number) {
@@ -302,7 +301,7 @@ export default async function HomePage() {
               className={`${cat.cardBg} ${cat.border} border aspect-square rounded-3xl flex flex-col items-center justify-center text-center gap-2.5 p-3 hover:shadow-md hover:brightness-95 group transition-all duration-200`}
             >
               <div className={`${cat.circle} w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform duration-200`}>
-                <cat.Icon sx={{ fontSize: 24, color: "white" }} />
+                <cat.Icon size={24} color="white" />
               </div>
               <p className={`text-[11px] sm:text-xs font-bold ${cat.text} leading-tight`}>{cat.name}</p>
             </Link>
@@ -395,14 +394,14 @@ export default async function HomePage() {
         <div className="overflow-hidden">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 divide-y lg:divide-y-0 lg:divide-x divide-gray-200">
             {[
-              { Icon: VerifiedIcon,      label: "100% Genuine",  desc: "Official warranty on all products", bg: "bg-emerald-50",  iconColor: "#065f46", labelColor: "text-emerald-900", descColor: "text-emerald-700" },
-              { Icon: LocalShippingIcon, label: "Fast Delivery",  desc: "Same-day Colombo · 1-3 days island", bg: "bg-blue-50",    iconColor: "#1e3a8a", labelColor: "text-blue-900",    descColor: "text-blue-700" },
-              { Icon: PriceCheckIcon,    label: "Best Prices",    desc: "Price-matched vs all retailers",     bg: "bg-amber-50",   iconColor: "#78350f", labelColor: "text-amber-900",  descColor: "text-amber-700" },
-              { Icon: AutorenewIcon,     label: "Easy Returns",   desc: "7-day no-questions returns",         bg: "bg-rose-50",    iconColor: "#881337", labelColor: "text-rose-900",   descColor: "text-rose-700" },
+              { Icon: BadgeCheck,          label: "100% Genuine",  desc: "Official warranty on all products", bg: "bg-emerald-50",  iconColor: "#065f46", labelColor: "text-emerald-900", descColor: "text-emerald-700" },
+              { Icon: Truck,              label: "Fast Delivery",  desc: "Same-day Colombo · 1-3 days island", bg: "bg-blue-50",    iconColor: "#1e3a8a", labelColor: "text-blue-900",    descColor: "text-blue-700" },
+              { Icon: CircleDollarSign,   label: "Best Prices",    desc: "Price-matched vs all retailers",     bg: "bg-amber-50",   iconColor: "#78350f", labelColor: "text-amber-900",  descColor: "text-amber-700" },
+              { Icon: RefreshCw,          label: "Easy Returns",   desc: "7-day no-questions returns",         bg: "bg-rose-50",    iconColor: "#881337", labelColor: "text-rose-900",   descColor: "text-rose-700" },
             ].map((item) => (
               <div key={item.label} className={`${item.bg} py-10 px-6 flex flex-col items-center text-center gap-3`}>
                 <div className="w-14 h-14 rounded-2xl bg-white/70 flex items-center justify-center">
-                  <item.Icon sx={{ fontSize: 30, color: item.iconColor }} />
+                  <item.Icon size={30} color={item.iconColor} />
                 </div>
                 <p className={`text-base font-extrabold ${item.labelColor}`}>{item.label}</p>
                 <p className={`text-sm font-medium leading-relaxed ${item.descColor}`}>{item.desc}</p>

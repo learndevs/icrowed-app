@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { ProductsClient } from "./ProductsClient";
 import type { ProductCardData } from "@/components/products/ProductCard";
 import { getProducts } from "@icrowed/database/queries";
@@ -40,6 +41,10 @@ export default async function ProductsPage() {
     category: (p as any).category?.name as string | undefined,
   }));
 
-  return <ProductsClient products={products} />;
+  return (
+    <Suspense fallback={<div className="bento-bg min-h-screen" />}>
+      <ProductsClient products={products} />
+    </Suspense>
+  );
 }
 

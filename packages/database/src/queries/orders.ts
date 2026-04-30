@@ -1,4 +1,4 @@
-import { eq, desc, and } from "drizzle-orm";
+import { eq, desc, and, ne } from "drizzle-orm";
 import { db } from "../index";
 import { orders, orderItems, orderStatusHistory } from "../schema";
 
@@ -44,6 +44,22 @@ export async function getOrders(opts?: {
     limit: opts?.limit ?? 50,
     offset: opts?.offset ?? 0,
   });
+}
+
+export async function hasUserPurchasedProduct(userId: string, productId: string): Promise<boolean> {
+  const result = await db
+    .select({ id: orderItems.id })
+    .from(orderItems)
+    .innerJoin(orders, eq(orderItems.orderId, orders.id))
+    .where(
+      and(
+        eq(orders.userId, userId),
+        eq(orderItems.productId, productId),
+        ne(orders.status, "cancelled"),
+      )
+    )
+    .limit(1);
+  return result.length > 0;
 }
 
 export async function updateOrderStatus(
