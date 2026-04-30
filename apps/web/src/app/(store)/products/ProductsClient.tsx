@@ -45,7 +45,7 @@ function matchCategory(param: string, available: string[]): string | undefined {
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
-export function ProductsClient({ products }: { products: ProductCardData[] }) {
+export function ProductsClient({ products }: Readonly<{ products: ProductCardData[] }>) {
   const searchParams = useSearchParams();
   const router       = useRouter();
   const pathname     = usePathname();
@@ -338,7 +338,7 @@ export function ProductsClient({ products }: { products: ProductCardData[] }) {
   // ── Render ───────────────────────────────────────────────────────────────────
   return (
     <div className="bento-bg min-h-screen">
-      <div className="max-w-[1400px] mx-auto px-3 sm:px-5 lg:px-8 py-6">
+      <div className="max-w-350 mx-auto px-3 sm:px-5 lg:px-8 py-6">
 
         {/* ── Page header + search ──────────────────────────────────────────── */}
         <div className="mb-6">

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Heart, ShoppingCart, Zap } from "lucide-react";
+import { Heart, ShoppingCart, Zap, AlertTriangle, PackageX } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 
@@ -25,7 +25,46 @@ interface Props {
   };
 }
 
-export function ProductDetailClient({ product }: Props) {
+function BaseStockIndicator({ stock }: Readonly<{ stock: number }>) {
+  if (stock === 0) {
+    return (
+      <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-gray-50 border border-gray-200">
+        <div className="w-8 h-8 rounded-xl bg-gray-200 flex items-center justify-center shrink-0">
+          <PackageX className="w-4 h-4 text-gray-500" />
+        </div>
+        <div>
+          <p className="text-sm font-bold text-gray-700">Currently unavailable</p>
+          <p className="text-xs text-gray-400">This item is out of stock. Check back soon.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (stock <= 10) {
+    const veryLow = stock <= 3;
+    return (
+      <div className={`flex items-center gap-3 px-4 py-3 rounded-2xl border ${veryLow ? "bg-rose-50 border-rose-200" : "bg-amber-50 border-amber-200"}`}>
+        <AlertTriangle className={`w-4 h-4 shrink-0 ${veryLow ? "text-rose-500" : "text-amber-500"}`} />
+        <div className="flex-1 min-w-0">
+          <p className={`text-xs font-bold ${veryLow ? "text-rose-700" : "text-amber-700"}`}>
+            {veryLow ? "Almost gone — only " : "Low stock — only "}
+            <span className="font-black">{stock}</span>{" left in stock"}
+          </p>
+          <div className="mt-1.5 h-1.5 bg-white/60 rounded-full overflow-hidden">
+            <div
+              className={`h-full rounded-full transition-all ${veryLow ? "bg-rose-400" : "bg-amber-400"}`}
+              style={{ width: `${Math.min((stock / 10) * 100, 100)}%` }}
+            />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return null;
+}
+
+export function ProductDetailClient({ product }: Readonly<Props>) {
   const { addItem } = useCart();
   const { isWishlisted, toggle: toggleWishlist } = useWishlist();
   const [selectedVariant, setSelectedVariant] = useState<Variant | null>(
@@ -34,8 +73,7 @@ export function ProductDetailClient({ product }: Props) {
   const [added, setAdded] = useState(false);
 
   const displayPrice = selectedVariant?.price ?? product.price;
-  const outOfStock = selectedVariant ? selectedVariant.stock === 0 : product.stock === 0;
-
+  const outOfStock   = selectedVariant ? selectedVariant.stock === 0 : product.stock === 0;
   const fmt = (p: number) => "LKR " + p.toLocaleString("en-LK");
 
   const discount = product.comparePrice
@@ -63,15 +101,20 @@ export function ProductDetailClient({ product }: Props) {
       {/* Price — reactive to variant selection */}
       <div className="flex items-baseline gap-3">
         <span className="text-3xl font-black text-gray-900">{fmt(displayPrice)}</span>
-        {product.comparePrice && (
+        {!!product.comparePrice && (
           <span className="text-base text-gray-400 line-through">{fmt(product.comparePrice)}</span>
         )}
-        {discount && discount > 0 && (
+        {!!discount && discount > 0 && (
           <span className="text-sm font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg">
-            Save {fmt(product.comparePrice! - displayPrice)}
+            Save {fmt(product.comparePrice - displayPrice)}
           </span>
         )}
       </div>
+
+      {/* Base-product stock indicator — only rendered when no variants */}
+      {product.variants.length === 0 && (
+        <BaseStockIndicator stock={product.stock} />
+      )}
 
       {/* Variants */}
       {product.variants.length > 0 && (

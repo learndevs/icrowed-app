@@ -36,17 +36,22 @@ function productGradient(id: string) {
   return CARD_GRADIENTS[hash % CARD_GRADIENTS.length];
 }
 
+interface ProductImage { isPrimary: boolean; url: string }
+interface WithBrand { brand?: { name: string } | null }
+
 function mapFeatured(p: Awaited<ReturnType<typeof getProducts>>[number]) {
+  const images = p.images as ProductImage[] | null | undefined;
+  const brand  = (p as unknown as WithBrand).brand;
   return {
     id: p.id,
     name: p.name,
     slug: p.slug,
     price: Number(p.price),
     comparePrice: p.comparePrice ? Number(p.comparePrice) : undefined,
-    imageUrl: (p.images as any[])?.find((i: any) => i.isPrimary)?.url ?? (p.images as any[])?.[0]?.url,
+    imageUrl: images?.find((i) => i.isPrimary)?.url ?? images?.[0]?.url,
     color: productGradient(p.id),
     badge: p.comparePrice ? "Sale" : undefined,
-    brand: (p as any).brand?.name as string | undefined,
+    brand: brand?.name ?? undefined,
     shortDescription: p.shortDescription ?? undefined,
   };
 }
@@ -91,11 +96,11 @@ export default async function HomePage() {
   return (
     <div className="bento-bg">
       {/* ═══════════════════════════════ BENTO HERO ══════════════════════════ */}
-      <section className="px-3 sm:px-5 lg:px-8 pt-5 pb-4 max-w-[1400px] mx-auto">
+      <section className="px-3 sm:px-5 lg:px-8 pt-5 pb-4 max-w-350 mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-6 gap-3 lg:gap-4">
 
           {/* ── 1. MAIN HERO CARD ─────────────────────────────── lg:col-span-4 */}
-          <div className="bento-card lg:col-span-4 relative min-h-[400px] lg:min-h-[460px] p-6 sm:p-8 flex flex-col justify-between overflow-visible">
+          <div className="bento-card lg:col-span-4 relative min-h-100 lg:min-h-115 p-6 sm:p-8 flex flex-col justify-between overflow-visible">
             {/* Top area */}
             <div>
               {/* Badge row */}
@@ -116,7 +121,7 @@ export default async function HomePage() {
               </h1>
 
               {/* Sub */}
-              <p className="text-gray-500 text-sm leading-relaxed max-w-[260px] mb-7">
+              <p className="text-gray-500 text-sm leading-relaxed max-w-65 mb-7">
                 Genuine products, island-wide delivery, and unbeatable prices on the latest smartphones.
               </p>
 
