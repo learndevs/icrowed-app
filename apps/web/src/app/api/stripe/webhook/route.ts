@@ -3,6 +3,8 @@ import { stripe } from "@/lib/stripe";
 import { db, orders, orderStatusHistory } from "@icrowed/database";
 import { eq } from "drizzle-orm";
 import Stripe from "stripe";
+import { sendEmail } from "@/lib/email";
+import { paymentConfirmedTemplate } from "@/lib/email-templates/paymentConfirmed";
 
 export async function POST(req: NextRequest) {
   const signature = req.headers.get("stripe-signature");
@@ -28,10 +30,24 @@ export async function POST(req: NextRequest) {
         const session = event.data.object as Stripe.Checkout.Session;
         const orderNumber = session.metadata?.orderNumber;
         if (orderNumber) {
-          await db
+          const [updated] = await db
             .update(orders)
             .set({ paymentStatus: "paid", status: "confirmed" })
-            .where(eq(orders.orderNumber, orderNumber));
+            .where(eq(orders.orderNumber, orderNumber))
+            .returning();
+
+          if (updated?.customerEmail) {
+            sendEmail({
+              to: updated.customerEmail,
+              subject: `Payment Confirmed — ${orderNumber}`,
+              html: paymentConfirmedTemplate({
+                customerName: updated.customerName ?? "Customer",
+                orderNumber,
+                total: updated.total,
+                appUrl: process.env.NEXT_PUBLIC_APP_URL ?? "",
+              }),
+            });
+          }
         }
         break;
       }

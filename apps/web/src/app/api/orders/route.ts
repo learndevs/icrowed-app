@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { db, orders, orderItems, orderStatusHistory } from "@icrowed/database";
 import { eq } from "drizzle-orm";
 import { generateOrderNumber } from "@/lib/utils";
+import { sendEmail } from "@/lib/email";
+import { orderConfirmationTemplate } from "@/lib/email-templates/orderConfirmation";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -98,6 +100,33 @@ export async function POST(req: NextRequest) {
           imageUrl: item.imageUrl,
         }))
       );
+    }
+
+    // Send order confirmation email (non-blocking)
+    if (customerEmail) {
+      sendEmail({
+        to: customerEmail,
+        subject: `Order Confirmed — ${orderNumber}`,
+        html: orderConfirmationTemplate({
+          customerName,
+          orderNumber,
+          items: items.map((i: { productName: string; variantName?: string; quantity: number; unitPrice: number }) => ({
+            productName: i.productName,
+            variantName: i.variantName,
+            quantity: i.quantity,
+            unitPrice: i.unitPrice,
+          })),
+          subtotal,
+          shippingCost,
+          discount,
+          total,
+          shippingAddress: [shippingAddressLine1, shippingAddressLine2, shippingCity, shippingDistrict, shippingProvince]
+            .filter(Boolean)
+            .join(", "),
+          paymentMethod,
+          appUrl: process.env.NEXT_PUBLIC_APP_URL ?? "",
+        }),
+      });
     }
 
     return NextResponse.json({ order, orderNumber }, { status: 201 });

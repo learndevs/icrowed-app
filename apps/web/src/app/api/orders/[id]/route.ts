@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db, orders, orderStatusHistory } from "@icrowed/database";
 import { eq } from "drizzle-orm";
+import { sendEmail } from "@/lib/email";
+import { orderShippedTemplate } from "@/lib/email-templates/orderShipped";
+import { orderDeliveredTemplate } from "@/lib/email-templates/orderDelivered";
 
 export async function GET(
   _req: NextRequest,
@@ -52,6 +55,42 @@ export async function PATCH(
         note: adminNote ?? null,
         changedBy: changedBy ?? null,
       });
+    }
+
+    // Send status-driven emails (non-blocking)
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
+    if (updated.customerEmail) {
+      if (status === "shipped") {
+        sendEmail({
+          to: updated.customerEmail,
+          subject: `Your order ${updated.orderNumber} has been shipped!`,
+          html: orderShippedTemplate({
+            customerName: updated.customerName ?? "Customer",
+            orderNumber: updated.orderNumber,
+            courierName: updated.courierName,
+            trackingNumber: updated.trackingNumber,
+            estimatedDelivery: updated.estimatedDeliveryDate
+              ? new Date(updated.estimatedDeliveryDate).toLocaleDateString("en-LK", {
+                  weekday: "long",
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                })
+              : null,
+            appUrl,
+          }),
+        });
+      } else if (status === "delivered") {
+        sendEmail({
+          to: updated.customerEmail,
+          subject: `Your order ${updated.orderNumber} has been delivered!`,
+          html: orderDeliveredTemplate({
+            customerName: updated.customerName ?? "Customer",
+            orderNumber: updated.orderNumber,
+            appUrl,
+          }),
+        });
+      }
     }
 
     return NextResponse.json(updated);
