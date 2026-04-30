@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAllOffers, getActiveOffers, createOffer } from "@icrowed/database/queries";
+import { requireAdmin } from "@/lib/admin";
 
 export async function GET(req: NextRequest) {
   try {
@@ -13,6 +14,9 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const auth = await requireAdmin();
+  if (auth instanceof NextResponse) return auth;
+
   try {
     const body = await req.json();
     const { title, description, imageUrl, linkUrl, badgeText, discountPercent, isActive, isFeatured, startsAt, endsAt, sortOrder } = body;

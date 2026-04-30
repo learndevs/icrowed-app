@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db, coupons } from "@icrowed/database";
 import { eq } from "drizzle-orm";
+import { requireAdmin } from "@/lib/admin";
 
 export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const auth = await requireAdmin();
+  if (auth instanceof NextResponse) return auth;
+
   try {
     const { id } = await params;
     const body = await req.json();
@@ -37,6 +41,9 @@ export async function DELETE(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const auth = await requireAdmin();
+  if (auth instanceof NextResponse) return auth;
+
   try {
     const { id } = await params;
     await db.delete(coupons).where(eq(coupons.id, id));

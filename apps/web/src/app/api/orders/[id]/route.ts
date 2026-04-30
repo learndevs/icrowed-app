@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db, orders, orderStatusHistory } from "@icrowed/database";
 import { eq } from "drizzle-orm";
+import { requireAdmin } from "@/lib/admin";
 import { sendEmail } from "@/lib/email";
 import { orderShippedTemplate } from "@/lib/email-templates/orderShipped";
 import { orderDeliveredTemplate } from "@/lib/email-templates/orderDelivered";
@@ -27,6 +28,9 @@ export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const auth = await requireAdmin();
+  if (auth instanceof NextResponse) return auth;
+
   try {
     const { id } = await params;
     const body = await req.json();

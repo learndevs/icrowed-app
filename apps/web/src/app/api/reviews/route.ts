@@ -3,8 +3,12 @@ import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import { createReview, getAllReviews, getPendingReviews, hasUserPurchasedProduct } from "@icrowed/database/queries";
 import { clientEnv } from "@icrowed/env";
+import { requireAdmin } from "@/lib/admin";
 
 export async function GET(req: NextRequest) {
+  const auth = await requireAdmin();
+  if (auth instanceof NextResponse) return auth;
+
   try {
     const pending = req.nextUrl.searchParams.get("filter") === "pending";
     const result = pending ? await getPendingReviews() : await getAllReviews();

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db, orders, orderItems, coupons } from "@icrowed/database";
 import { eq, sql } from "drizzle-orm";
+import { requireAdmin } from "@/lib/admin";
 import { generateOrderNumber } from "@/lib/utils";
 import { sendEmail } from "@/lib/email";
 import { orderConfirmationTemplate } from "@/lib/email-templates/orderConfirmation";
@@ -17,6 +18,10 @@ export async function GET(req: NextRequest) {
     if (!order) return NextResponse.json({ error: "Not found" }, { status: 404 });
     return NextResponse.json(order);
   }
+
+  // Listing all orders is admin-only
+  const auth = await requireAdmin();
+  if (auth instanceof NextResponse) return auth;
 
   const allOrders = await db.query.orders.findMany({
     orderBy: (orders, { desc }) => [desc(orders.createdAt)],

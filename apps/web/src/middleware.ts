@@ -24,8 +24,16 @@ export async function middleware(req: NextRequest) {
     },
   });
 
-  // Refresh session so it stays alive; don't block the request
-  await supabase.auth.getUser();
+  // Refresh session so it stays alive
+  const { data: { user } } = await supabase.auth.getUser();
+
+  // Protect /admin/* — redirect unauthenticated users to login
+  if (req.nextUrl.pathname.startsWith("/admin")) {
+    if (!user) {
+      const loginUrl = new URL(`/login?next=${req.nextUrl.pathname}`, req.url);
+      return NextResponse.redirect(loginUrl);
+    }
+  }
 
   return res;
 }

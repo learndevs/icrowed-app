@@ -6,7 +6,7 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Smartphone } from "lucide-react";
 import { Suspense } from "react";
 
 function LoginForm() {
@@ -113,8 +113,16 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <Suspense>
-      <LoginForm />
-    </Suspense>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-[var(--surface)] px-4 py-12">
+      <Link href="/" className="flex items-center gap-2 font-bold text-xl mb-8">
+        <div className="w-8 h-8 rounded-lg bg-[var(--color-primary)] flex items-center justify-center">
+          <Smartphone className="w-4 h-4 text-white" />
+        </div>
+        iCrowed
+      </Link>
+      <Suspense>
+        <LoginForm />
+      </Suspense>
+    </div>
   );
 }

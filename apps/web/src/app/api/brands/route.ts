@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAllBrands, createBrand } from "@icrowed/database/queries";
+import { requireAdmin } from "@/lib/admin";
 
 function slugify(name: string) {
   return name.toLowerCase().replace(/[\s_]+/g, "-").replace(/[^a-z0-9-]/g, "").replace(/^-+|-+$/g, "");
@@ -20,6 +21,9 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const auth = await requireAdmin();
+  if (auth instanceof NextResponse) return auth;
+
   try {
     const body = await req.json();
     const { name, logoUrl, isActive } = body;

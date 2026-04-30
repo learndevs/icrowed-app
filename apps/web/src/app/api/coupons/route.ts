@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db, coupons } from "@icrowed/database";
 import { desc } from "drizzle-orm";
+import { requireAdmin } from "@/lib/admin";
 
 export async function GET() {
+  const auth = await requireAdmin();
+  if (auth instanceof NextResponse) return auth;
   try {
     const all = await db.query.coupons.findMany({
       orderBy: [desc(coupons.createdAt)],
@@ -15,6 +18,9 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  const auth = await requireAdmin();
+  if (auth instanceof NextResponse) return auth;
+
   try {
     const body = await req.json();
     const { code, type, value, minOrderAmount, maxUses, isActive, expiresAt } = body;

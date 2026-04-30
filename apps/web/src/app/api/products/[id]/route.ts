@@ -3,6 +3,7 @@ import { db } from "@icrowed/database";
 import { products, categories, brands } from "@icrowed/database";
 import { eq } from "drizzle-orm";
 import { updateProduct, deleteProduct } from "@icrowed/database/queries";
+import { requireAdmin } from "@/lib/admin";
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -46,6 +47,9 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 }
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const auth = await requireAdmin();
+  if (auth instanceof NextResponse) return auth;
+
   try {
     const { id } = await params;
     const body = await req.json();
@@ -87,6 +91,9 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 }
 
 export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const auth = await requireAdmin();
+  if (auth instanceof NextResponse) return auth;
+
   try {
     const { id } = await params;
     const product = await deleteProduct(id);

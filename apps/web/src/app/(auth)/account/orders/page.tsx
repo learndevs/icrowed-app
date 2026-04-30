@@ -114,7 +114,7 @@ export default function AccountOrdersPage() {
 
   return (
     <div className="bento-bg min-h-screen">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+      <div className="px-3 sm:px-5 lg:px-8 py-6 max-w-350 mx-auto">
 
         {/* Header */}
         <div className="mb-8 animate-slide-up">
