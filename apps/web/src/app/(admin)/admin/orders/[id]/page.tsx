@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { ChevronLeft, Package, User, MapPin, CreditCard, Truck } from "lucide-react";
 import { OrderActions } from "./OrderActions";
+import { RefundButton } from "./RefundButton";
 
 const STATUS_BADGE: Record<string, "default" | "primary" | "success" | "warning" | "error"> = {
   pending: "warning",
@@ -235,6 +236,16 @@ export default async function AdminOrderDetailPage({
                   </p>
                 )}
               </div>
+              {order.paymentStatus === "paid" && order.status !== "refunded" && (
+                <div className="pt-1">
+                  <RefundButton
+                    orderId={order.id}
+                    orderNumber={order.orderNumber}
+                    total={order.total}
+                    paymentMethod={order.paymentMethod}
+                  />
+                </div>
+              )}
             </CardContent>
           </Card>
 

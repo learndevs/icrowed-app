@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/context/CartContext";
 import { createClient } from "@/lib/supabase/client";
@@ -8,7 +8,7 @@ import { formatPrice } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import { CreditCard, Building2, ChevronRight, Tag, X } from "lucide-react";
+import { CreditCard, Building2, ChevronRight, Tag, X, MapPin } from "lucide-react";
 
 type PaymentMethod = "stripe" | "bank_transfer";
 type DeliveryType = "standard" | "express";
@@ -35,6 +35,20 @@ const EMPTY_ADDRESS: AddressForm = {
   postalCode: "",
 };
 
+interface SavedAddress {
+  id: string;
+  label: string;
+  recipientName: string;
+  phone: string;
+  addressLine1: string;
+  addressLine2: string | null;
+  city: string;
+  district: string;
+  province: string | null;
+  postalCode: string | null;
+  isDefault: boolean;
+}
+
 export default function CheckoutPage() {
   const router = useRouter();
   const { items, subtotal, coupon, removeCoupon, clearCart } = useCart();
@@ -46,6 +60,38 @@ export default function CheckoutPage() {
   const [customerNote, setCustomerNote] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);
+  const [selectedSavedId, setSelectedSavedId] = useState<string | null>(null);
+
+  // Load saved addresses on mount (silently — guests just see no options)
+  useEffect(() => {
+    fetch("/api/addresses")
+      .then(async (res) => {
+        if (!res.ok) return;
+        const data: SavedAddress[] = await res.json();
+        setSavedAddresses(data);
+        // Auto-select default address
+        const def = data.find((a) => a.isDefault) ?? data[0];
+        if (def) {
+          setSelectedSavedId(def.id);
+          applyAddress(def);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  function applyAddress(a: SavedAddress) {
+    setAddress({
+      fullName: a.recipientName,
+      phone: a.phone,
+      addressLine1: a.addressLine1,
+      addressLine2: a.addressLine2 ?? "",
+      city: a.city,
+      district: a.district,
+      province: a.province ?? "",
+      postalCode: a.postalCode ?? "",
+    });
+  }
 
   const shippingFee =
     delivery === "express" ? 75000 : subtotal >= 500000 ? 0 : 35000;
@@ -198,6 +244,47 @@ export default function CheckoutPage() {
             <Card>
               <CardContent className="space-y-4">
                 <h2 className="font-semibold">Shipping Address</h2>
+
+                {/* Saved address picker */}
+                {savedAddresses.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wide">Saved Addresses</p>
+                    <div className="space-y-2">
+                      {savedAddresses.map((a) => (
+                        <button
+                          key={a.id}
+                          type="button"
+                          onClick={() => { setSelectedSavedId(a.id); applyAddress(a); }}
+                          className={`w-full text-left p-3 rounded-xl border-2 transition-colors flex items-start gap-3 ${
+                            selectedSavedId === a.id
+                              ? "border-[var(--color-primary)] bg-[var(--brand-50)]"
+                              : "border-[var(--border)] hover:border-[var(--color-primary)]"
+                          }`}
+                        >
+                          <MapPin className="w-4 h-4 mt-0.5 text-[var(--color-primary)] shrink-0" />
+                          <div className="text-sm">
+                            <p className="font-medium">{a.label} — {a.recipientName}</p>
+                            <p className="text-[var(--muted)] text-xs mt-0.5">
+                              {a.addressLine1}, {a.city}, {a.district}
+                            </p>
+                          </div>
+                        </button>
+                      ))}
+                      <button
+                        type="button"
+                        onClick={() => { setSelectedSavedId(null); setAddress(EMPTY_ADDRESS); }}
+                        className={`w-full text-left p-3 rounded-xl border-2 transition-colors text-sm ${
+                          selectedSavedId === null
+                            ? "border-[var(--color-primary)] bg-[var(--brand-50)]"
+                            : "border-[var(--border)] hover:border-[var(--color-primary)]"
+                        }`}
+                      >
+                        + Enter a new address
+                      </button>
+                    </div>
+                    <div className="border-t border-[var(--border)] pt-2" />
+                  </div>
+                )}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {(
                     [
