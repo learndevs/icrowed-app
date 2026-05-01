@@ -4,6 +4,7 @@ import { db } from "@icrowed/database";
 import { productImages } from "@icrowed/database";
 import { eq, count } from "drizzle-orm";
 import { getServerEnv } from "@icrowed/env";
+import { requireAdmin } from "@/lib/admin";
 
 const BUCKET = "product-images";
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
@@ -39,6 +40,9 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const auth = await requireAdmin();
+  if (auth instanceof NextResponse) return auth;
+
   try {
     const { id } = await params;
     const formData = await req.formData();

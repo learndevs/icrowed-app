@@ -42,13 +42,7 @@ export default async function ProductsPage() {
   }));
 
   return (
-    <Suspense
-      fallback={
-        <div className="bento-bg min-h-screen flex items-center justify-center py-24">
-          <p className="text-sm font-medium text-gray-500 animate-pulse">Loading products…</p>
-        </div>
-      }
-    >
+    <Suspense fallback={<div className="bento-bg min-h-screen" />}>
       <ProductsClient products={products} />
     </Suspense>
   );

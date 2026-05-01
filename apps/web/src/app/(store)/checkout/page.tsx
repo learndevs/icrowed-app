@@ -1,88 +1,102 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/context/CartContext";
+import { createClient } from "@/lib/supabase/client";
 import { formatPrice } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import { CreditCard, Building2, ChevronRight } from "lucide-react";
+import { CreditCard, Building2, ChevronRight, Tag, X, MapPin } from "lucide-react";
 
 type PaymentMethod = "stripe" | "bank_transfer";
 type DeliveryType = "standard" | "express";
 
-type ShippingRates = {
-  standardLkr: number;
-  expressLkr: number;
-  freeShippingMinSubtotal: number;
+interface AddressForm {
+  fullName: string;
+  phone: string;
+  addressLine1: string;
+  addressLine2: string;
+  city: string;
+  district: string;
+  province: string;
+  postalCode: string;
+}
+
+const EMPTY_ADDRESS: AddressForm = {
+  fullName: "",
+  phone: "",
+  addressLine1: "",
+  addressLine2: "",
+  city: "",
+  district: "",
+  province: "",
+  postalCode: "",
 };
 
-function shippingFor(
-  delivery: DeliveryType,
-  subtotal: number,
-  rates: ShippingRates | null
-): number {
-  const r = rates ?? {
-    standardLkr: 350,
-    expressLkr: 750,
-    freeShippingMinSubtotal: 500000,
-  };
-  if (delivery === "express") return r.expressLkr;
-  if (subtotal >= r.freeShippingMinSubtotal) return 0;
-  return r.standardLkr;
+interface SavedAddress {
+  id: string;
+  label: string;
+  recipientName: string;
+  phone: string;
+  addressLine1: string;
+  addressLine2: string | null;
+  city: string;
+  district: string;
+  province: string | null;
+  postalCode: string | null;
+  isDefault: boolean;
 }
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { items, subtotal, clearCart } = useCart();
+  const { items, subtotal, coupon, removeCoupon, clearCart } = useCart();
+
   const [step, setStep] = useState<"address" | "payment" | "review">("address");
+  const [address, setAddress] = useState<AddressForm>(EMPTY_ADDRESS);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("stripe");
   const [delivery, setDelivery] = useState<DeliveryType>("standard");
+  const [customerNote, setCustomerNote] = useState("");
   const [loading, setLoading] = useState(false);
-  const [rates, setRates] = useState<ShippingRates | null>(null);
-  const [form, setForm] = useState({
-    customerName: "",
-    customerEmail: "",
-    customerPhone: "",
-    shippingAddressLine1: "",
-    shippingAddressLine2: "",
-    shippingCity: "",
-    shippingDistrict: "",
-    shippingProvince: "",
-    shippingPostalCode: "",
-    customerNote: "",
-    bankTransferReference: "",
-    bankTransferPayerName: "",
-    bankTransferProofUrl: "",
-  });
+  const [error, setError] = useState<string | null>(null);
+  const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);
+  const [selectedSavedId, setSelectedSavedId] = useState<string | null>(null);
 
+  // Load saved addresses on mount (silently — guests just see no options)
   useEffect(() => {
-    let cancelled = false;
-    fetch("/api/shipping-rates")
-      .then((res) => res.json())
-      .then((data) => {
-        if (!cancelled && data.standardLkr != null) {
-          setRates({
-            standardLkr: data.standardLkr,
-            expressLkr: data.expressLkr,
-            freeShippingMinSubtotal: data.freeShippingMinSubtotal,
-          });
+    fetch("/api/addresses")
+      .then(async (res) => {
+        if (!res.ok) return;
+        const data: SavedAddress[] = await res.json();
+        setSavedAddresses(data);
+        // Auto-select default address
+        const def = data.find((a) => a.isDefault) ?? data[0];
+        if (def) {
+          setSelectedSavedId(def.id);
+          applyAddress(def);
         }
       })
-      .catch(() => {
-        /* keep null — fallback constants in shippingFor */
-      });
-    return () => {
-      cancelled = true;
-    };
+      .catch(() => {});
   }, []);
 
-  const shippingFee = useMemo(
-    () => shippingFor(delivery, subtotal, rates),
-    [delivery, subtotal, rates]
-  );
-  const total = subtotal + shippingFee;
+  function applyAddress(a: SavedAddress) {
+    setAddress({
+      fullName: a.recipientName,
+      phone: a.phone,
+      addressLine1: a.addressLine1,
+      addressLine2: a.addressLine2 ?? "",
+      city: a.city,
+      district: a.district,
+      province: a.province ?? "",
+      postalCode: a.postalCode ?? "",
+    });
+  }
+
+  const shippingFee =
+    delivery === "express" ? 75000 : subtotal >= 500000 ? 0 : 35000;
+  const couponDiscount = coupon?.discount ?? 0;
+  const total = subtotal + shippingFee - couponDiscount;
 
   const STEPS = [
     { key: "address", label: "Address" },
@@ -90,117 +104,115 @@ export default function CheckoutPage() {
     { key: "review", label: "Review" },
   ] as const;
 
-  const requiredAddressFields = [
-    form.customerName,
-    form.customerEmail,
-    form.customerPhone,
-    form.shippingAddressLine1,
-    form.shippingCity,
-    form.shippingDistrict,
-  ];
-  const isAddressValid = requiredAddressFields.every((v) => v.trim().length > 0);
+  function field(key: keyof AddressForm) {
+    return {
+      value: address[key],
+      onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+        setAddress((prev) => ({ ...prev, [key]: e.target.value })),
+    };
+  }
 
-  const bankRefOk =
-    paymentMethod !== "bank_transfer" || form.bankTransferReference.trim().length > 0;
+  function validateAddress(): boolean {
+    return !!(
+      address.fullName.trim() &&
+      address.phone.trim() &&
+      address.addressLine1.trim() &&
+      address.city.trim() &&
+      address.district.trim()
+    );
+  }
 
-  async function placeOrder() {
+  async function handlePlaceOrder() {
     if (items.length === 0) return;
-    if (!bankRefOk) {
-      alert("Please enter your bank transfer / deposit reference.");
-      return;
-    }
-
     setLoading(true);
-    try {
-      const orderItems = items.map((item) => ({
-        productId: item.productId,
-        variantId: item.variantId,
-        productName: item.name,
-        variantName: item.variantName,
-        sku: item.sku,
-        quantity: item.quantity,
-        unitPrice: item.price,
-        imageUrl: item.imageUrl,
-      }));
+    setError(null);
 
-      const createRes = await fetch("/api/orders", {
+    try {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+
+      // 1. Create the order in DB first (always, both payment methods)
+      const orderRes = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          customerName: form.customerName,
-          customerEmail: form.customerEmail,
-          customerPhone: form.customerPhone,
-          shippingAddressLine1: form.shippingAddressLine1,
-          shippingAddressLine2: form.shippingAddressLine2 || undefined,
-          shippingCity: form.shippingCity,
-          shippingDistrict: form.shippingDistrict,
-          shippingProvince: form.shippingProvince || undefined,
-          shippingPostalCode: form.shippingPostalCode || undefined,
-          customerNote: form.customerNote || undefined,
-          items: orderItems,
+          userId: user?.id ?? null,
+          customerName: address.fullName,
+          customerEmail: user?.email ?? "",
+          customerPhone: address.phone,
+          shippingAddressLine1: address.addressLine1,
+          shippingAddressLine2: address.addressLine2 || null,
+          shippingCity: address.city,
+          shippingDistrict: address.district,
+          shippingProvince: address.province || null,
+          shippingPostalCode: address.postalCode || null,
           paymentMethod,
-          delivery,
-          discount: 0,
-          bankTransferReference:
-            paymentMethod === "bank_transfer" ? form.bankTransferReference.trim() : undefined,
-          bankTransferPayerName:
-            paymentMethod === "bank_transfer"
-              ? form.bankTransferPayerName.trim() || undefined
-              : undefined,
-          bankTransferProofUrl:
-            paymentMethod === "bank_transfer"
-              ? form.bankTransferProofUrl.trim() || undefined
-              : undefined,
+          shippingCost: shippingFee,
+          discount: couponDiscount,
+          couponCode: coupon?.code ?? null,
+          customerNote: customerNote || null,
+          items: items.map((i) => ({
+            productId: i.productId,
+            variantId: i.variantId ?? null,
+            productName: i.name,
+            variantName: i.variantName ?? null,
+            sku: i.sku ?? null,
+            quantity: i.quantity,
+            unitPrice: i.price,
+            imageUrl: i.imageUrl ?? null,
+          })),
         }),
       });
-      if (!createRes.ok) {
-        const err = await createRes.json().catch(() => ({}));
-        throw new Error((err as { error?: string }).error ?? "Failed to create order");
+
+      if (!orderRes.ok) {
+        const data = await orderRes.json();
+        throw new Error(data.error ?? "Failed to create order");
       }
 
-      const { orderNumber } = await createRes.json();
+      const { orderNumber } = await orderRes.json();
 
+      // 2. Route by payment method
       if (paymentMethod === "stripe") {
-        const stripeRes = await fetch("/api/stripe/checkout", {
+        const sessionRes = await fetch("/api/stripe/checkout", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             orderNumber,
-            successUrl: `${window.location.origin}/track?orderNumber=${encodeURIComponent(orderNumber)}`,
-            cancelUrl: `${window.location.origin}/checkout`,
+            items: items.map((i) => ({
+              name: i.variantName ? `${i.name} — ${i.variantName}` : i.name,
+              price: i.price,
+              quantity: i.quantity,
+              imageUrl: i.imageUrl,
+            })),
           }),
         });
-        if (!stripeRes.ok) throw new Error("Failed to create Stripe session");
 
-        const { url } = await stripeRes.json();
-        if (url) {
-          window.location.href = url;
-          return;
+        if (!sessionRes.ok) {
+          const data = await sessionRes.json();
+          throw new Error(data.error ?? "Failed to create payment session");
         }
-      }
 
-      clearCart();
-      router.push(`/track?orderNumber=${encodeURIComponent(orderNumber)}`);
-    } catch (error) {
-      console.error(error);
-      alert(
-        error instanceof Error ? error.message : "Unable to place order. Please try again."
-      );
-    } finally {
+        const { url } = await sessionRes.json();
+        clearCart();
+        removeCoupon();
+        window.location.href = url;
+      } else {
+        // bank transfer — go straight to success page
+        clearCart();
+        removeCoupon();
+        router.push(`/checkout/success?orderNumber=${orderNumber}&method=bank`);
+      }
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Something went wrong");
       setLoading(false);
     }
   }
-
-  const standardLabel =
-    rates && subtotal >= rates.freeShippingMinSubtotal
-      ? "Free"
-      : formatPrice(rates?.standardLkr ?? 350);
-  const expressLabel = formatPrice(rates?.expressLkr ?? 750);
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       <h1 className="text-2xl font-bold mb-8">Checkout</h1>
 
+      {/* Step indicator */}
       <div className="flex items-center gap-0 mb-10">
         {STEPS.map((s, i) => (
           <div key={s.key} className="flex items-center flex-1">
@@ -209,51 +221,96 @@ export default function CheckoutPage() {
                 step === s.key
                   ? "bg-[var(--color-primary)] text-white"
                   : STEPS.findIndex((x) => x.key === step) > i
-                    ? "bg-green-500 text-white"
-                    : "bg-[var(--surface)] text-[var(--muted)] border border-[var(--border)]"
+                  ? "bg-green-500 text-white"
+                  : "bg-[var(--surface)] text-[var(--muted)] border border-[var(--border)]"
               }`}
             >
               {i + 1}
             </div>
             <span className="ml-2 text-sm font-medium hidden sm:block">{s.label}</span>
-            {i < STEPS.length - 1 && <div className="flex-1 h-px bg-[var(--border)] mx-3" />}
+            {i < STEPS.length - 1 && (
+              <div className="flex-1 h-px bg-[var(--border)] mx-3" />
+            )}
           </div>
         ))}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Main form */}
         <div className="lg:col-span-2">
+
+          {/* ── STEP 1: Address ─────────────────────────────── */}
           {step === "address" && (
             <Card>
               <CardContent className="space-y-4">
                 <h2 className="font-semibold">Shipping Address</h2>
+
+                {/* Saved address picker */}
+                {savedAddresses.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wide">Saved Addresses</p>
+                    <div className="space-y-2">
+                      {savedAddresses.map((a) => (
+                        <button
+                          key={a.id}
+                          type="button"
+                          onClick={() => { setSelectedSavedId(a.id); applyAddress(a); }}
+                          className={`w-full text-left p-3 rounded-xl border-2 transition-colors flex items-start gap-3 ${
+                            selectedSavedId === a.id
+                              ? "border-[var(--color-primary)] bg-[var(--brand-50)]"
+                              : "border-[var(--border)] hover:border-[var(--color-primary)]"
+                          }`}
+                        >
+                          <MapPin className="w-4 h-4 mt-0.5 text-[var(--color-primary)] shrink-0" />
+                          <div className="text-sm">
+                            <p className="font-medium">{a.label} — {a.recipientName}</p>
+                            <p className="text-[var(--muted)] text-xs mt-0.5">
+                              {a.addressLine1}, {a.city}, {a.district}
+                            </p>
+                          </div>
+                        </button>
+                      ))}
+                      <button
+                        type="button"
+                        onClick={() => { setSelectedSavedId(null); setAddress(EMPTY_ADDRESS); }}
+                        className={`w-full text-left p-3 rounded-xl border-2 transition-colors text-sm ${
+                          selectedSavedId === null
+                            ? "border-[var(--color-primary)] bg-[var(--brand-50)]"
+                            : "border-[var(--border)] hover:border-[var(--color-primary)]"
+                        }`}
+                      >
+                        + Enter a new address
+                      </button>
+                    </div>
+                    <div className="border-t border-[var(--border)] pt-2" />
+                  </div>
+                )}
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {[
-                    { key: "customerName", label: "Full Name", placeholder: "Sandun Perera", col: 2 },
-                    { key: "customerEmail", label: "Email", placeholder: "you@example.com", col: 2 },
-                    { key: "customerPhone", label: "Phone Number", placeholder: "+94 77 123 4567", col: 2 },
-                    { key: "shippingAddressLine1", label: "Address Line 1", placeholder: "123 Main Street", col: 2 },
-                    { key: "shippingAddressLine2", label: "Address Line 2 (optional)", placeholder: "Apartment, Suite, etc.", col: 2 },
-                    { key: "shippingCity", label: "City", placeholder: "Colombo", col: 1 },
-                    { key: "shippingDistrict", label: "District", placeholder: "Colombo", col: 1 },
-                    { key: "shippingProvince", label: "Province", placeholder: "Western", col: 1 },
-                    { key: "shippingPostalCode", label: "Postal Code", placeholder: "00100", col: 1 },
-                  ].map((field) => (
-                    <div key={field.label} className={field.col === 2 ? "sm:col-span-2" : ""}>
-                      <label className="block text-sm font-medium mb-1">{field.label}</label>
+                  {(
+                    [
+                      { label: "Full Name *", key: "fullName", placeholder: "Sandun Perera", col: 2 },
+                      { label: "Phone Number *", key: "phone", placeholder: "+94 77 123 4567", col: 2 },
+                      { label: "Address Line 1 *", key: "addressLine1", placeholder: "123 Main Street", col: 2 },
+                      { label: "Address Line 2 (optional)", key: "addressLine2", placeholder: "Apartment, Suite, etc.", col: 2 },
+                      { label: "City *", key: "city", placeholder: "Colombo", col: 1 },
+                      { label: "District *", key: "district", placeholder: "Colombo", col: 1 },
+                      { label: "Province", key: "province", placeholder: "Western", col: 1 },
+                      { label: "Postal Code", key: "postalCode", placeholder: "00100", col: 1 },
+                    ] as { label: string; key: keyof AddressForm; placeholder: string; col: 1 | 2 }[]
+                  ).map((f) => (
+                    <div key={f.key} className={f.col === 2 ? "sm:col-span-2" : ""}>
+                      <label className="block text-sm font-medium mb-1">{f.label}</label>
                       <input
-                        type={field.key === "customerEmail" ? "email" : "text"}
-                        placeholder={field.placeholder}
-                        value={form[field.key as keyof typeof form]}
-                        onChange={(e) =>
-                          setForm((prev) => ({ ...prev, [field.key]: e.target.value }))
-                        }
+                        type="text"
+                        placeholder={f.placeholder}
+                        {...field(f.key)}
                         className="w-full h-10 px-3 rounded-lg border border-[var(--border)] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
                       />
                     </div>
                   ))}
                 </div>
 
+                {/* Delivery type */}
                 <div className="pt-2">
                   <h3 className="text-sm font-semibold mb-3">Delivery Type</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -262,18 +319,17 @@ export default function CheckoutPage() {
                         key: "standard" as const,
                         label: "Standard",
                         sub: "1–3 business days",
-                        price: standardLabel,
+                        price: subtotal >= 500000 ? "Free" : "LKR 350",
                       },
                       {
                         key: "express" as const,
                         label: "Express",
                         sub: "Same / next day",
-                        price: expressLabel,
+                        price: "LKR 750",
                       },
                     ].map((opt) => (
                       <button
                         key={opt.key}
-                        type="button"
                         onClick={() => setDelivery(opt.key)}
                         className={`text-left p-3 rounded-xl border-2 transition-colors ${
                           delivery === opt.key
@@ -289,19 +345,13 @@ export default function CheckoutPage() {
                       </button>
                     ))}
                   </div>
-                  {rates ? (
-                    <p className="text-xs text-[var(--muted)] mt-2">
-                      Standard shipping is free when your items subtotal is at least{" "}
-                      {formatPrice(rates.freeShippingMinSubtotal)} (before shipping).
-                    </p>
-                  ) : null}
                 </div>
 
                 <Button
                   size="lg"
                   className="w-full"
+                  disabled={!validateAddress()}
                   onClick={() => setStep("payment")}
-                  disabled={!isAddressValid}
                 >
                   Continue to Payment <ChevronRight className="w-4 h-4" />
                 </Button>
@@ -309,6 +359,7 @@ export default function CheckoutPage() {
             </Card>
           )}
 
+          {/* ── STEP 2: Payment ─────────────────────────────── */}
           {step === "payment" && (
             <Card>
               <CardContent className="space-y-5">
@@ -316,7 +367,6 @@ export default function CheckoutPage() {
 
                 <div className="space-y-3">
                   <button
-                    type="button"
                     onClick={() => setPaymentMethod("stripe")}
                     className={`w-full text-left p-4 rounded-xl border-2 transition-colors flex items-start gap-3 ${
                       paymentMethod === "stripe"
@@ -327,12 +377,13 @@ export default function CheckoutPage() {
                     <CreditCard className="w-5 h-5 mt-0.5 text-[var(--color-primary)] shrink-0" />
                     <div>
                       <p className="font-medium text-sm">Credit / Debit Card</p>
-                      <p className="text-xs text-[var(--muted)]">Secured by Stripe — you will redirect to pay</p>
+                      <p className="text-xs text-[var(--muted)]">
+                        Visa, Mastercard, Amex — you'll be redirected to Stripe's secure checkout
+                      </p>
                     </div>
                   </button>
 
                   <button
-                    type="button"
                     onClick={() => setPaymentMethod("bank_transfer")}
                     className={`w-full text-left p-4 rounded-xl border-2 transition-colors flex items-start gap-3 ${
                       paymentMethod === "bank_transfer"
@@ -344,81 +395,24 @@ export default function CheckoutPage() {
                     <div>
                       <p className="font-medium text-sm">Bank Deposit / Transfer</p>
                       <p className="text-xs text-[var(--muted)]">
-                        Transfer the order total and enter the details below
+                        Pay via bank transfer — order confirmed within 24 hours of verification
                       </p>
                     </div>
                   </button>
                 </div>
 
-                {paymentMethod === "stripe" && (
-                  <div className="p-4 bg-[var(--surface)] rounded-xl text-sm text-[var(--muted)]">
-                    After you review your order, you will be taken to Stripe Checkout to complete
-                    payment for <strong>{formatPrice(total)}</strong> (items + shipping shown in the
-                    summary).
-                  </div>
-                )}
-
                 {paymentMethod === "bank_transfer" && (
-                  <div className="space-y-4">
-                    <div className="p-4 bg-amber-50 rounded-xl border border-amber-200 text-sm space-y-2">
-                      <p className="font-semibold">Bank Account Details</p>
-                      <div className="space-y-1 text-xs text-amber-900">
-                        <p>
-                          Bank: <strong>Commercial Bank of Ceylon</strong>
-                        </p>
-                        <p>
-                          Account Name: <strong>iCrowed (Pvt) Ltd</strong>
-                        </p>
-                        <p>
-                          Account Number: <strong>8002-XXXXXXXX</strong>
-                        </p>
-                        <p>
-                          Branch: <strong>Colombo 03</strong>
-                        </p>
-                      </div>
-                      <p className="text-xs text-amber-700 font-medium">
-                        Amount to transfer: {formatPrice(total)}
-                      </p>
+                  <div className="p-4 bg-amber-50 rounded-xl border border-amber-200 text-sm space-y-2">
+                    <p className="font-semibold">Bank Account Details</p>
+                    <div className="space-y-1 text-xs text-amber-900">
+                      <p>Bank: <strong>Commercial Bank of Ceylon</strong></p>
+                      <p>Account Name: <strong>iCrowed (Pvt) Ltd</strong></p>
+                      <p>Account Number: <strong>8002-XXXXXXXX</strong></p>
+                      <p>Branch: <strong>Colombo 03</strong></p>
                     </div>
-
-                    <div className="space-y-3">
-                      <div>
-                        <label className="block text-sm font-medium mb-1">
-                          Transfer / deposit reference <span className="text-red-600">*</span>
-                        </label>
-                        <input
-                          className="w-full h-10 px-3 rounded-lg border border-[var(--border)] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-                          placeholder="e.g. transaction ref, slip number"
-                          value={form.bankTransferReference}
-                          onChange={(e) =>
-                            setForm((p) => ({ ...p, bankTransferReference: e.target.value }))
-                          }
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-1">Name on bank account (optional)</label>
-                        <input
-                          className="w-full h-10 px-3 rounded-lg border border-[var(--border)] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-                          placeholder="As shown on your transfer"
-                          value={form.bankTransferPayerName}
-                          onChange={(e) =>
-                            setForm((p) => ({ ...p, bankTransferPayerName: e.target.value }))
-                          }
-                        />
-                      </div>
-                      <div>
-                        <label className="block text-sm font-medium mb-1">Deposit slip link (optional)</label>
-                        <input
-                          type="url"
-                          className="w-full h-10 px-3 rounded-lg border border-[var(--border)] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-                          placeholder="https://… (e.g. cloud link to your slip image)"
-                          value={form.bankTransferProofUrl}
-                          onChange={(e) =>
-                            setForm((p) => ({ ...p, bankTransferProofUrl: e.target.value }))
-                          }
-                        />
-                      </div>
-                    </div>
+                    <p className="text-xs text-amber-700">
+                      After placing your order, note your order number and use it as the transfer reference.
+                    </p>
                   </div>
                 )}
 
@@ -426,11 +420,7 @@ export default function CheckoutPage() {
                   <Button variant="outline" className="flex-1" onClick={() => setStep("address")}>
                     Back
                   </Button>
-                  <Button
-                    className="flex-1"
-                    onClick={() => setStep("review")}
-                    disabled={paymentMethod === "bank_transfer" && !form.bankTransferReference.trim()}
-                  >
+                  <Button className="flex-1" onClick={() => setStep("review")}>
                     Review Order <ChevronRight className="w-4 h-4" />
                   </Button>
                 </div>
@@ -438,11 +428,28 @@ export default function CheckoutPage() {
             </Card>
           )}
 
+          {/* ── STEP 3: Review ──────────────────────────────── */}
           {step === "review" && (
             <Card>
               <CardContent className="space-y-5">
                 <h2 className="font-semibold">Review & Place Order</h2>
 
+                {/* Address summary */}
+                <div className="p-3 bg-[var(--surface)] rounded-xl text-sm space-y-0.5">
+                  <p className="font-medium">{address.fullName}</p>
+                  <p className="text-[var(--muted)]">{address.phone}</p>
+                  <p className="text-[var(--muted)]">
+                    {address.addressLine1}
+                    {address.addressLine2 ? `, ${address.addressLine2}` : ""}
+                  </p>
+                  <p className="text-[var(--muted)]">
+                    {address.city}, {address.district}
+                    {address.province ? `, ${address.province}` : ""}
+                    {address.postalCode ? ` ${address.postalCode}` : ""}
+                  </p>
+                </div>
+
+                {/* Items */}
                 <div className="divide-y divide-[var(--border)]">
                   {items.map((item) => (
                     <div key={item.id} className="flex justify-between py-3 text-sm">
@@ -458,32 +465,23 @@ export default function CheckoutPage() {
                   ))}
                 </div>
 
-                <div className="rounded-xl border border-[var(--border)] bg-[var(--surface)] p-4 text-sm space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-[var(--muted)]">Items subtotal</span>
-                    <span className="font-medium">{formatPrice(subtotal)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-[var(--muted)]">Shipping ({delivery})</span>
-                    <span className="font-medium">
-                      {shippingFee === 0 ? (
-                        <span className="text-green-600">Free</span>
-                      ) : (
-                        formatPrice(shippingFee)
-                      )}
-                    </span>
-                  </div>
-                  <div className="flex justify-between border-t border-[var(--border)] pt-2 font-bold">
-                    <span>Total due</span>
-                    <span>{formatPrice(total)}</span>
-                  </div>
-                  <div className="flex justify-between text-[var(--muted)] text-xs pt-1">
-                    <span>Payment</span>
-                    <Badge variant={paymentMethod === "stripe" ? "primary" : "warning"}>
-                      {paymentMethod === "stripe" ? "Card (Stripe)" : "Bank transfer"}
-                    </Badge>
-                  </div>
+                {/* Customer note */}
+                <div>
+                  <label className="block text-sm font-medium mb-1">Order Note (optional)</label>
+                  <textarea
+                    rows={2}
+                    placeholder="Any special instructions..."
+                    value={customerNote}
+                    onChange={(e) => setCustomerNote(e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] resize-none"
+                  />
                 </div>
+
+                {error && (
+                  <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+                    {error}
+                  </p>
+                )}
 
                 <div className="flex gap-3">
                   <Button variant="outline" className="flex-1" onClick={() => setStep("payment")}>
@@ -492,10 +490,11 @@ export default function CheckoutPage() {
                   <Button
                     className="flex-1"
                     loading={loading}
-                    disabled={items.length === 0 || !bankRefOk}
-                    onClick={placeOrder}
+                    onClick={handlePlaceOrder}
                   >
-                    Place Order — {formatPrice(total)}
+                    {paymentMethod === "stripe"
+                      ? `Pay with Card — ${formatPrice(total)}`
+                      : `Place Order — ${formatPrice(total)}`}
                   </Button>
                 </div>
               </CardContent>
@@ -503,9 +502,20 @@ export default function CheckoutPage() {
           )}
         </div>
 
+        {/* Order summary sidebar */}
         <Card className="self-start sticky top-24">
           <CardContent className="space-y-3">
             <h2 className="font-semibold">Summary</h2>
+            {coupon && (
+              <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-green-50 border border-green-200 text-xs">
+                <span className="text-green-700 font-medium flex items-center gap-1">
+                  <Tag className="w-3 h-3" />{coupon.message}
+                </span>
+                <button onClick={removeCoupon} className="text-green-600 hover:text-green-800 ml-2">
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            )}
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-[var(--muted)]">Items ({items.length})</span>
@@ -527,6 +537,14 @@ export default function CheckoutPage() {
                   {paymentMethod === "stripe" ? "Card" : "Bank Transfer"}
                 </Badge>
               </div>
+              {coupon && (
+                <div className="flex justify-between text-green-600">
+                  <span className="flex items-center gap-1 text-xs">
+                    <Tag className="w-3 h-3" />{coupon.code}
+                  </span>
+                  <span>− {formatPrice(coupon.discount)}</span>
+                </div>
+              )}
               <div className="border-t border-[var(--border)] pt-2 flex justify-between font-bold">
                 <span>Total</span>
                 <span>{formatPrice(total)}</span>
