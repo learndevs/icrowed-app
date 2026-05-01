@@ -106,11 +106,17 @@ const STORAGE_KEY = "icrowed_cart";
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [state, dispatch] = useReducer(cartReducer, { items: [], coupon: null });
+  const logDebug = (event: string, details?: Record<string, unknown>) => {
+    if (process.env.NODE_ENV !== "production") {
+      console.info(`[CartContext] ${event}`, details ?? {});
+    }
+  };
 
   useEffect(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
+        logDebug("hydrate_from_storage", { rawLength: stored.length });
         dispatch({ type: "HYDRATE", payload: JSON.parse(stored) });
       }
     } catch {
@@ -121,6 +127,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      logDebug("persist_state", {
+        itemCount: state.items.length,
+        coupon: state.coupon?.code ?? null,
+      });
     } catch {
       // ignore
     }
@@ -158,7 +168,14 @@ export function CartProvider({ children }: { children: ReactNode }) {
         itemCount,
         subtotal,
         coupon: state.coupon,
-        addItem: (item) => dispatch({ type: "ADD_ITEM", payload: item }),
+        addItem: (item) => {
+          logDebug("add_item_called", {
+            productId: item.productId,
+            variantId: item.variantId ?? null,
+            quantity: item.quantity ?? 1,
+          });
+          dispatch({ type: "ADD_ITEM", payload: item });
+        },
         removeItem: (id) => dispatch({ type: "REMOVE_ITEM", payload: { id } }),
         updateQuantity: (id, quantity) =>
           dispatch({ type: "UPDATE_QUANTITY", payload: { id, quantity } }),

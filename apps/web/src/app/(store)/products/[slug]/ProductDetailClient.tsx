@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Heart, ShoppingCart, Zap, AlertTriangle, PackageX } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
+import { useRouter } from "next/navigation";
 
 interface Variant {
   id: string;
@@ -67,21 +68,90 @@ function BaseStockIndicator({ stock }: Readonly<{ stock: number }>) {
 export function ProductDetailClient({ product }: Readonly<Props>) {
   const { addItem } = useCart();
   const { isWishlisted, toggle: toggleWishlist } = useWishlist();
+  const router = useRouter();
   const [selectedVariant, setSelectedVariant] = useState<Variant | null>(
-    product.variants.find((v) => v.stock > 0) ?? null
+    product.variants.find((v) => Number(v.stock) > 0) ?? product.variants[0] ?? null
   );
   const [added, setAdded] = useState(false);
 
   const displayPrice = selectedVariant?.price ?? product.price;
-  const outOfStock   = selectedVariant ? selectedVariant.stock === 0 : product.stock === 0;
+  const outOfStock =
+    product.variants.length > 0
+      ? !selectedVariant || Number(selectedVariant.stock) <= 0
+      : Number(product.stock) <= 0;
   const fmt = (p: number) => "LKR " + p.toLocaleString("en-LK");
 
   const discount = product.comparePrice
     ? Math.round((1 - displayPrice / product.comparePrice) * 100)
     : null;
+  const logDebug = (event: string, details?: Record<string, unknown>) => {
+    if (process.env.NODE_ENV !== "production") {
+      console.info(`[ProductDetailClient] ${event}`, details ?? {});
+    }
+  };
+
+  useEffect(() => {
+    logDebug("state_update", {
+      productId: product.id,
+      productStock: product.stock,
+      variantsCount: product.variants.length,
+      selectedVariantId: selectedVariant?.id ?? null,
+      selectedVariantStock: selectedVariant?.stock ?? null,
+      outOfStock,
+    });
+  }, [product.id, product.stock, product.variants.length, selectedVariant, outOfStock]);
 
   function handleAddToCart() {
-    if (outOfStock) return;
+    logDebug("add_to_cart_click", {
+      productId: product.id,
+      variantId: selectedVariant?.id ?? null,
+      outOfStock,
+      hasVariants: product.variants.length > 0,
+    });
+    if (outOfStock) {
+      logDebug("add_to_cart_blocked_out_of_stock");
+      return;
+    }
+    if (product.variants.length > 0 && !selectedVariant) {
+      logDebug("add_to_cart_blocked_no_variant_selected");
+      return;
+    }
+
+    const payload = {
+      id: selectedVariant?.id ?? product.id,
+      productId: product.id,
+      variantId: selectedVariant?.id,
+      name: product.name,
+      variantName: selectedVariant?.name,
+      price: displayPrice,
+      sku: selectedVariant?.sku ?? undefined,
+      imageUrl: product.primaryImageUrl ?? undefined,
+    };
+    logDebug("add_to_cart_dispatch", payload);
+    addItem({
+      ...payload,
+    });
+    setAdded(true);
+    setTimeout(() => setAdded(false), 1800);
+    logDebug("add_to_cart_done");
+  }
+
+  function handleBuyNow() {
+    logDebug("buy_now_click", {
+      productId: product.id,
+      variantId: selectedVariant?.id ?? null,
+      outOfStock,
+      hasVariants: product.variants.length > 0,
+    });
+    if (outOfStock) {
+      logDebug("buy_now_blocked_out_of_stock");
+      return;
+    }
+    if (product.variants.length > 0 && !selectedVariant) {
+      logDebug("buy_now_blocked_no_variant_selected");
+      return;
+    }
+
     addItem({
       id: selectedVariant?.id ?? product.id,
       productId: product.id,
@@ -92,8 +162,9 @@ export function ProductDetailClient({ product }: Readonly<Props>) {
       sku: selectedVariant?.sku ?? undefined,
       imageUrl: product.primaryImageUrl ?? undefined,
     });
-    setAdded(true);
-    setTimeout(() => setAdded(false), 1800);
+
+    logDebug("buy_now_navigate", { path: "/cart" });
+    router.push("/cart");
   }
 
   return (
@@ -106,7 +177,7 @@ export function ProductDetailClient({ product }: Readonly<Props>) {
         )}
         {!!discount && discount > 0 && (
           <span className="text-sm font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg">
-            Save {fmt(product.comparePrice - displayPrice)}
+            Save {fmt((product.comparePrice ?? displayPrice) - displayPrice)}
           </span>
         )}
       </div>
@@ -129,6 +200,7 @@ export function ProductDetailClient({ product }: Readonly<Props>) {
               return (
                 <button
                   key={v.id}
+                  type="button"
                   onClick={() => !soldOut && setSelectedVariant(v)}
                   disabled={soldOut}
                   className={`relative px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all duration-150 ${
@@ -165,6 +237,7 @@ export function ProductDetailClient({ product }: Readonly<Props>) {
       {/* CTA buttons */}
       <div className="flex gap-3">
         <button
+          type="button"
           onClick={handleAddToCart}
           disabled={outOfStock}
           className={`flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl text-sm font-bold transition-all duration-200 ${
@@ -180,6 +253,8 @@ export function ProductDetailClient({ product }: Readonly<Props>) {
         </button>
 
         <button
+          type="button"
+          onClick={handleBuyNow}
           disabled={outOfStock}
           className="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl text-sm font-bold border-2 border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed active:scale-[0.97] transition-all duration-200"
         >
@@ -188,6 +263,7 @@ export function ProductDetailClient({ product }: Readonly<Props>) {
         </button>
 
         <button
+          type="button"
           onClick={() => toggleWishlist(product.id)}
           className={`w-12 h-12 rounded-2xl flex items-center justify-center border-2 transition-all duration-200 active:scale-[0.97] ${
             isWishlisted(product.id)
@@ -199,6 +275,11 @@ export function ProductDetailClient({ product }: Readonly<Props>) {
           <Heart className={`w-5 h-5 ${isWishlisted(product.id) ? "fill-rose-500" : ""}`} />
         </button>
       </div>
+      {outOfStock && (
+        <p className="text-xs text-rose-600 font-semibold">
+          Action blocked: selected item is out of stock.
+        </p>
+      )}
     </div>
   );
 }

@@ -55,7 +55,7 @@ export default function CheckoutPage() {
 
   const [step, setStep] = useState<"address" | "payment" | "review">("address");
   const [address, setAddress] = useState<AddressForm>(EMPTY_ADDRESS);
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("payhere");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("bank_transfer");
   const [delivery, setDelivery] = useState<DeliveryType>("standard");
   const [customerNote, setCustomerNote] = useState("");
   const [loading, setLoading] = useState(false);

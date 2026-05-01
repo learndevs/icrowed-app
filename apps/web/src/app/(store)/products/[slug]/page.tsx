@@ -107,16 +107,18 @@ export default async function ProductDetailPage({ params }: Props) {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
 
           {/* Left: images */}
-          <ProductImages
-            images={product.images}
-            productName={product.name}
-            gradient={product.gradient}
-            discount={baseDiscount}
-            brand={product.brand}
-          />
+          <div className="relative z-0">
+            <ProductImages
+              images={product.images}
+              productName={product.name}
+              gradient={product.gradient}
+              discount={baseDiscount}
+              brand={product.brand}
+            />
+          </div>
 
           {/* Right: product info */}
-          <div className="bento-card p-5 sm:p-7 flex flex-col gap-5">
+          <div className="bento-card relative z-10 p-5 sm:p-7 flex flex-col gap-5">
 
             {/* Brand + category */}
             <div className="flex items-center gap-2">

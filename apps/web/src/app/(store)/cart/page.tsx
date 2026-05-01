@@ -16,19 +16,34 @@ export default function CartPage() {
   const [couponError, setCouponError]   = useState<string | null>(null);
   // productId → live stock from API
   const [stockMap, setStockMap] = useState<Record<string, number>>({});
+  // variantId → live variant stock from API
+  const [variantStockMap, setVariantStockMap] = useState<Record<string, number>>({});
 
   // Fetch live stock for all cart items on mount and when items change
   useEffect(() => {
     const ids = [...new Set(items.map((i) => i.productId))];
-    if (ids.length === 0) return;
-    fetch(`/api/products/batch?ids=${ids.join(",")}`)
+    const variantIds = [...new Set(items.map((i) => i.variantId).filter(Boolean) as string[])];
+    if (ids.length === 0 && variantIds.length === 0) return;
+    const params = new URLSearchParams();
+    if (ids.length > 0) params.set("ids", ids.join(","));
+    if (variantIds.length > 0) params.set("variantIds", variantIds.join(","));
+    fetch(`/api/products/batch?${params.toString()}`)
       .then((r) => r.ok ? r.json() : { products: [] })
-      .then(({ products }: { products: { id: string; stock: number }[] }) => {
-        const map: Record<string, number> = {};
-        for (const p of products) map[p.id] = p.stock;
-        setStockMap(map);
+      .then(({ products, variants }: {
+        products: { id: string; stock: number }[];
+        variants?: { id: string; stock: number }[];
+      }) => {
+        const productMap: Record<string, number> = {};
+        for (const p of products) productMap[p.id] = p.stock;
+        setStockMap(productMap);
+
+        const vMap: Record<string, number> = {};
+        for (const v of variants ?? []) vMap[v.id] = v.stock;
+        setVariantStockMap(vMap);
       })
-      .catch(() => {/* leave stockMap empty — assume in-stock on error */});
+      .catch(() => {
+        // leave maps empty — assume in-stock on error
+      });
   }, [items]);
 
   async function handleApplyCoupon() {
@@ -62,7 +77,7 @@ export default function CartPage() {
 
   // Items whose stock has dropped below the quantity in cart
   const oosItems = items.filter((item) => {
-    const live = stockMap[item.productId];
+    const live = item.variantId ? variantStockMap[item.variantId] : stockMap[item.productId];
     return live !== undefined && live < item.quantity;
   });
   const hasOOS = oosItems.length > 0;
@@ -88,7 +103,7 @@ export default function CartPage() {
         {/* Items */}
         <div className="lg:col-span-2 space-y-4">
           {items.map((item) => {
-            const liveStock  = stockMap[item.productId];
+            const liveStock  = item.variantId ? variantStockMap[item.variantId] : stockMap[item.productId];
             const itemOOS    = liveStock !== undefined && liveStock === 0;
             const itemOverQty = liveStock !== undefined && liveStock > 0 && liveStock < item.quantity;
             return (
