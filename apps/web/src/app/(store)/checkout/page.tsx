@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/context/CartContext";
 import { createClient } from "@/lib/supabase/client";
@@ -8,9 +8,9 @@ import { formatPrice } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import { CreditCard, Building2, ChevronRight, Tag, X, MapPin } from "lucide-react";
+import { CreditCard, Building2, Truck, ChevronRight, Tag, X, MapPin } from "lucide-react";
 
-type PaymentMethod = "stripe" | "bank_transfer";
+type PaymentMethod = "payhere" | "bank_transfer" | "cash_on_delivery";
 type DeliveryType = "standard" | "express";
 
 interface AddressForm {
@@ -55,7 +55,7 @@ export default function CheckoutPage() {
 
   const [step, setStep] = useState<"address" | "payment" | "review">("address");
   const [address, setAddress] = useState<AddressForm>(EMPTY_ADDRESS);
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("stripe");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("payhere");
   const [delivery, setDelivery] = useState<DeliveryType>("standard");
   const [customerNote, setCustomerNote] = useState("");
   const [loading, setLoading] = useState(false);
@@ -63,14 +63,25 @@ export default function CheckoutPage() {
   const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);
   const [selectedSavedId, setSelectedSavedId] = useState<string | null>(null);
 
-  // Load saved addresses on mount (silently — guests just see no options)
+  // Hidden form ref for PayHere redirect
+  const payhereFormRef = useRef<HTMLFormElement>(null);
+  const [payhereParams, setPayhereParams] = useState<Record<string, string> | null>(null);
+  const [payhereUrl, setPayhereUrl] = useState<string>("");
+
+  // Auto-submit PayHere form once params are set
+  useEffect(() => {
+    if (payhereParams && payhereFormRef.current) {
+      payhereFormRef.current.submit();
+    }
+  }, [payhereParams]);
+
+  // Load saved addresses on mount
   useEffect(() => {
     fetch("/api/addresses")
       .then(async (res) => {
         if (!res.ok) return;
         const data: SavedAddress[] = await res.json();
         setSavedAddresses(data);
-        // Auto-select default address
         const def = data.find((a) => a.isDefault) ?? data[0];
         if (def) {
           setSelectedSavedId(def.id);
@@ -131,7 +142,7 @@ export default function CheckoutPage() {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
 
-      // 1. Create the order in DB first (always, both payment methods)
+      // Create order in DB
       const orderRes = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -171,33 +182,40 @@ export default function CheckoutPage() {
 
       const { orderNumber } = await orderRes.json();
 
-      // 2. Route by payment method
-      if (paymentMethod === "stripe") {
-        const sessionRes = await fetch("/api/stripe/checkout", {
+      if (paymentMethod === "payhere") {
+        // Get PayHere form params from server (hash computed server-side)
+        const initiateRes = await fetch("/api/payhere/initiate", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             orderNumber,
-            items: items.map((i) => ({
-              name: i.variantName ? `${i.name} — ${i.variantName}` : i.name,
-              price: i.price,
-              quantity: i.quantity,
-              imageUrl: i.imageUrl,
-            })),
+            total,
+            customerName: address.fullName,
+            customerEmail: user?.email ?? "",
+            customerPhone: address.phone,
+            address: address.addressLine1,
+            city: address.city,
           }),
         });
 
-        if (!sessionRes.ok) {
-          const data = await sessionRes.json();
-          throw new Error(data.error ?? "Failed to create payment session");
+        if (!initiateRes.ok) {
+          const data = await initiateRes.json();
+          throw new Error(data.error ?? "Failed to initiate PayHere payment");
         }
 
-        const { url } = await sessionRes.json();
+        const { checkoutUrl, params } = await initiateRes.json();
         clearCart();
         removeCoupon();
-        window.location.href = url;
+        setPayhereUrl(checkoutUrl);
+        setPayhereParams(params); // triggers useEffect → form.submit()
+
+      } else if (paymentMethod === "cash_on_delivery") {
+        clearCart();
+        removeCoupon();
+        router.push(`/checkout/success?orderNumber=${orderNumber}&method=cod`);
+
       } else {
-        // bank transfer — go straight to success page
+        // bank_transfer
         clearCart();
         removeCoupon();
         router.push(`/checkout/success?orderNumber=${orderNumber}&method=bank`);
@@ -208,9 +226,30 @@ export default function CheckoutPage() {
     }
   }
 
+  const paymentBadgeLabel: Record<PaymentMethod, string> = {
+    payhere: "Card / Online",
+    bank_transfer: "Bank Transfer",
+    cash_on_delivery: "Cash on Delivery",
+  };
+
+  const placeBtnLabel = () => {
+    if (paymentMethod === "payhere") return `Pay with Card — ${formatPrice(total)}`;
+    if (paymentMethod === "cash_on_delivery") return `Place Order (COD) — ${formatPrice(total)}`;
+    return `Place Order — ${formatPrice(total)}`;
+  };
+
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       <h1 className="text-2xl font-bold mb-8">Checkout</h1>
+
+      {/* Hidden PayHere form — auto-submitted via useEffect */}
+      {payhereParams && (
+        <form ref={payhereFormRef} method="post" action={payhereUrl} style={{ display: "none" }}>
+          {Object.entries(payhereParams).map(([key, value]) => (
+            <input key={key} type="hidden" name={key} value={value} />
+          ))}
+        </form>
+      )}
 
       {/* Step indicator */}
       <div className="flex items-center gap-0 mb-10">
@@ -245,7 +284,6 @@ export default function CheckoutPage() {
               <CardContent className="space-y-4">
                 <h2 className="font-semibold">Shipping Address</h2>
 
-                {/* Saved address picker */}
                 {savedAddresses.length > 0 && (
                   <div className="space-y-2">
                     <p className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wide">Saved Addresses</p>
@@ -285,6 +323,7 @@ export default function CheckoutPage() {
                     <div className="border-t border-[var(--border)] pt-2" />
                   </div>
                 )}
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {(
                     [
@@ -366,23 +405,25 @@ export default function CheckoutPage() {
                 <h2 className="font-semibold">Payment Method</h2>
 
                 <div className="space-y-3">
+                  {/* PayHere — Card / Online */}
                   <button
-                    onClick={() => setPaymentMethod("stripe")}
+                    onClick={() => setPaymentMethod("payhere")}
                     className={`w-full text-left p-4 rounded-xl border-2 transition-colors flex items-start gap-3 ${
-                      paymentMethod === "stripe"
+                      paymentMethod === "payhere"
                         ? "border-[var(--color-primary)] bg-[var(--brand-50)]"
                         : "border-[var(--border)]"
                     }`}
                   >
                     <CreditCard className="w-5 h-5 mt-0.5 text-[var(--color-primary)] shrink-0" />
                     <div>
-                      <p className="font-medium text-sm">Credit / Debit Card</p>
+                      <p className="font-medium text-sm">Card / Online Payment</p>
                       <p className="text-xs text-[var(--muted)]">
-                        Visa, Mastercard, Amex — you'll be redirected to Stripe's secure checkout
+                        Visa, Mastercard, and more — powered by PayHere secure checkout
                       </p>
                     </div>
                   </button>
 
+                  {/* Bank Transfer */}
                   <button
                     onClick={() => setPaymentMethod("bank_transfer")}
                     className={`w-full text-left p-4 rounded-xl border-2 transition-colors flex items-start gap-3 ${
@@ -399,8 +440,27 @@ export default function CheckoutPage() {
                       </p>
                     </div>
                   </button>
+
+                  {/* Cash on Delivery */}
+                  <button
+                    onClick={() => setPaymentMethod("cash_on_delivery")}
+                    className={`w-full text-left p-4 rounded-xl border-2 transition-colors flex items-start gap-3 ${
+                      paymentMethod === "cash_on_delivery"
+                        ? "border-[var(--color-primary)] bg-[var(--brand-50)]"
+                        : "border-[var(--border)]"
+                    }`}
+                  >
+                    <Truck className="w-5 h-5 mt-0.5 text-[var(--color-primary)] shrink-0" />
+                    <div>
+                      <p className="font-medium text-sm">Cash on Delivery</p>
+                      <p className="text-xs text-[var(--muted)]">
+                        Pay in cash when your order arrives — available for selected areas
+                      </p>
+                    </div>
+                  </button>
                 </div>
 
+                {/* Bank transfer details */}
                 {paymentMethod === "bank_transfer" && (
                   <div className="p-4 bg-amber-50 rounded-xl border border-amber-200 text-sm space-y-2">
                     <p className="font-semibold">Bank Account Details</p>
@@ -412,6 +472,16 @@ export default function CheckoutPage() {
                     </div>
                     <p className="text-xs text-amber-700">
                       After placing your order, note your order number and use it as the transfer reference.
+                    </p>
+                  </div>
+                )}
+
+                {/* COD notice */}
+                {paymentMethod === "cash_on_delivery" && (
+                  <div className="p-4 bg-blue-50 rounded-xl border border-blue-200 text-sm space-y-1">
+                    <p className="font-semibold text-blue-900">Cash on Delivery</p>
+                    <p className="text-xs text-blue-800">
+                      Have the exact amount ready when our delivery partner arrives. A confirmation call may be made before dispatch.
                     </p>
                   </div>
                 )}
@@ -492,9 +562,7 @@ export default function CheckoutPage() {
                     loading={loading}
                     onClick={handlePlaceOrder}
                   >
-                    {paymentMethod === "stripe"
-                      ? `Pay with Card — ${formatPrice(total)}`
-                      : `Place Order — ${formatPrice(total)}`}
+                    {placeBtnLabel()}
                   </Button>
                 </div>
               </CardContent>
@@ -533,8 +601,8 @@ export default function CheckoutPage() {
               </div>
               <div className="flex justify-between text-[var(--muted)]">
                 <span>Payment</span>
-                <Badge variant={paymentMethod === "stripe" ? "primary" : "warning"}>
-                  {paymentMethod === "stripe" ? "Card" : "Bank Transfer"}
+                <Badge variant={paymentMethod === "payhere" ? "primary" : "warning"}>
+                  {paymentBadgeLabel[paymentMethod]}
                 </Badge>
               </div>
               {coupon && (
