@@ -17,6 +17,7 @@ import {
   RefreshCw,
 } from "lucide-react";
 import { PhoneMockup } from "@/components/home/PhoneMockup";
+import { DjiSpotlightCard } from "@/components/home/DjiSpotlightCard";
 import { getProducts } from "@icrowed/database/queries";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -62,14 +63,6 @@ const OFFERS = [
   { id: "3", title: "Free Delivery", desc: "Free island-wide delivery this weekend", badge: "Weekend", gradient: "from-teal-500 to-cyan-500", link: "/offers" },
 ];
 
-const PHONE_COLORS = [
-  { label: "Midnight", color: "#1a1a2e" },
-  { label: "Silver", color: "#c0c0c0" },
-  { label: "Gold", color: "#d4a843" },
-  { label: "Rose", color: "#e8849a" },
-  { label: "Blue", color: "#4a90d9" },
-];
-
 const CATEGORIES = [
   { name: "Smartphones", Icon: Smartphone,  href: "/products?category=smartphones", count: "200+", circle: "bg-sky-400",    text: "text-sky-600",    cardBg: "bg-sky-50",    border: "border-sky-200" },
   { name: "Cases",       Icon: Shield,      href: "/products?category=cases",       count: "500+", circle: "bg-teal-400",   text: "text-teal-600",   cardBg: "bg-teal-50",   border: "border-teal-200" },
@@ -91,7 +84,6 @@ export default async function HomePage() {
     : [] as ReturnType<typeof mapFeatured>[];
 
   const newArrival = FEATURED_PRODUCTS[0];
-  const popularPick = FEATURED_PRODUCTS[1] ?? FEATURED_PRODUCTS[0];
 
   return (
     <div className="bento-bg">
@@ -161,25 +153,8 @@ export default async function HomePage() {
             </div>
           </div>
 
-          {/* ── 2. POPULAR COLORS CARD ──────────────────────── lg:col-span-2 */}
-          <div className="bento-card lg:col-span-2 p-5 sm:p-6">
-            <p className="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-3">Popular Colors</p>
-            <div className="flex items-center gap-3 flex-wrap mb-5">
-              {PHONE_COLORS.map((c) => (
-                <button
-                  key={c.label}
-                  title={c.label}
-                  className="w-8 h-8 rounded-full border-2 border-white shadow-md hover:scale-110 transition-transform duration-150 cursor-pointer"
-                  style={{ background: c.color, boxShadow: `0 2px 8px ${c.color}60` }}
-                />
-              ))}
-            </div>
-            <div className="rounded-2xl overflow-hidden bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center" style={{ minHeight: 120 }}>
-              <div className="animate-float-slow">
-                <PhoneMockup gradient="from-gray-600 to-gray-900" />
-              </div>
-            </div>
-          </div>
+          {/* ── 2. DJI SPOTLIGHT ─────────────────────────────── lg:col-span-2 */}
+          <DjiSpotlightCard />
 
           {/* ── 3. NEW ARRIVAL CARD ──────────────────────────── lg:col-span-2 */}
           <div className="bento-card lg:col-span-2 p-5 sm:p-6 flex flex-col justify-between">
@@ -263,34 +238,6 @@ export default async function HomePage() {
               <TrendingUp className="w-4 h-4 text-lime-300" />
               <span className="text-xs text-indigo-100 font-medium">+34% growth this month</span>
             </div>
-          </div>
-
-          {/* ── 6. POPULAR PRODUCT CARD ──────────────────────── lg:col-span-2 */}
-          <div className="bento-card lg:col-span-2 p-5 sm:p-6 flex flex-col justify-between">
-            {popularPick ? (
-              <>
-                <div>
-                  <span className="inline-flex items-center gap-1 text-[10px] font-bold tracking-widest text-rose-600 uppercase bg-rose-50 px-2.5 py-1 rounded-full border border-rose-100">
-                    ❤️ Popular
-                  </span>
-                  <div className={`mt-3 flex justify-center py-2 animate-float-slow`}>
-                    <div className={`w-20 h-20 rounded-[1.5rem] bg-gradient-to-br ${popularPick.color} flex items-center justify-center shadow-lg overflow-hidden`}>
-                      {popularPick.imageUrl ? (
-                        <Image src={popularPick.imageUrl} alt={popularPick.name} width={80} height={80} className="object-contain" />
-                      ) : (
-                        <Smartphone className="w-9 h-9 text-white/80" />
-                      )}
-                    </div>
-                  </div>
-                  <h3 className="font-black text-gray-900 text-base mt-3 line-clamp-2">{popularPick.name}</h3>
-                  {popularPick.brand && <p className="text-gray-400 text-xs mt-0.5">{popularPick.brand}</p>}
-                </div>
-                <div className="flex items-center justify-between mt-4">
-                  <span className="font-black text-gray-900">{formatPrice(popularPick.price)}</span>
-                  <Link href={`/products/${popularPick.slug}`} className="text-xs font-semibold text-indigo-600 hover:underline">View →</Link>
-                </div>
-              </>
-            ) : null}
           </div>
 
         </div>
