@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { PhoneMockup } from "@/components/home/PhoneMockup";
 import { DjiSpotlightCard } from "@/components/home/DjiSpotlightCard";
+import { AnkerSpotlightCard } from "@/components/home/AnkerSpotlightCard";
 import { getProducts } from "@icrowed/database/queries";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -82,8 +83,6 @@ export default async function HomePage() {
   const FEATURED_PRODUCTS = dbFeatured.length
     ? dbFeatured.map(mapFeatured)
     : [] as ReturnType<typeof mapFeatured>[];
-
-  const newArrival = FEATURED_PRODUCTS[0];
 
   return (
     <div className="bento-bg">
@@ -156,31 +155,8 @@ export default async function HomePage() {
           {/* ── 2. DJI SPOTLIGHT ─────────────────────────────── lg:col-span-2 */}
           <DjiSpotlightCard />
 
-          {/* ── 3. NEW ARRIVAL CARD ──────────────────────────── lg:col-span-2 */}
-          <div className="bento-card lg:col-span-2 p-5 sm:p-6 flex flex-col justify-between">
-            {newArrival ? (
-              <>
-                <div>
-                  <span className="text-[10px] font-bold tracking-widest text-indigo-600 uppercase bg-indigo-50 px-2.5 py-1 rounded-full">New Arrival</span>
-                  <div className={`mt-3 w-full rounded-2xl aspect-video bg-gradient-to-br ${newArrival.color} flex items-center justify-center overflow-hidden`}>
-                    {newArrival.imageUrl ? (
-                      <Image src={newArrival.imageUrl} alt={newArrival.name} width={200} height={200} className="object-contain max-h-28" />
-                    ) : (
-                      <Smartphone className="w-10 h-10 text-white/70" />
-                    )}
-                  </div>
-                  <h3 className="mt-3 font-black text-gray-900 text-lg leading-snug line-clamp-2">{newArrival.name}{newArrival.brand && <><br /><span className="text-gray-400 font-medium text-base">{newArrival.brand}</span></>}</h3>
-                  {newArrival.shortDescription && <p className="text-gray-500 text-xs mt-1.5 leading-relaxed line-clamp-2">{newArrival.shortDescription}</p>}
-                  <p className="mt-2 font-black text-gray-900 text-xl">{formatPrice(newArrival.price)}</p>
-                </div>
-                <Link href={`/products/${newArrival.slug}`} className="mt-4 self-end w-9 h-9 bg-gray-900 hover:bg-indigo-600 rounded-full flex items-center justify-center transition-colors">
-                  <ArrowUpRight className="w-4 h-4 text-white" />
-                </Link>
-              </>
-            ) : (
-              <div className="flex flex-col items-center justify-center h-full text-gray-400 text-sm">No featured products</div>
-            )}
-          </div>
+          {/* ── 3. ANKER SPOTLIGHT (lowest prices) ─────────── lg:col-span-2 */}
+          <AnkerSpotlightCard />
 
           {/* ── 4. MORE PRODUCTS CARD ────────────────────────── lg:col-span-2 */}
           <div className="bento-card lg:col-span-2 p-5 sm:p-6">
