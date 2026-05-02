@@ -8,9 +8,12 @@ export async function POST(req: NextRequest) {
     const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
     const isLive = process.env.PAYHERE_ENV === "live";
 
-    if (!merchantId || !merchantSecret) {
+    const isPlaceholder = (v: string) =>
+      v.startsWith("your-") || v === "" || v.includes("placeholder");
+
+    if (!merchantId || !merchantSecret || isPlaceholder(merchantId) || isPlaceholder(merchantSecret)) {
       return NextResponse.json(
-        { error: "PayHere is not configured. Set PAYHERE_MERCHANT_ID and PAYHERE_MERCHANT_SECRET." },
+        { error: "PayHere credentials are not configured. Set PAYHERE_MERCHANT_ID and PAYHERE_MERCHANT_SECRET in .env.local." },
         { status: 503 }
       );
     }

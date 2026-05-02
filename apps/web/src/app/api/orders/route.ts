@@ -59,28 +59,36 @@ export async function POST(req: NextRequest) {
     const total = subtotal + Number(shippingCost) - Number(discount);
     const orderNumber = generateOrderNumber();
 
-    const [order] = await db
-      .insert(orders)
-      .values({
-        orderNumber,
-        userId,
-        customerName,
-        customerEmail,
-        customerPhone,
-        shippingAddressLine1,
-        shippingAddressLine2,
-        shippingCity,
-        shippingDistrict,
-        shippingProvince,
-        subtotal: String(subtotal),
-        shippingCost: String(shippingCost),
-        discount: String(discount),
-        couponCode: couponCode ?? null,
-        total: String(total),
-        paymentMethod,
-        customerNote,
-      })
-      .returning();
+    let order: typeof orders.$inferSelect;
+    try {
+      const [inserted] = await db
+        .insert(orders)
+        .values({
+          orderNumber,
+          userId: userId ?? null,
+          customerName,
+          customerEmail: customerEmail ?? "",
+          customerPhone,
+          shippingAddressLine1,
+          shippingAddressLine2: shippingAddressLine2 ?? null,
+          shippingCity,
+          shippingDistrict,
+          shippingProvince: shippingProvince ?? null,
+          subtotal: String(subtotal),
+          shippingCost: String(shippingCost),
+          discount: String(discount),
+          couponCode: couponCode ?? null,
+          total: String(total),
+          paymentMethod,
+          customerNote: customerNote ?? null,
+        })
+        .returning();
+      order = inserted;
+    } catch (insertErr) {
+      const msg = insertErr instanceof Error ? insertErr.message : String(insertErr);
+      console.error("Order insert failed:", msg, insertErr);
+      return NextResponse.json({ error: "Failed to create order", detail: msg, step: "insert_order" }, { status: 500 });
+    }
 
     // Increment coupon usedCount if a coupon was applied
     if (couponCode) {
@@ -146,7 +154,8 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ order, orderNumber }, { status: 201 });
   } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
     console.error("Create order error:", err);
-    return NextResponse.json({ error: "Failed to create order" }, { status: 500 });
+    return NextResponse.json({ error: "Failed to create order", detail: message }, { status: 500 });
   }
 }

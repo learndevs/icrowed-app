@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/context/CartContext";
 import { createClient } from "@/lib/supabase/client";
@@ -62,18 +62,6 @@ export default function CheckoutPage() {
   const [error, setError] = useState<string | null>(null);
   const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);
   const [selectedSavedId, setSelectedSavedId] = useState<string | null>(null);
-
-  // Hidden form ref for PayHere redirect
-  const payhereFormRef = useRef<HTMLFormElement>(null);
-  const [payhereParams, setPayhereParams] = useState<Record<string, string> | null>(null);
-  const [payhereUrl, setPayhereUrl] = useState<string>("");
-
-  // Auto-submit PayHere form once params are set
-  useEffect(() => {
-    if (payhereParams && payhereFormRef.current) {
-      payhereFormRef.current.submit();
-    }
-  }, [payhereParams]);
 
   // Load saved addresses on mount
   useEffect(() => {
@@ -206,8 +194,20 @@ export default function CheckoutPage() {
         const { checkoutUrl, params } = await initiateRes.json();
         clearCart();
         removeCoupon();
-        setPayhereUrl(checkoutUrl);
-        setPayhereParams(params); // triggers useEffect → form.submit()
+        // Dynamically build and submit the form — avoids React render timing issues
+        const form = document.createElement("form");
+        form.method = "POST";
+        form.action = checkoutUrl;
+        form.style.display = "none";
+        for (const [key, value] of Object.entries(params as Record<string, string>)) {
+          const input = document.createElement("input");
+          input.type = "hidden";
+          input.name = key;
+          input.value = value;
+          form.appendChild(input);
+        }
+        document.body.appendChild(form);
+        form.submit();
 
       } else if (paymentMethod === "cash_on_delivery") {
         clearCart();
@@ -241,15 +241,6 @@ export default function CheckoutPage() {
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       <h1 className="text-2xl font-bold mb-8">Checkout</h1>
-
-      {/* Hidden PayHere form — auto-submitted via useEffect */}
-      {payhereParams && (
-        <form ref={payhereFormRef} method="post" action={payhereUrl} style={{ display: "none" }}>
-          {Object.entries(payhereParams).map(([key, value]) => (
-            <input key={key} type="hidden" name={key} value={value} />
-          ))}
-        </form>
-      )}
 
       {/* Step indicator */}
       <div className="flex items-center gap-0 mb-10">
