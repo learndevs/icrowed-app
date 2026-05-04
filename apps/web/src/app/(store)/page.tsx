@@ -65,13 +65,67 @@ const OFFERS = [
 ];
 
 const CATEGORIES = [
-  { name: "Smartphones", Icon: Smartphone,  href: "/products?category=smartphones", count: "200+", circle: "bg-sky-400",    text: "text-sky-600",    cardBg: "bg-sky-50",    border: "border-sky-200" },
-  { name: "Cases",       Icon: Shield,      href: "/products?category=cases",       count: "500+", circle: "bg-teal-400",   text: "text-teal-600",   cardBg: "bg-teal-50",   border: "border-teal-200" },
-  { name: "Chargers",   Icon: Zap,         href: "/products?category=chargers",    count: "80+",  circle: "bg-orange-400", text: "text-orange-600", cardBg: "bg-orange-50", border: "border-orange-200" },
-  { name: "Earbuds",    Icon: Headphones,  href: "/products?category=earbuds",     count: "60+",  circle: "bg-pink-400",   text: "text-pink-600",   cardBg: "bg-pink-50",   border: "border-pink-200" },
-  { name: "Cables",     Icon: Cable,       href: "/products?category=cables",      count: "120+", circle: "bg-violet-500", text: "text-violet-600", cardBg: "bg-violet-50", border: "border-violet-200" },
-  { name: "Smartwatch", Icon: Watch,       href: "/products?category=smartwatches",count: "30+",  circle: "bg-amber-400",  text: "text-amber-600",  cardBg: "bg-amber-50",  border: "border-amber-200" },
-];
+  {
+    name: "Smartphones",
+    Icon: Smartphone,
+    href: "/products?category=smartphones",
+    count: "200+",
+    cardClass:
+      "border-gray-200 bg-white text-gray-600 hover:border-sky-200 hover:bg-sky-50 hover:text-sky-700 hover:shadow-md",
+    iconWrapClass:
+      "bg-gray-100 text-gray-400 shadow-inner group-hover:bg-sky-400 group-hover:text-white group-hover:shadow-md",
+  },
+  {
+    name: "Cases",
+    Icon: Shield,
+    href: "/products?category=cases",
+    count: "500+",
+    cardClass:
+      "border-gray-200 bg-white text-gray-600 hover:border-teal-200 hover:bg-teal-50 hover:text-teal-700 hover:shadow-md",
+    iconWrapClass:
+      "bg-gray-100 text-gray-400 shadow-inner group-hover:bg-teal-400 group-hover:text-white group-hover:shadow-md",
+  },
+  {
+    name: "Chargers",
+    Icon: Zap,
+    href: "/products?category=chargers",
+    count: "80+",
+    cardClass:
+      "border-gray-200 bg-white text-gray-600 hover:border-orange-200 hover:bg-orange-50 hover:text-orange-700 hover:shadow-md",
+    iconWrapClass:
+      "bg-gray-100 text-gray-400 shadow-inner group-hover:bg-orange-400 group-hover:text-white group-hover:shadow-md",
+  },
+  {
+    name: "Earbuds",
+    Icon: Headphones,
+    href: "/products?category=earbuds",
+    count: "60+",
+    cardClass:
+      "border-gray-200 bg-white text-gray-600 hover:border-pink-200 hover:bg-pink-50 hover:text-pink-700 hover:shadow-md",
+    iconWrapClass:
+      "bg-gray-100 text-gray-400 shadow-inner group-hover:bg-pink-400 group-hover:text-white group-hover:shadow-md",
+  },
+  {
+    name: "Cables",
+    Icon: Cable,
+    href: "/products?category=cables",
+    count: "120+",
+    cardClass:
+      "border-gray-200 bg-white text-gray-600 hover:border-violet-200 hover:bg-violet-50 hover:text-violet-700 hover:shadow-md",
+    iconWrapClass:
+      "bg-gray-100 text-gray-400 shadow-inner group-hover:bg-violet-500 group-hover:text-white group-hover:shadow-md",
+  },
+  {
+    name: "Smartwatch",
+    Icon: Watch,
+    href: "/products?category=smartwatches",
+    count: "30+",
+    cardClass:
+      "border-gray-200 bg-white text-gray-600 hover:border-amber-200 hover:bg-amber-50 hover:text-amber-700 hover:shadow-md",
+    iconWrapClass:
+      "bg-gray-100 text-gray-400 shadow-inner group-hover:bg-amber-400 group-hover:text-white group-hover:shadow-md",
+  },
+] as const;
 
 function formatPrice(p: number) {
   return "LKR " + p.toLocaleString("en-LK");
@@ -155,10 +209,38 @@ export default async function HomePage() {
           {/* ── 2. DJI SPOTLIGHT ─────────────────────────────── lg:col-span-2 */}
           <DjiSpotlightCard />
 
-          {/* ── 3. ANKER SPOTLIGHT (lowest prices) ─────────── lg:col-span-2 */}
+        </div>
+      </section>
+
+      {/* ════════════════════════════ CATEGORIES ROW (chips) ════════════════════════ */}
+      <section className="px-3 sm:px-5 lg:px-8 py-5 max-w-[1400px] mx-auto">
+        <div className="rounded-[1.75rem] border border-gray-200/90 bg-gradient-to-b from-white to-gray-50/90 shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4 sm:p-5 md:p-6">
+          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-2.5 lg:grid-cols-6">
+            {CATEGORIES.map((cat) => (
+              <Link
+                key={cat.name}
+                href={cat.href}
+                className={`group flex min-h-[44px] w-full min-w-0 items-center justify-start gap-2 rounded-full border py-2 pl-2 pr-3 transition-all duration-200 ease-out sm:gap-2.5 sm:pl-2.5 sm:pr-3.5 ${cat.cardClass}`}
+              >
+                <span
+                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-all duration-200 ease-out group-hover:scale-105 sm:h-9 sm:w-9 ${cat.iconWrapClass}`}
+                >
+                  <cat.Icon className="h-4 w-4 sm:h-[18px] sm:w-[18px]" strokeWidth={2} aria-hidden />
+                </span>
+                <span className="min-w-0 flex-1 truncate text-left text-[11px] font-semibold leading-tight text-inherit sm:text-xs md:text-sm">
+                  {cat.name}
+                </span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════ ANKER · MORE PRODUCTS · REVIEWS ROW ═══════════════════════ */}
+      <section className="px-3 sm:px-5 lg:px-8 pt-2 pb-4 max-w-350 mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-6 gap-3 lg:gap-4">
           <AnkerSpotlightCard />
 
-          {/* ── 4. MORE PRODUCTS CARD ────────────────────────── lg:col-span-2 */}
           <div className="bento-card lg:col-span-2 p-5 sm:p-6">
             <div className="flex items-start justify-between mb-4">
               <div>
@@ -169,7 +251,6 @@ export default async function HomePage() {
                 <Star className="w-4 h-4 text-red-500 fill-red-500" />
               </Link>
             </div>
-            {/* Mini product grid */}
             <div className="grid grid-cols-3 gap-2">
               {FEATURED_PRODUCTS.slice(0, 6).map((p) => (
                 <Link key={p.id} href={`/products/${p.slug}`}
@@ -188,9 +269,7 @@ export default async function HomePage() {
             </div>
           </div>
 
-          {/* ── 5. STATS CARD ────────────────────────────────── lg:col-span-2 */}
           <div className="bento-card lg:col-span-2 p-5 sm:p-6 bg-gradient-to-br from-indigo-600 to-indigo-800 text-white">
-            {/* Avatar stack */}
             <div className="flex items-center mb-4">
               {["#6366f1","#818cf8","#a5b4fc","#c7d2fe"].map((bg, i) => (
                 <div
@@ -215,25 +294,6 @@ export default async function HomePage() {
               <span className="text-xs text-indigo-100 font-medium">+34% growth this month</span>
             </div>
           </div>
-
-        </div>
-      </section>
-
-      {/* ════════════════════════════ CATEGORIES ROW ════════════════════════ */}
-      <section className="px-3 sm:px-5 lg:px-8 py-4 max-w-[1400px] mx-auto">
-        <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
-          {CATEGORIES.map((cat) => (
-            <Link
-              key={cat.name}
-              href={cat.href}
-              className={`${cat.cardBg} ${cat.border} border aspect-square rounded-3xl flex flex-col items-center justify-center text-center gap-2.5 p-3 hover:shadow-md hover:brightness-95 group transition-all duration-200`}
-            >
-              <div className={`${cat.circle} w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform duration-200`}>
-                <cat.Icon size={24} color="white" />
-              </div>
-              <p className={`text-[11px] sm:text-xs font-bold ${cat.text} leading-tight`}>{cat.name}</p>
-            </Link>
-          ))}
         </div>
       </section>
 
