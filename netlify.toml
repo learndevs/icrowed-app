@@ -1,6 +1,6 @@
 [build]
   base = "."
-  command = "npm rebuild lightningcss --workspace=web && npm run build --workspace=web"
+  command = "npm install --no-save lightningcss-linux-x64-gnu && npm rebuild lightningcss --workspace=web && npm run build --workspace=web"
   publish = "apps/web/.next"
 
 [build.environment]
@@ -8,7 +8,7 @@
   NPM_FLAGS = "--include=optional"
 
 [context.production]
-  command = "npm rebuild lightningcss --workspace=web && npm run build --workspace=web"
+  command = "npm install --no-save lightningcss-linux-x64-gnu && npm rebuild lightningcss --workspace=web && npm run build --workspace=web"
 
 [context.deploy-preview]
-  command = "npm rebuild lightningcss --workspace=web && npm run build --workspace=web"
+  command = "npm install --no-save lightningcss-linux-x64-gnu && npm rebuild lightningcss --workspace=web && npm run build --workspace=web"
