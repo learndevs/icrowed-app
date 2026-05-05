@@ -1,10 +1,10 @@
 [build]
   base = "."
-  command = "npm run build"
+  command = "npm rebuild lightningcss --workspace=web && npm run build --workspace=web"
   publish = "apps/web/.next"
 
 [build.environment]
-  NODE_VERSION = "23.11.0"
+  NODE_VERSION = "20"
   NPM_FLAGS = "--include=optional"
 
 [[plugins]]
