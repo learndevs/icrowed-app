@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 
-export async function middleware(req: NextRequest) {
+async function middlewareImpl(req: NextRequest) {
   const res = NextResponse.next({ request: req });
 
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -37,6 +37,14 @@ export async function middleware(req: NextRequest) {
 
   return res;
 }
+
+// Keep both exports for compatibility with tooling that expects either named
+// `middleware` (Next convention) or `default` (some edge bundlers/adapters).
+export async function middleware(req: NextRequest) {
+  return middlewareImpl(req);
+}
+
+export default middleware;
 
 // Must be a static string literal (not `String.raw`…) so Next can analyze segment config at build time.
 export const config = {
