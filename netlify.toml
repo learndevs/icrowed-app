@@ -1,6 +1,6 @@
 [build]
   base = "."
-  command = "npm rebuild lightningcss --workspace=web && npm run build --workspace=web"
+  command = "npm run build"
   publish = "apps/web/.next"
 
 [build.environment]
