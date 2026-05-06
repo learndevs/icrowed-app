@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Heart, ShoppingCart, Search, User, Menu, X, Smartphone, LogOut, Package } from "lucide-react";
+import { Heart, ShoppingCart, Search, User, Smartphone, LogOut, Package } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
+import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
 
 const NAV_LINKS = [
   { href: "/products", label: "All Products" },
@@ -21,7 +22,6 @@ export default function Header() {
   const { count: wishlistCount } = useWishlist();
   const pathname = usePathname();
   const router = useRouter();
-  const [mobileOpen, setMobileOpen] = useState(false);
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
 
@@ -45,9 +45,12 @@ export default function Header() {
   const displayName = (user?.user_metadata?.full_name as string | undefined)?.split(" ")[0] ?? user?.email?.split("@")[0];
 
   return (
-    <header className="sticky top-0 z-50 glass border-b border-white/60">
+    <>
+    <header className="sticky top-0 z-50 border-b border-white/70 bg-white/40 backdrop-blur-2xl shadow-[0_10px_30px_rgba(15,23,42,0.08)]">
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/55 via-white/30 to-gray-100/20" />
+      <div className="pointer-events-none absolute -top-16 right-10 h-36 w-36 rounded-full bg-white/70 blur-3xl" />
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-14 sm:h-16">
+        <div className="relative flex items-center justify-between h-14 sm:h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 font-bold text-xl text-[var(--foreground)]">
             <div className="w-8 h-8 rounded-lg bg-[var(--color-primary)] flex items-center justify-center">
@@ -76,6 +79,16 @@ export default function Header() {
 
           {/* Actions */}
           <div className="flex items-center gap-2">
+            {/* Mobile auth link: top bar shows only logo + sign in/account */}
+            <Link
+              href={user ? "/account" : "/login"}
+              aria-label={user ? "My account" : "Sign in"}
+              className="md:hidden h-10 px-3 flex items-center gap-2 rounded-lg text-[var(--muted)] hover:text-[var(--foreground)] transition-colors text-sm font-medium"
+            >
+              <User className="w-5 h-5" />
+              <span>{user ? "Account" : "Sign In"}</span>
+            </Link>
+
             <button
               aria-label="Search"
               className="hidden sm:flex h-10 w-10 items-center justify-center rounded-lg hover:bg-[var(--surface)] text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
@@ -170,7 +183,7 @@ export default function Header() {
             <Link
               href="/cart"
               aria-label={`Cart (${itemCount} items)`}
-              className="relative h-10 w-10 flex items-center justify-center rounded-lg hover:bg-[var(--surface)] text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
+              className="relative hidden sm:flex h-10 w-10 items-center justify-center rounded-lg hover:bg-[var(--surface)] text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
             >
               <ShoppingCart className="w-5 h-5" />
               {itemCount > 0 && (
@@ -180,71 +193,12 @@ export default function Header() {
               )}
             </Link>
 
-            {/* Mobile menu toggle */}
-            <button
-              className="md:hidden h-10 w-10 flex items-center justify-center rounded-lg hover:bg-[var(--surface)] transition-colors"
-              onClick={() => setMobileOpen((v) => !v)}
-              aria-label="Toggle menu"
-            >
-              {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </button>
           </div>
         </div>
       </div>
 
-      {/* Mobile Nav */}
-      {mobileOpen && (
-        <>
-          <div
-            className="fixed inset-0 top-14 bg-black/30 z-[90] md:hidden"
-            onClick={() => setMobileOpen(false)}
-          />
-          <div className="fixed top-14 left-0 right-0 z-[100] md:hidden bg-white border-b border-gray-100 shadow-xl">
-            <nav className="max-w-[1400px] mx-auto px-4 py-3 flex flex-col gap-1">
-              {NAV_LINKS.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={() => setMobileOpen(false)}
-                  className={cn(
-                    "px-4 py-3 rounded-xl text-sm font-semibold transition-colors",
-                    pathname.startsWith(link.href)
-                      ? "bg-indigo-50 text-indigo-700"
-                      : "text-gray-800 hover:bg-gray-100"
-                  )}
-                >
-                  {link.label}
-                </Link>
-              ))}
-              {user ? (
-                <>
-                  <Link
-                    href="/account"
-                    onClick={() => setMobileOpen(false)}
-                    className="px-4 py-3 rounded-xl text-sm font-semibold text-gray-800 hover:bg-gray-100"
-                  >
-                    My Account
-                  </Link>
-                  <button
-                    onClick={() => { setMobileOpen(false); handleSignOut(); }}
-                    className="text-left px-4 py-3 rounded-xl text-sm font-semibold text-red-600 hover:bg-red-50"
-                  >
-                    Sign Out
-                  </button>
-                </>
-              ) : (
-                <Link
-                  href="/login"
-                  onClick={() => setMobileOpen(false)}
-                  className="px-4 py-3 rounded-xl text-sm font-semibold text-gray-800 hover:bg-gray-100"
-                >
-                  Sign In
-                </Link>
-              )}
-            </nav>
-          </div>
-        </>
-      )}
     </header>
+    <MobileBottomNav itemCount={itemCount} />
+    </>
   );
 }

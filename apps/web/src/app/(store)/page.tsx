@@ -4,13 +4,7 @@ import {
   ArrowUpRight,
   ArrowRight,
   Star,
-  TrendingUp,
   Smartphone,
-  Shield,
-  Zap,
-  Headphones,
-  Cable,
-  Watch,
   BadgeCheck,
   Truck,
   CircleDollarSign,
@@ -18,7 +12,8 @@ import {
 } from "lucide-react";
 import { PhoneMockup } from "@/components/home/PhoneMockup";
 import { DjiSpotlightCard } from "@/components/home/DjiSpotlightCard";
-import { AnkerSpotlightCard } from "@/components/home/AnkerSpotlightCard";
+import { CategoryShowcaseCards } from "@/components/home/CategoryShowcaseCards";
+import { NewArrivalsSection } from "@/components/home/NewArrivalsSection";
 import { getProducts } from "@icrowed/database/queries";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -64,69 +59,6 @@ const OFFERS = [
   { id: "3", title: "Free Delivery", desc: "Free island-wide delivery this weekend", badge: "Weekend", gradient: "from-teal-500 to-cyan-500", link: "/offers" },
 ];
 
-const CATEGORIES = [
-  {
-    name: "Smartphones",
-    Icon: Smartphone,
-    href: "/products?category=smartphones",
-    count: "200+",
-    cardClass:
-      "border-gray-200 bg-white text-gray-600 hover:border-sky-200 hover:bg-sky-50 hover:text-sky-700 hover:shadow-md",
-    iconWrapClass:
-      "bg-gray-100 text-gray-400 shadow-inner group-hover:bg-sky-400 group-hover:text-white group-hover:shadow-md",
-  },
-  {
-    name: "Cases",
-    Icon: Shield,
-    href: "/products?category=cases",
-    count: "500+",
-    cardClass:
-      "border-gray-200 bg-white text-gray-600 hover:border-teal-200 hover:bg-teal-50 hover:text-teal-700 hover:shadow-md",
-    iconWrapClass:
-      "bg-gray-100 text-gray-400 shadow-inner group-hover:bg-teal-400 group-hover:text-white group-hover:shadow-md",
-  },
-  {
-    name: "Chargers",
-    Icon: Zap,
-    href: "/products?category=chargers",
-    count: "80+",
-    cardClass:
-      "border-gray-200 bg-white text-gray-600 hover:border-orange-200 hover:bg-orange-50 hover:text-orange-700 hover:shadow-md",
-    iconWrapClass:
-      "bg-gray-100 text-gray-400 shadow-inner group-hover:bg-orange-400 group-hover:text-white group-hover:shadow-md",
-  },
-  {
-    name: "Earbuds",
-    Icon: Headphones,
-    href: "/products?category=earbuds",
-    count: "60+",
-    cardClass:
-      "border-gray-200 bg-white text-gray-600 hover:border-pink-200 hover:bg-pink-50 hover:text-pink-700 hover:shadow-md",
-    iconWrapClass:
-      "bg-gray-100 text-gray-400 shadow-inner group-hover:bg-pink-400 group-hover:text-white group-hover:shadow-md",
-  },
-  {
-    name: "Cables",
-    Icon: Cable,
-    href: "/products?category=cables",
-    count: "120+",
-    cardClass:
-      "border-gray-200 bg-white text-gray-600 hover:border-violet-200 hover:bg-violet-50 hover:text-violet-700 hover:shadow-md",
-    iconWrapClass:
-      "bg-gray-100 text-gray-400 shadow-inner group-hover:bg-violet-500 group-hover:text-white group-hover:shadow-md",
-  },
-  {
-    name: "Smartwatch",
-    Icon: Watch,
-    href: "/products?category=smartwatches",
-    count: "30+",
-    cardClass:
-      "border-gray-200 bg-white text-gray-600 hover:border-amber-200 hover:bg-amber-50 hover:text-amber-700 hover:shadow-md",
-    iconWrapClass:
-      "bg-gray-100 text-gray-400 shadow-inner group-hover:bg-amber-400 group-hover:text-white group-hover:shadow-md",
-  },
-] as const;
-
 function formatPrice(p: number) {
   return "LKR " + p.toLocaleString("en-LK");
 }
@@ -134,8 +66,12 @@ function formatPrice(p: number) {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default async function HomePage() {
   const dbFeatured = await getProducts({ isFeatured: true, limit: 6 }).catch(() => []);
+  const dbNewArrivals = await getProducts({ limit: 4 }).catch(() => []);
   const FEATURED_PRODUCTS = dbFeatured.length
     ? dbFeatured.map(mapFeatured)
+    : [] as ReturnType<typeof mapFeatured>[];
+  const NEW_ARRIVALS = dbNewArrivals.length
+    ? dbNewArrivals.map(mapFeatured)
     : [] as ReturnType<typeof mapFeatured>[];
 
   return (
@@ -145,9 +81,11 @@ export default async function HomePage() {
         <div className="grid grid-cols-1 lg:grid-cols-6 gap-3 lg:gap-4">
 
           {/* ── 1. MAIN HERO CARD ─────────────────────────────── lg:col-span-4 */}
-          <div className="bento-card lg:col-span-4 relative min-h-100 lg:min-h-115 p-6 sm:p-8 flex flex-col justify-between overflow-visible">
+          <div className="bento-card lg:col-span-4 relative min-h-100 lg:min-h-115 p-6 sm:p-8 flex flex-col justify-between overflow-hidden border border-white/55 bg-white/45 backdrop-blur-xl shadow-[0_18px_40px_rgba(15,23,42,0.12)]">
+            <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/65 via-white/35 to-gray-100/25" />
+            <div className="pointer-events-none absolute -top-16 -right-16 h-44 w-44 rounded-full bg-white/60 blur-3xl" />
             {/* Top area */}
-            <div>
+            <div className="relative">
               {/* Badge row */}
               <div className="flex items-center gap-2 mb-5">
                 <span className="inline-flex items-center gap-1.5 bg-indigo-50 text-indigo-700 text-[11px] font-semibold px-3 py-1 rounded-full border border-indigo-100">
@@ -183,7 +121,7 @@ export default async function HomePage() {
             </div>
 
             {/* Social links */}
-            <div className="flex items-center gap-3 mt-6">
+            <div className="relative flex items-center gap-3 mt-6">
               <span className="text-[11px] text-gray-400 font-medium">Follow us:</span>
               {[
                 { label: "FB", href: "#" },
@@ -212,90 +150,18 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* ════════════════════════════ CATEGORIES ROW (chips) ════════════════════════ */}
-      <section className="px-3 sm:px-5 lg:px-8 py-5 max-w-[1400px] mx-auto">
-        <div className="rounded-[1.75rem] border border-gray-200/90 bg-gradient-to-b from-white to-gray-50/90 shadow-[0_1px_3px_rgba(15,23,42,0.06)] p-4 sm:p-5 md:p-6">
-          <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 sm:gap-2.5 lg:grid-cols-6">
-            {CATEGORIES.map((cat) => (
-              <Link
-                key={cat.name}
-                href={cat.href}
-                className={`group flex min-h-[44px] w-full min-w-0 items-center justify-start gap-2 rounded-full border py-2 pl-2 pr-3 transition-all duration-200 ease-out sm:gap-2.5 sm:pl-2.5 sm:pr-3.5 ${cat.cardClass}`}
-              >
-                <span
-                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-all duration-200 ease-out group-hover:scale-105 sm:h-9 sm:w-9 ${cat.iconWrapClass}`}
-                >
-                  <cat.Icon className="h-4 w-4 sm:h-[18px] sm:w-[18px]" strokeWidth={2} aria-hidden />
-                </span>
-                <span className="min-w-0 flex-1 truncate text-left text-[11px] font-semibold leading-tight text-inherit sm:text-xs md:text-sm">
-                  {cat.name}
-                </span>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
+      <CategoryShowcaseCards />
 
-      {/* ═══════════════════════════ ANKER · MORE PRODUCTS · REVIEWS ROW ═══════════════════════ */}
-      <section className="px-3 sm:px-5 lg:px-8 pt-2 pb-4 max-w-350 mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-6 gap-3 lg:gap-4">
-          <AnkerSpotlightCard />
-
-          <div className="bento-card lg:col-span-2 p-5 sm:p-6">
-            <div className="flex items-start justify-between mb-4">
-              <div>
-                <p className="font-bold text-gray-900 text-base">More Products</p>
-                <p className="text-gray-400 text-xs mt-0.5">{FEATURED_PRODUCTS.length}+ items featured</p>
-              </div>
-              <Link href="/products" className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center hover:bg-red-200 transition-colors">
-                <Star className="w-4 h-4 text-red-500 fill-red-500" />
-              </Link>
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              {FEATURED_PRODUCTS.slice(0, 6).map((p) => (
-                <Link key={p.id} href={`/products/${p.slug}`}
-                  className={`aspect-square rounded-xl bg-gradient-to-br ${p.color} hover:scale-105 transition-transform duration-150 flex items-center justify-center shadow-sm overflow-hidden`}
-                >
-                  {p.imageUrl ? (
-                    <Image src={p.imageUrl} alt={p.name} width={80} height={80} className="object-contain" />
-                  ) : (
-                    <Smartphone className="w-5 h-5 text-white/80" />
-                  )}
-                </Link>
-              ))}
-              {FEATURED_PRODUCTS.length === 0 && (
-                <p className="col-span-3 text-xs text-gray-400 text-center py-4">No products yet</p>
-              )}
-            </div>
-          </div>
-
-          <div className="bento-card lg:col-span-2 p-5 sm:p-6 bg-gradient-to-br from-indigo-600 to-indigo-800 text-white">
-            <div className="flex items-center mb-4">
-              {["#6366f1","#818cf8","#a5b4fc","#c7d2fe"].map((bg, i) => (
-                <div
-                  key={i}
-                  className="w-8 h-8 rounded-full border-2 border-indigo-600 flex items-center justify-center text-xs font-bold"
-                  style={{ background: bg, marginLeft: i ? -8 : 0 }}
-                >
-                  {String.fromCharCode(65 + i)}
-                </div>
-              ))}
-            </div>
-            <p className="text-4xl font-black mb-0.5">10k+</p>
-            <p className="text-indigo-200 text-sm font-medium">Happy Customers</p>
-            <div className="mt-4 flex items-center gap-1.5">
-              {[1,2,3,4,5].map((s) => (
-                <Star key={s} className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-              ))}
-              <span className="text-indigo-200 text-xs ml-1">4.8 avg rating</span>
-            </div>
-            <div className="mt-4 flex items-center gap-2 bg-white/10 rounded-xl px-3 py-2">
-              <TrendingUp className="w-4 h-4 text-lime-300" />
-              <span className="text-xs text-indigo-100 font-medium">+34% growth this month</span>
-            </div>
-          </div>
-        </div>
-      </section>
+      <NewArrivalsSection
+        items={NEW_ARRIVALS.map((item) => ({
+          id: item.id,
+          name: item.name,
+          slug: item.slug,
+          price: item.price,
+          imageUrl: item.imageUrl,
+          brand: item.brand,
+        }))}
+      />
 
       {/* ═══════════════════════════ FEATURED PRODUCTS ══════════════════════ */}
       <section className="px-3 sm:px-5 lg:px-8 py-4 max-w-[1400px] mx-auto">
