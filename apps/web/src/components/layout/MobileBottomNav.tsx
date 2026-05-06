@@ -3,21 +3,30 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { House, Grid3X3, Layers, Tag, ShoppingCart } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface MobileBottomNavProps {
   itemCount: number;
 }
 
+interface MobileNavLink {
+  href: string;
+  label: string;
+  Icon: LucideIcon;
+  active: boolean;
+  badge?: number;
+}
+
 export function MobileBottomNav({ itemCount }: MobileBottomNavProps) {
   const pathname = usePathname();
-  const mobileNavLinks = [
+  const mobileNavLinks: MobileNavLink[] = [
     { href: "/", label: "Home", Icon: House, active: pathname === "/" },
     { href: "/products", label: "Products", Icon: Grid3X3, active: pathname.startsWith("/products") },
     { href: "/categories", label: "Categories", Icon: Layers, active: pathname.startsWith("/categories") },
     { href: "/offers", label: "Offers", Icon: Tag, active: pathname.startsWith("/offers") },
     { href: "/cart", label: "Cart", Icon: ShoppingCart, active: pathname.startsWith("/cart"), badge: itemCount },
-  ] as const;
+  ];
 
   return (
     <div className="fixed inset-x-0 bottom-4 z-[100] flex justify-center px-4 md:hidden">
