@@ -3,6 +3,7 @@ import { db, orders, orderStatusHistory } from "@icrowed/database";
 import { eq } from "drizzle-orm";
 import { requireAdmin } from "@/lib/admin";
 import { logAudit } from "@/lib/audit";
+import { notifyAdmins } from "@/lib/notify";
 import { stripe } from "@/lib/stripe";
 import { sendEmail } from "@/lib/email";
 import { orderRefundedTemplate } from "@/lib/email-templates/orderRefunded";
@@ -87,6 +88,13 @@ export async function POST(
       action: "refund",
       summary: `Refund issued for ${updated.orderNumber} (${updated.total})`,
       metadata: { stripeRefundId, reason, paymentMethod: order.paymentMethod },
+    });
+
+    notifyAdmins("refund", {
+      subject: `Refund issued — ${updated.orderNumber}`,
+      html: `<p>Order <strong>${updated.orderNumber}</strong> for ${updated.customerName} has been refunded.</p>
+        <p>Amount: LKR ${Number(updated.total).toLocaleString()}</p>
+        <p>By: ${auth.email}</p>`,
     });
 
     return NextResponse.json({

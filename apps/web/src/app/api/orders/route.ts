@@ -5,6 +5,7 @@ import { requireAdmin } from "@/lib/admin";
 import { generateOrderNumber } from "@/lib/utils";
 import { sendEmail } from "@/lib/email";
 import { orderConfirmationTemplate } from "@/lib/email-templates/orderConfirmation";
+import { notifyAdmins } from "@/lib/notify";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -151,6 +152,16 @@ export async function POST(req: NextRequest) {
         }),
       });
     }
+
+    notifyAdmins("new_order", {
+      subject: `New order received — ${orderNumber}`,
+      html: `<p>A new order has been placed.</p>
+        <p><strong>Order:</strong> ${orderNumber}<br/>
+        <strong>Customer:</strong> ${customerName} (${customerEmail ?? "no email"})<br/>
+        <strong>Total:</strong> LKR ${Number(total).toLocaleString()}<br/>
+        <strong>Payment:</strong> ${paymentMethod}</p>
+        <p><a href="${process.env.NEXT_PUBLIC_APP_URL ?? ""}/admin/orders/${order.id}">View order</a></p>`,
+    });
 
     return NextResponse.json({ order, orderNumber }, { status: 201 });
   } catch (err) {

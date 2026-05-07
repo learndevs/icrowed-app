@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { createReview, getAllReviews, getPendingReviews, hasUserPurchasedProduct } from "@icrowed/database/queries";
 import { clientEnv } from "@icrowed/env";
 import { requireAdmin } from "@/lib/admin";
+import { notifyAdmins } from "@/lib/notify";
 
 export async function GET(req: NextRequest) {
   const auth = await requireAdmin();
@@ -63,6 +64,15 @@ export async function POST(req: NextRequest) {
       body: reviewBody?.trim() || null,
       isVerifiedPurchase,
       isApproved: false,
+    });
+
+    notifyAdmins("review_pending", {
+      subject: `New review submitted (rating: ${rating})`,
+      html: `<p>A new product review has been submitted and is awaiting approval.</p>
+        <p><strong>Rating:</strong> ${rating} / 5<br/>
+        <strong>Title:</strong> ${title ?? "—"}</p>
+        <p>${reviewBody ?? ""}</p>
+        <p><a href="${process.env.NEXT_PUBLIC_APP_URL ?? ""}/admin/reviews">Moderate reviews</a></p>`,
     });
 
     return NextResponse.json(review, { status: 201 });
