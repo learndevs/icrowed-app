@@ -1,0 +1,14 @@
+[build]
+  base = "."
+  command = "npm install --workspace=web --no-save @tailwindcss/oxide-linux-x64-gnu lightningcss-linux-x64-gnu && npm rebuild lightningcss --workspace=web && npm run build --workspace=web"
+  publish = "apps/web/.next"
+
+[build.environment]
+  NODE_VERSION = "20"
+  NPM_FLAGS = "--include=optional"
+
+[context.production]
+  command = "npm install --workspace=web --no-save @tailwindcss/oxide-linux-x64-gnu lightningcss-linux-x64-gnu && npm rebuild lightningcss --workspace=web && npm run build --workspace=web"
+
+[context.deploy-preview]
+  command = "npm install --workspace=web --no-save @tailwindcss/oxide-linux-x64-gnu lightningcss-linux-x64-gnu && npm rebuild lightningcss --workspace=web && npm run build --workspace=web"

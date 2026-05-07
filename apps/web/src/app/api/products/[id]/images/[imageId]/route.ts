@@ -4,6 +4,7 @@ import { db } from "@icrowed/database";
 import { productImages } from "@icrowed/database";
 import { eq, and } from "drizzle-orm";
 import { getServerEnv } from "@icrowed/env";
+import { requireAdmin } from "@/lib/admin";
 
 const BUCKET = "product-images";
 
@@ -19,6 +20,9 @@ export async function DELETE(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string; imageId: string }> }
 ) {
+  const auth = await requireAdmin();
+  if (auth instanceof NextResponse) return auth;
+
   try {
     const { id, imageId } = await params;
 
@@ -74,7 +78,9 @@ export async function PATCH(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string; imageId: string }> }
 ) {
-  // Set an image as primary
+  const auth = await requireAdmin();
+  if (auth instanceof NextResponse) return auth;
+
   try {
     const { id, imageId } = await params;
     // Unset all primary for this product, then set the selected one

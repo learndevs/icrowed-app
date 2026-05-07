@@ -1,114 +1,84 @@
-"use client";
+import Link from "next/link";
+import { cn } from "@/lib/utils";
+import {
+  getOrCreateStoreSettings,
+  getOrCreateShippingRates,
+  getOrCreateNotificationPrefs,
+} from "@icrowed/database";
+import { StoreInfoTab } from "./tabs/StoreInfoTab";
+import { ShippingTab } from "./tabs/ShippingTab";
+import { TaxTab } from "./tabs/TaxTab";
+import { PoliciesTab } from "./tabs/PoliciesTab";
+import { NotificationsTab } from "./tabs/NotificationsTab";
+import { PaymentTab } from "./tabs/PaymentTab";
 
-import { useEffect, useState } from "react";
-import { Card, CardContent } from "@/components/ui/Card";
-import { Button } from "@/components/ui/Button";
-import { formatPrice } from "@/lib/utils";
+export const dynamic = "force-dynamic";
 
-export default function AdminSettingsPage() {
-  const [standardLkr, setStandardLkr] = useState(350);
-  const [expressLkr, setExpressLkr] = useState(750);
-  const [freeShippingMinSubtotal, setFreeShippingMinSubtotal] = useState(500000);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
+const TABS = [
+  { key: "store", label: "Store Info" },
+  { key: "shipping", label: "Shipping" },
+  { key: "tax", label: "Tax" },
+  { key: "policies", label: "Policies" },
+  { key: "notifications", label: "Notifications" },
+  { key: "payment", label: "Payment" },
+];
 
-  useEffect(() => {
-    fetch("/api/shipping-rates")
-      .then((r) => r.json())
-      .then((d) => {
-        if (d.standardLkr != null) {
-          setStandardLkr(d.standardLkr);
-          setExpressLkr(d.expressLkr);
-          setFreeShippingMinSubtotal(d.freeShippingMinSubtotal);
-        }
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, []);
+export default async function AdminSettingsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string }>;
+}) {
+  const sp = await searchParams;
+  const active = sp.tab && TABS.some((t) => t.key === sp.tab) ? sp.tab : "store";
 
-  async function save() {
-    setSaving(true);
-    try {
-      const res = await fetch("/api/shipping-rates", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          standardLkr,
-          expressLkr,
-          freeShippingMinSubtotal,
-        }),
-      });
-      if (!res.ok) throw new Error("Save failed");
-      alert("Shipping rates saved. Checkout will use these values for new orders.");
-    } catch (e) {
-      console.error(e);
-      alert("Could not save settings.");
-    } finally {
-      setSaving(false);
-    }
-  }
+  const [store, shipping, notif] = await Promise.all([
+    getOrCreateStoreSettings(),
+    getOrCreateShippingRates(),
+    getOrCreateNotificationPrefs(),
+  ]);
 
   return (
-    <div className="max-w-lg space-y-6">
+    <div className="space-y-6">
       <div>
         <h2 className="text-xl font-bold">Settings</h2>
         <p className="text-sm text-[var(--muted)] mt-1">
-          Shipping amounts apply to new checkouts. Existing orders keep their stored totals unless
-          you edit them on the order page.
+          Configure your store, payments, shipping, and notifications.
         </p>
       </div>
 
-      <Card>
-        <CardContent className="space-y-4 pt-6">
-          <h3 className="font-semibold text-sm">Shipping rates (LKR)</h3>
+      <div className="border-b border-[var(--border)] flex flex-wrap gap-1">
+        {TABS.map((t) => (
+          <Link
+            key={t.key}
+            href={`/admin/settings?tab=${t.key}`}
+            className={cn(
+              "px-4 py-2 text-sm border-b-2 -mb-px transition-colors",
+              active === t.key
+                ? "border-[var(--color-primary)] text-[var(--color-primary)] font-medium"
+                : "border-transparent text-[var(--muted)] hover:text-[var(--foreground)]"
+            )}
+          >
+            {t.label}
+          </Link>
+        ))}
+      </div>
 
-          <div>
-            <label className="block text-xs font-medium text-[var(--muted)] mb-1">Standard delivery</label>
-            <input
-              type="number"
-              min={0}
-              className="w-full h-10 px-3 rounded-lg border border-[var(--border)] text-sm"
-              value={standardLkr}
-              onChange={(e) => setStandardLkr(Number(e.target.value))}
-              disabled={loading}
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium text-[var(--muted)] mb-1">Express delivery</label>
-            <input
-              type="number"
-              min={0}
-              className="w-full h-10 px-3 rounded-lg border border-[var(--border)] text-sm"
-              value={expressLkr}
-              onChange={(e) => setExpressLkr(Number(e.target.value))}
-              disabled={loading}
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-medium text-[var(--muted)] mb-1">
-              Free standard shipping when items subtotal is at least
-            </label>
-            <input
-              type="number"
-              min={0}
-              className="w-full h-10 px-3 rounded-lg border border-[var(--border)] text-sm"
-              value={freeShippingMinSubtotal}
-              onChange={(e) => setFreeShippingMinSubtotal(Number(e.target.value))}
-              disabled={loading}
-            />
-            <p className="text-xs text-[var(--muted)] mt-1">
-              Example: {formatPrice(freeShippingMinSubtotal)} — orders at or above this subtotal pay
-              no standard shipping (express still uses the express rate).
-            </p>
-          </div>
-
-          <Button onClick={save} loading={saving} disabled={loading}>
-            Save shipping rates
-          </Button>
-        </CardContent>
-      </Card>
+      <div className="max-w-3xl">
+        {active === "store" && <StoreInfoTab initial={store} />}
+        {active === "shipping" && (
+          <ShippingTab
+            initial={{
+              standardLkr: Number(shipping.standardLkr),
+              expressLkr: Number(shipping.expressLkr),
+              freeShippingMinSubtotal: Number(shipping.freeShippingMinSubtotal),
+            }}
+          />
+        )}
+        {active === "tax" && <TaxTab initial={store} />}
+        {active === "policies" && <PoliciesTab initial={store} />}
+        {active === "notifications" && <NotificationsTab initial={notif} />}
+        {active === "payment" && <PaymentTab />}
+      </div>
     </div>
   );
 }

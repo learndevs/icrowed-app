@@ -44,11 +44,11 @@ export function ProductImages({ images, productName, gradient, discount, brand }
           <Smartphone className="w-32 h-32 text-white/60" />
         )}
         {discount && (
-          <span className="absolute top-4 left-4 bg-rose-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">
+          <span className="pointer-events-none absolute top-4 left-4 bg-rose-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">
             -{discount}% OFF
           </span>
         )}
-        <span className="absolute top-4 right-4 bg-white/20 backdrop-blur-sm text-white text-[10px] font-bold px-2.5 py-1 rounded-full border border-white/30">
+        <span className="pointer-events-none absolute top-4 right-4 bg-white/20 backdrop-blur-sm text-white text-[10px] font-bold px-2.5 py-1 rounded-full border border-white/30">
           {brand}
         </span>
       </div>

@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getOrCreateShippingRates, upsertShippingRates } from "@icrowed/database";
+import { requireAdmin } from "@/lib/admin";
+import { logAudit } from "@/lib/audit";
 
 export async function GET() {
   try {
@@ -17,8 +19,11 @@ export async function GET() {
 }
 
 export async function PUT(req: NextRequest) {
+  const auth = await requireAdmin();
+  if (auth instanceof NextResponse) return auth;
   try {
     const body = await req.json();
+    const before = await getOrCreateShippingRates();
     const { standardLkr, expressLkr, freeShippingMinSubtotal } = body as {
       standardLkr?: number;
       expressLkr?: number;
@@ -44,6 +49,23 @@ export async function PUT(req: NextRequest) {
       standardLkr: String(standardLkr),
       expressLkr: String(expressLkr),
       freeShippingMinSubtotal: String(freeShippingMinSubtotal),
+    });
+
+    await logAudit({
+      actor: { userId: auth.userId, email: auth.email },
+      entityType: "shipping_rates",
+      action: "update",
+      summary: "Shipping rates updated",
+      before: {
+        standardLkr: Number(before.standardLkr),
+        expressLkr: Number(before.expressLkr),
+        freeShippingMinSubtotal: Number(before.freeShippingMinSubtotal),
+      },
+      after: {
+        standardLkr: Number(row.standardLkr),
+        expressLkr: Number(row.expressLkr),
+        freeShippingMinSubtotal: Number(row.freeShippingMinSubtotal),
+      },
     });
 
     return NextResponse.json({

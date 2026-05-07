@@ -1,4 +1,4 @@
-import { eq, ilike, and, desc, sql, count } from "drizzle-orm";
+import { eq, ilike, and, desc, asc, sql, count } from "drizzle-orm";
 import { db } from "../db";
 import { products, productImages, productVariants, categories, brands } from "../schema";
 
@@ -69,6 +69,19 @@ export async function getProductsAdmin(opts?: {
     db.select({ total: count() }).from(products).where(where),
   ]);
   return { rows, total: totals[0]?.total ?? 0 };
+}
+
+/** Active Anker (or any brand) product with the lowest price — for storefront highlights. */
+export async function getLowestPricedProductByBrandSlug(brandSlug: string) {
+  const brandRow = await db.query.brands.findFirst({
+    where: eq(brands.slug, brandSlug),
+  });
+  if (!brandRow) return null;
+  return db.query.products.findFirst({
+    where: and(eq(products.brandId, brandRow.id), eq(products.isActive, true)),
+    orderBy: [asc(products.price)],
+    with: { images: true, brand: true },
+  });
 }
 
 export async function getProductBySlug(slug: string) {

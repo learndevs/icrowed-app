@@ -10,7 +10,7 @@ import Link from "next/link";
 
 interface ProductRow {
   id: string;
-  name: string;
+  name: string;       
   sku: string | null;
   price: string;
   stock: number;
@@ -96,12 +96,12 @@ export default function AdminProductsPage() {
           placeholder="Search products..."
           value={search}
           onChange={handleSearch}
-          className="h-9 px-3 rounded-lg border border-[var(--border)] bg-white text-sm w-64 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+          className="h-9 px-3 rounded-lg border border-border bg-white text-sm w-64 focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
         />
         <select
           value={categoryId}
           onChange={handleCategory}
-          className="h-9 px-3 rounded-lg border border-[var(--border)] bg-white text-sm focus:outline-none"
+          className="h-9 px-3 rounded-lg border border-border bg-white text-sm focus:outline-none"
         >
           <option value="">All Categories</option>
           {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -110,9 +110,9 @@ export default function AdminProductsPage() {
 
       <Card>
         {loading ? (
-          <div className="p-8 text-center text-[var(--muted)] text-sm">Loading products...</div>
+          <div className="p-8 text-center text-muted text-sm">Loading products...</div>
         ) : products.length === 0 ? (
-          <div className="p-8 text-center text-[var(--muted)] text-sm">No products found.</div>
+          <div className="p-8 text-center text-muted text-sm">No products found.</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">

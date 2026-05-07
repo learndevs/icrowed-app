@@ -14,6 +14,9 @@
     "db:migrate": "drizzle-kit migrate --config=drizzle.config.ts",
     "db:push": "drizzle-kit push --config=drizzle.config.ts",
     "db:studio": "drizzle-kit studio --config=drizzle.config.ts",
+    "db:seed": "tsx src/seed.ts",
+    "admin:create": "tsx scripts/create-admin.ts",
+    "admin:promote": "tsx scripts/promote-admin.ts",
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
@@ -25,6 +28,7 @@
     "@types/node": "^20",
     "@types/pg": "^8.20.0",
     "drizzle-kit": "^0.31.10",
+    "tsx": "^4.0.0",
     "typescript": "^5"
   }
 }

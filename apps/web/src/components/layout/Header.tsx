@@ -1,11 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { ShoppingCart, Search, User, Menu, X, Smartphone } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { Heart, ShoppingCart, Search, User, Smartphone, LogOut, Package } from "lucide-react";
 import { useCart } from "@/context/CartContext";
-import { useState } from "react";
+import { useWishlist } from "@/context/WishlistContext";
+import { useEffect, useState } from "react";
+import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
+import type { User as SupabaseUser } from "@supabase/supabase-js";
+import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
 
 const NAV_LINKS = [
   { href: "/products", label: "All Products" },
@@ -15,13 +19,38 @@ const NAV_LINKS = [
 
 export default function Header() {
   const { itemCount } = useCart();
+  const { count: wishlistCount } = useWishlist();
   const pathname = usePathname();
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const router = useRouter();
+  const [user, setUser] = useState<SupabaseUser | null>(null);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data }) => setUser(data.user));
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
+      setUser(session?.user ?? null);
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
+  async function handleSignOut() {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    setUserMenuOpen(false);
+    router.push("/");
+    router.refresh();
+  }
+
+  const displayName = (user?.user_metadata?.full_name as string | undefined)?.split(" ")[0] ?? user?.email?.split("@")[0];
 
   return (
-    <header className="sticky top-0 z-50 glass border-b border-white/60">
+    <>
+    <header className="sticky top-0 z-50 border-b border-white/70 bg-white/40 backdrop-blur-2xl shadow-[0_10px_30px_rgba(15,23,42,0.08)]">
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/55 via-white/30 to-gray-100/20" />
+      <div className="pointer-events-none absolute -top-16 right-10 h-36 w-36 rounded-full bg-white/70 blur-3xl" />
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-14 sm:h-16">
+        <div className="relative flex items-center justify-between h-14 sm:h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 font-bold text-xl text-[var(--foreground)]">
             <div className="w-8 h-8 rounded-lg bg-[var(--color-primary)] flex items-center justify-center">
@@ -50,6 +79,16 @@ export default function Header() {
 
           {/* Actions */}
           <div className="flex items-center gap-2">
+            {/* Mobile auth link: top bar shows only logo + sign in/account */}
+            <Link
+              href={user ? "/account" : "/login"}
+              aria-label={user ? "My account" : "Sign in"}
+              className="md:hidden h-10 px-3 flex items-center gap-2 rounded-lg text-[var(--muted)] hover:text-[var(--foreground)] transition-colors text-sm font-medium"
+            >
+              <User className="w-5 h-5" />
+              <span>{user ? "Account" : "Sign In"}</span>
+            </Link>
+
             <button
               aria-label="Search"
               className="hidden sm:flex h-10 w-10 items-center justify-center rounded-lg hover:bg-[var(--surface)] text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
@@ -57,18 +96,94 @@ export default function Header() {
               <Search className="w-5 h-5" />
             </button>
 
+            {/* User menu */}
+            <div className="relative hidden sm:block">
+              {user ? (
+                <>
+                  <button
+                    onClick={() => setUserMenuOpen((v) => !v)}
+                    className="h-10 px-3 flex items-center gap-2 rounded-lg hover:bg-[var(--surface)] text-[var(--muted)] hover:text-[var(--foreground)] transition-colors text-sm font-medium"
+                    aria-label="Account menu"
+                  >
+                    <div className="w-6 h-6 rounded-full bg-[var(--color-primary)] text-white text-xs font-bold flex items-center justify-center uppercase">
+                      {displayName?.[0] ?? "U"}
+                    </div>
+                    <span className="hidden lg:block max-w-24 truncate">{displayName}</span>
+                  </button>
+
+                  {userMenuOpen && (
+                    <>
+                      <div className="fixed inset-0 z-[80]" onClick={() => setUserMenuOpen(false)} />
+                      <div className="absolute right-0 top-12 z-[90] w-48 bg-white rounded-xl shadow-lg border border-[var(--border)] py-1 overflow-hidden">
+                        <div className="px-3 py-2 border-b border-[var(--border)]">
+                          <p className="text-xs font-semibold truncate">{displayName}</p>
+                          <p className="text-xs text-[var(--muted)] truncate">{user.email}</p>
+                        </div>
+                        <Link
+                          href="/account"
+                          onClick={() => setUserMenuOpen(false)}
+                          className="flex items-center gap-2 px-3 py-2.5 text-sm hover:bg-[var(--surface)] transition-colors"
+                        >
+                          <User className="w-4 h-4" /> My Account
+                        </Link>
+                        <Link
+                          href="/account/orders"
+                          onClick={() => setUserMenuOpen(false)}
+                          className="flex items-center gap-2 px-3 py-2.5 text-sm hover:bg-[var(--surface)] transition-colors"
+                        >
+                          <Package className="w-4 h-4" /> My Orders
+                        </Link>
+                        <Link
+                          href="/wishlist"
+                          onClick={() => setUserMenuOpen(false)}
+                          className="flex items-center gap-2 px-3 py-2.5 text-sm hover:bg-[var(--surface)] transition-colors"
+                        >
+                          <Heart className="w-4 h-4" /> Wishlist
+                          {wishlistCount > 0 && (
+                            <span className="ml-auto text-[10px] font-bold bg-rose-100 text-rose-600 rounded-full px-1.5 py-0.5">{wishlistCount}</span>
+                          )}
+                        </Link>
+                        <button
+                          onClick={handleSignOut}
+                          className="w-full flex items-center gap-2 px-3 py-2.5 text-sm hover:bg-red-50 text-red-600 transition-colors"
+                        >
+                          <LogOut className="w-4 h-4" /> Sign Out
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </>
+              ) : (
+                <Link
+                  href="/login"
+                  aria-label="Sign in"
+                  className="h-10 px-3 flex items-center gap-2 rounded-lg hover:bg-[var(--surface)] text-[var(--muted)] hover:text-[var(--foreground)] transition-colors text-sm font-medium"
+                >
+                  <User className="w-5 h-5" />
+                  <span className="hidden lg:block">Sign In</span>
+                </Link>
+              )}
+            </div>
+
+            {/* Wishlist */}
             <Link
-              href="/account"
-              aria-label="Account"
-              className="hidden sm:flex h-10 w-10 items-center justify-center rounded-lg hover:bg-[var(--surface)] text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
+              href="/wishlist"
+              aria-label={`Wishlist (${wishlistCount} items)`}
+              className="relative h-10 w-10 hidden sm:flex items-center justify-center rounded-lg hover:bg-[var(--surface)] text-[var(--muted)] hover:text-rose-500 transition-colors"
             >
-              <User className="w-5 h-5" />
+              <Heart className="w-5 h-5" />
+              {wishlistCount > 0 && (
+                <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center justify-center">
+                  {wishlistCount > 99 ? "99+" : wishlistCount}
+                </span>
+              )}
             </Link>
 
+            {/* Cart */}
             <Link
               href="/cart"
               aria-label={`Cart (${itemCount} items)`}
-              className="relative h-10 w-10 flex items-center justify-center rounded-lg hover:bg-[var(--surface)] text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
+              className="relative hidden sm:flex h-10 w-10 items-center justify-center rounded-lg hover:bg-[var(--surface)] text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
             >
               <ShoppingCart className="w-5 h-5" />
               {itemCount > 0 && (
@@ -78,55 +193,12 @@ export default function Header() {
               )}
             </Link>
 
-            {/* Mobile menu toggle */}
-            <button
-              className="md:hidden h-10 w-10 flex items-center justify-center rounded-lg hover:bg-[var(--surface)] transition-colors"
-              onClick={() => setMobileOpen((v) => !v)}
-              aria-label="Toggle menu"
-            >
-              {mobileOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
-            </button>
           </div>
         </div>
       </div>
 
-      {/* Mobile Nav — fixed overlay so it escapes backdrop-filter stacking context */}
-      {mobileOpen && (
-        <>
-          {/* Backdrop */}
-          <div
-            className="fixed inset-0 top-14 bg-black/30 z-[90] md:hidden"
-            onClick={() => setMobileOpen(false)}
-          />
-          {/* Panel */}
-          <div className="fixed top-14 left-0 right-0 z-[100] md:hidden bg-white border-b border-gray-100 shadow-xl">
-            <nav className="max-w-[1400px] mx-auto px-4 py-3 flex flex-col gap-1">
-              {NAV_LINKS.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  onClick={() => setMobileOpen(false)}
-                  className={cn(
-                    "px-4 py-3 rounded-xl text-sm font-semibold transition-colors",
-                    pathname.startsWith(link.href)
-                      ? "bg-indigo-50 text-indigo-700"
-                      : "text-gray-800 hover:bg-gray-100"
-                  )}
-                >
-                  {link.label}
-                </Link>
-              ))}
-              <Link
-                href="/account"
-                onClick={() => setMobileOpen(false)}
-                className="px-4 py-3 rounded-xl text-sm font-semibold text-gray-800 hover:bg-gray-100"
-              >
-                My Account
-              </Link>
-            </nav>
-          </div>
-        </>
-      )}
     </header>
+    <MobileBottomNav itemCount={itemCount} />
+    </>
   );
 }

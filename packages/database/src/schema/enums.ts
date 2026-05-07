@@ -14,6 +14,8 @@ export const orderStatusEnum = pgEnum("order_status", [
 export const paymentMethodEnum = pgEnum("payment_method", [
   "stripe",
   "bank_transfer",
+  "payhere",
+  "cash_on_delivery",
 ]);
 
 export const paymentStatusEnum = pgEnum("payment_status", [

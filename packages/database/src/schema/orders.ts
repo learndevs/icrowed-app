@@ -43,6 +43,7 @@ export const orders = pgTable("orders", {
   subtotal: decimal("subtotal", { precision: 10, scale: 2 }).notNull(),
   shippingCost: decimal("shipping_cost", { precision: 10, scale: 2 }).default("0").notNull(),
   discount: decimal("discount", { precision: 10, scale: 2 }).default("0").notNull(),
+  couponCode: varchar("coupon_code", { length: 50 }),
   total: decimal("total", { precision: 10, scale: 2 }).notNull(),
 
   // Payment

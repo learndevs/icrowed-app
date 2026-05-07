@@ -7,6 +7,7 @@ import {
 } from "lucide-react";
 import { ProductDetailClient } from "./ProductDetailClient";
 import { ProductImages } from "./ProductImages";
+import { ProductReviews } from "./ProductReviews";
 import { getProductBySlug } from "@icrowed/database/queries";
 
 interface Props {
@@ -61,22 +62,15 @@ async function getProduct(slug: string) {
     reviewCount: 0,
     gradient: productGradient(p.id),
     images: (p.images as { id: string; url: string; altText: string | null; isPrimary: boolean; sortOrder: number }[]) ?? [],
-    variants: ((p as { variants?: { id: string; name: string; stock: number; price: unknown; isActive?: boolean }[] }).variants ?? [])
-      .filter((v) => v.isActive !== false)
-      .map((v) => ({
+    variants: ((p as any).variants ?? [])
+      .filter((v: any) => v.isActive !== false)
+      .map((v: any) => ({
         id: v.id,
         name: v.name,
         stock: v.stock ?? 0,
-        price:
-          v.price != null && String(v.price).trim() !== ""
-            ? Number(v.price)
-            : Number(p.price),
+        price: v.price ? Number(v.price) : null,
+        sku: v.sku ?? null,
       })),
-    imageUrl:
-      (p.images as { url: string; isPrimary?: boolean }[] | undefined)?.find((img) => img.isPrimary)
-        ?.url ??
-      (p.images as { url: string }[] | undefined)?.[0]?.url,
-    sku: p.sku,
   };
 }
 
@@ -92,11 +86,9 @@ export default async function ProductDetailPage({ params }: Props) {
   const product = await getProduct(slug);
   if (!product) notFound();
 
-  const discount = product.comparePrice
+  const baseDiscount = product.comparePrice
     ? Math.round((1 - product.price / product.comparePrice) * 100)
     : null;
-
-  const fmt = (p: number) => "LKR " + p.toLocaleString("en-LK");
 
   return (
     <div className="bento-bg min-h-screen">
@@ -115,16 +107,18 @@ export default async function ProductDetailPage({ params }: Props) {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
 
           {/* Left: images */}
-          <ProductImages
-            images={product.images}
-            productName={product.name}
-            gradient={product.gradient}
-            discount={discount}
-            brand={product.brand}
-          />
+          <div className="relative z-0">
+            <ProductImages
+              images={product.images}
+              productName={product.name}
+              gradient={product.gradient}
+              discount={baseDiscount}
+              brand={product.brand}
+            />
+          </div>
 
           {/* Right: product info */}
-          <div className="bento-card p-5 sm:p-7 flex flex-col gap-5">
+          <div className="bento-card relative z-10 p-5 sm:p-7 flex flex-col gap-5">
 
             {/* Brand + category */}
             <div className="flex items-center gap-2">
@@ -167,19 +161,6 @@ export default async function ProductDetailPage({ params }: Props) {
               </div>
             </div>
 
-            {/* Price */}
-            <div className="flex items-baseline gap-3">
-              <span className="text-3xl font-black text-gray-900">{fmt(product.price)}</span>
-              {product.comparePrice && (
-                <span className="text-base text-gray-400 line-through">{fmt(product.comparePrice)}</span>
-              )}
-              {discount && (
-                <span className="text-sm font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg">
-                  Save {fmt(product.comparePrice! - product.price)}
-                </span>
-              )}
-            </div>
-
             {/* Highlights */}
             <div className="flex flex-wrap gap-2">
               {product.highlights.map((h) => (
@@ -189,17 +170,16 @@ export default async function ProductDetailPage({ params }: Props) {
               ))}
             </div>
 
-            {/* Variants */}
+            {/* Price + Variants (client — price updates on variant selection) */}
             <ProductDetailClient
               product={{
                 id: product.id,
                 name: product.name,
-                slug: product.slug,
                 price: product.price,
+                comparePrice: product.comparePrice,
                 stock: product.stock,
-                sku: product.sku,
-                imageUrl: product.imageUrl,
                 variants: product.variants,
+                primaryImageUrl: product.images.find((i) => i.isPrimary)?.url ?? product.images[0]?.url ?? null,
               }}
             />
 
@@ -233,13 +213,11 @@ export default async function ProductDetailPage({ params }: Props) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {product.specifications.map((group) => (
               <div key={group.group} className="rounded-2xl overflow-hidden border border-gray-100">
-                {/* Group header */}
                 <div className="bg-gray-900 px-4 py-2.5">
                   <p className="text-[11px] font-extrabold tracking-widest text-gray-300 uppercase">
                     {group.group}
                   </p>
                 </div>
-                {/* Rows */}
                 <div className="divide-y divide-gray-50">
                   {group.specs.map((spec, i) => (
                     <div
@@ -259,6 +237,9 @@ export default async function ProductDetailPage({ params }: Props) {
             ))}
           </div>
         </div>
+
+        {/* ── Reviews ─────────────────────────────────────────────────────── */}
+        <ProductReviews productId={product.id} />
 
       </div>
     </div>
