@@ -4,3 +4,8 @@ export * from "./categories";
 export * from "./profiles";
 export * from "./offers";
 export * from "./reviews";
+export * from "./shippingRates";
+export * from "./storeSettings";
+export * from "./notifications";
+export * from "./auditLogs";
+export * from "./emailTemplates";

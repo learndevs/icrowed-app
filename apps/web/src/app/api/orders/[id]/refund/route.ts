@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db, orders, orderStatusHistory } from "@icrowed/database";
 import { eq } from "drizzle-orm";
 import { requireAdmin } from "@/lib/admin";
+import { logAudit } from "@/lib/audit";
 import { stripe } from "@/lib/stripe";
 import { sendEmail } from "@/lib/email";
 import { orderRefundedTemplate } from "@/lib/email-templates/orderRefunded";
@@ -78,6 +79,15 @@ export async function POST(
         }),
       });
     }
+
+    await logAudit({
+      actor: { userId: auth.userId, email: auth.email },
+      entityType: "order",
+      entityId: id,
+      action: "refund",
+      summary: `Refund issued for ${updated.orderNumber} (${updated.total})`,
+      metadata: { stripeRefundId, reason, paymentMethod: order.paymentMethod },
+    });
 
     return NextResponse.json({
       success: true,

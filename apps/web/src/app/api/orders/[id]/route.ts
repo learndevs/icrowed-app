@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db, orders, orderStatusHistory } from "@icrowed/database";
 import { eq } from "drizzle-orm";
 import { requireAdmin } from "@/lib/admin";
+import { logAudit } from "@/lib/audit";
 import { sendEmail } from "@/lib/email";
 import { orderShippedTemplate } from "@/lib/email-templates/orderShipped";
 import { orderDeliveredTemplate } from "@/lib/email-templates/orderDelivered";
@@ -35,6 +36,8 @@ export async function PATCH(
     const { id } = await params;
     const body = await req.json();
     const { status, trackingNumber, courierName, adminNote, changedBy } = body;
+
+    const before = await db.query.orders.findFirst({ where: eq(orders.id, id) });
 
     const updateData: Record<string, unknown> = { updatedAt: new Date() };
     if (status !== undefined)         updateData.status = status;
@@ -96,6 +99,31 @@ export async function PATCH(
         });
       }
     }
+
+    await logAudit({
+      actor: { userId: auth.userId, email: auth.email },
+      entityType: "order",
+      entityId: id,
+      action: status !== undefined ? "status_change" : "update",
+      summary:
+        status !== undefined
+          ? `Order ${updated.orderNumber} → ${status}`
+          : `Order ${updated.orderNumber} updated`,
+      before: before
+        ? {
+            status: before.status,
+            trackingNumber: before.trackingNumber,
+            courierName: before.courierName,
+            adminNote: before.adminNote,
+          }
+        : null,
+      after: {
+        status: updated.status,
+        trackingNumber: updated.trackingNumber,
+        courierName: updated.courierName,
+        adminNote: updated.adminNote,
+      },
+    });
 
     return NextResponse.json(updated);
   } catch (err) {

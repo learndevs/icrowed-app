@@ -11,3 +11,7 @@ export * from "./offers";
 export * from "./coupons";
 export * from "./wishlists";
 export * from "./shop_shipping_rates";
+export * from "./audit_logs";
+export * from "./email_templates";
+export * from "./store_settings";
+export * from "./notifications";
