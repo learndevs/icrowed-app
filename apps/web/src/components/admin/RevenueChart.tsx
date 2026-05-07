@@ -2,7 +2,6 @@
 
 import {
   ResponsiveContainer,
-  LineChart,
   Line,
   XAxis,
   YAxis,
@@ -32,11 +31,12 @@ export function RevenueChart({ data }: { data: Point[] }) {
           <YAxis yAxisId="left" fontSize={11} />
           <YAxis yAxisId="right" orientation="right" fontSize={11} />
           <Tooltip
-            formatter={(value: number, name: string) =>
-              name === "revenue"
-                ? [`LKR ${value.toLocaleString()}`, "Revenue"]
-                : [value, "Orders"]
-            }
+            formatter={(value, name) => {
+              const v = Number(value);
+              return name === "revenue"
+                ? [`LKR ${v.toLocaleString()}`, "Revenue"]
+                : [String(v), "Orders"];
+            }}
           />
           <Legend />
           <Bar yAxisId="right" dataKey="orderCount" name="Orders" fill="#dbeafe" />

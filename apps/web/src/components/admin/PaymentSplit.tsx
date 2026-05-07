@@ -34,7 +34,7 @@ export function PaymentSplit({ data }: { data: Slice[] }) {
             ))}
           </Pie>
           <Tooltip
-            formatter={(value: number) => `LKR ${value.toLocaleString()}`}
+            formatter={(value) => `LKR ${Number(value).toLocaleString()}`}
           />
           <Legend wrapperStyle={{ fontSize: 11 }} />
         </PieChart>

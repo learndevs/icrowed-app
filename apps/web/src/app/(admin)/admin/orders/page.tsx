@@ -45,26 +45,37 @@ export default async function AdminOrdersPage({
           <span className="text-sm font-normal text-[var(--muted)]">({rows.length})</span>
         </h2>
 
-        {/* Status filter links */}
-        <div className="flex flex-wrap gap-2">
-          {(["All", ...ALL_STATUSES] as const).map((s) => {
-            const active = s === "All" ? !statusFilter : statusFilter === s;
-            const href = s === "All" ? "/admin/orders" : `/admin/orders?status=${s}`;
-            return (
-              <Link
-                key={s}
-                href={href}
-                className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors capitalize ${
-                  active
-                    ? "bg-[var(--color-primary)] text-white border-transparent"
-                    : "border-[var(--border)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]"
-                }`}
-              >
-                {s}
-              </Link>
-            );
-          })}
+        <div className="flex items-center gap-2">
+          <Link
+            href="/api/admin/orders/export"
+            className="inline-flex items-center h-8 px-3 rounded-lg text-xs font-medium bg-white border border-[var(--border)] hover:bg-[var(--surface)]"
+          >
+            Export CSV
+          </Link>
+          <Link href="/admin/orders/new">
+            <Button size="sm">+ New Order</Button>
+          </Link>
         </div>
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        {(["All", ...ALL_STATUSES] as const).map((s) => {
+          const active = s === "All" ? !statusFilter : statusFilter === s;
+          const href = s === "All" ? "/admin/orders" : `/admin/orders?status=${s}`;
+          return (
+            <Link
+              key={s}
+              href={href}
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors capitalize ${
+                active
+                  ? "bg-[var(--color-primary)] text-white border-transparent"
+                  : "border-[var(--border)] hover:border-[var(--color-primary)] hover:text-[var(--color-primary)]"
+              }`}
+            >
+              {s}
+            </Link>
+          );
+        })}
       </div>
 
       <Card>
