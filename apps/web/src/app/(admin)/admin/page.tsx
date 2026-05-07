@@ -1,7 +1,8 @@
 import { Card, CardContent } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { StatCard } from "@/components/ui/StatCard";
-import { DateRangePicker, rangeToDates } from "@/components/ui/DateRangePicker";
+import { DateRangePicker } from "@/components/ui/DateRangePicker";
+import { rangeToDates } from "@/lib/date-range";
 import { RevenueChart } from "@/components/admin/RevenueChart";
 import { StatusDonut } from "@/components/admin/StatusDonut";
 import {

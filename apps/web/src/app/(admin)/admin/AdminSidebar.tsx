@@ -19,6 +19,8 @@ import {
   Mail,
   PieChart,
   Star,
+  ArrowLeft,
+  ChevronRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -27,6 +29,7 @@ type NavItem = {
   label: string;
   icon: typeof LayoutDashboard;
   exact?: boolean;
+  badge?: string;
 };
 
 type NavSection = { title: string; items: NavItem[] };
@@ -59,7 +62,7 @@ const SECTIONS: NavSection[] = [
   {
     title: "Marketing",
     items: [
-      { href: "/admin/offers", label: "Offers / Banners", icon: Megaphone },
+      { href: "/admin/offers", label: "Offers & Banners", icon: Megaphone },
       { href: "/admin/coupons", label: "Coupons", icon: Ticket },
       { href: "/admin/email-templates", label: "Email Templates", icon: Mail },
     ],
@@ -74,29 +77,37 @@ const SECTIONS: NavSection[] = [
   },
 ];
 
-export function AdminSidebar() {
+type Props = {
+  fullName: string | null;
+  email: string;
+  initials: string;
+};
+
+export function AdminSidebar({ fullName, email, initials }: Readonly<Props>) {
   const pathname = usePathname();
 
   return (
-    <aside className="w-60 shrink-0 border-r border-[var(--border)] bg-white flex flex-col overflow-y-auto">
-      <div className="h-16 px-4 flex items-center gap-2 border-b border-[var(--border)]">
-        <div className="w-8 h-8 rounded-lg bg-[var(--color-primary)] flex items-center justify-center">
+    <aside className="w-64 shrink-0 flex flex-col bg-white border-r border-gray-100 overflow-hidden">
+      {/* Logo */}
+      <div className="h-16 px-5 flex items-center gap-3 border-b border-gray-100 shrink-0">
+        <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center shadow-sm">
           <Smartphone className="w-4 h-4 text-white" />
         </div>
         <div>
-          <p className="font-bold text-sm leading-none">iCrowed</p>
-          <p className="text-[10px] text-[var(--muted)]">Admin Console</p>
+          <p className="font-bold text-sm text-gray-900 leading-none tracking-tight">iCrowed</p>
+          <p className="text-[10px] text-gray-400 mt-0.5 font-medium uppercase tracking-widest">Admin Console</p>
         </div>
       </div>
 
-      <nav className="flex-1 p-3 space-y-4">
+      {/* Nav */}
+      <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-5">
         {SECTIONS.map((section) => (
           <div key={section.title}>
-            <p className="px-3 mb-1 text-[10px] uppercase tracking-wider font-semibold text-[var(--muted)]">
+            <p className="px-3 mb-1.5 text-[10px] font-semibold uppercase tracking-widest text-gray-400">
               {section.title}
             </p>
             <div className="space-y-0.5">
-              {section.items.map(({ href, label, icon: Icon, exact }) => {
+              {section.items.map(({ href, label, icon: Icon, exact, badge }) => {
                 const active = exact
                   ? pathname === href
                   : pathname === href || pathname.startsWith(`${href}/`);
@@ -105,21 +116,32 @@ export function AdminSidebar() {
                     key={href}
                     href={href}
                     className={cn(
-                      "flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors group",
+                      "group relative flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-all duration-150",
                       active
-                        ? "bg-[var(--brand-100)] text-[var(--brand-700)] font-medium"
-                        : "text-[var(--muted)] hover:text-[var(--foreground)] hover:bg-[var(--surface)]"
+                        ? "bg-indigo-50 text-indigo-700 font-medium"
+                        : "text-gray-500 hover:text-gray-900 hover:bg-gray-50"
                     )}
                   >
+                    {active && (
+                      <span className="absolute left-0 top-1/2 -translate-y-1/2 w-0.5 h-5 bg-indigo-500 rounded-r-full" />
+                    )}
                     <Icon
                       className={cn(
                         "w-4 h-4 shrink-0 transition-colors",
                         active
-                          ? "text-[var(--color-primary)]"
-                          : "group-hover:text-[var(--color-primary)]"
+                          ? "text-indigo-600"
+                          : "text-gray-400 group-hover:text-gray-600"
                       )}
                     />
-                    {label}
+                    <span className="flex-1">{label}</span>
+                    {badge && (
+                      <span className="text-[10px] font-semibold bg-indigo-600 text-white rounded-full px-1.5 py-0.5 leading-none">
+                        {badge}
+                      </span>
+                    )}
+                    {active && (
+                      <ChevronRight className="w-3 h-3 text-indigo-400" />
+                    )}
                   </Link>
                 );
               })}
@@ -128,13 +150,29 @@ export function AdminSidebar() {
         ))}
       </nav>
 
-      <div className="p-3 border-t border-[var(--border)]">
-        <Link
-          href="/"
-          className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-[var(--muted)] hover:text-[var(--foreground)] hover:bg-[var(--surface)] transition-colors"
-        >
-          ← Back to Store
-        </Link>
+      {/* User + Back to Store */}
+      <div className="shrink-0 border-t border-gray-100">
+        <div className="px-4 py-3 flex items-center gap-3">
+          <div className="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-xs font-bold text-white shrink-0">
+            {initials}
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-gray-900 truncate leading-none">
+              {fullName ?? "Admin"}
+            </p>
+            <p className="text-xs text-gray-400 truncate mt-0.5">{email}</p>
+          </div>
+        </div>
+
+        <div className="px-3 pb-3">
+          <Link
+            href="/"
+            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-400 hover:text-gray-700 hover:bg-gray-50 transition-colors group"
+          >
+            <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
+            Back to Store
+          </Link>
+        </div>
       </div>
     </aside>
   );

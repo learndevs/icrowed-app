@@ -4,37 +4,10 @@ import { cn } from "@/lib/utils";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { Calendar } from "lucide-react";
 import { useState } from "react";
+import { RANGE_PRESETS } from "@/lib/date-range";
 
-const PRESETS: Array<{ key: string; label: string; days: number }> = [
-  { key: "today", label: "Today", days: 0 },
-  { key: "7d", label: "7 days", days: 7 },
-  { key: "30d", label: "30 days", days: 30 },
-  { key: "90d", label: "90 days", days: 90 },
-];
-
-export type RangeKey = "today" | "7d" | "30d" | "90d" | "custom";
-
-export function rangeToDates(
-  range: string | null | undefined,
-  fromParam?: string | null,
-  toParam?: string | null
-): { from: Date; to: Date } {
-  const to = new Date();
-  to.setHours(23, 59, 59, 999);
-
-  if (range === "custom" && fromParam && toParam) {
-    return { from: new Date(fromParam), to: new Date(toParam) };
-  }
-
-  const preset = PRESETS.find((p) => p.key === range) ?? PRESETS[2]; // default 30d
-  const from = new Date();
-  from.setHours(0, 0, 0, 0);
-  if (preset.key === "today") {
-    return { from, to };
-  }
-  from.setDate(from.getDate() - preset.days);
-  return { from, to };
-}
+export type { RangeKey } from "@/lib/date-range";
+export { rangeToDates } from "@/lib/date-range";
 
 export function DateRangePicker() {
   const router = useRouter();
@@ -72,7 +45,7 @@ export function DateRangePicker() {
   return (
     <div className="flex flex-wrap items-center gap-2">
       <Calendar className="w-4 h-4 text-[var(--muted)]" />
-      {PRESETS.map((p) => (
+      {RANGE_PRESETS.map((p) => (
         <button
           key={p.key}
           onClick={() => setRange(p.key)}

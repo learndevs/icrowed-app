@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin";
-import { rangeToDates } from "@/components/ui/DateRangePicker";
+import { rangeToDates } from "@/lib/date-range";
 import {
   getKpis,
   getRevenueDaily,

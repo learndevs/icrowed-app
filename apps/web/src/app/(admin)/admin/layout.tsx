@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { db, profiles } from "@icrowed/database";
 import { eq } from "drizzle-orm";
 import { AdminSidebar } from "./AdminSidebar";
+import { AdminHeader } from "./AdminHeader";
 
 export default async function AdminLayout({ children }: { children: ReactNode }) {
   const supabase = await createClient();
@@ -30,21 +31,19 @@ export default async function AdminLayout({ children }: { children: ReactNode })
     : (user.email?.[0] ?? "A").toUpperCase();
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[var(--surface)]">
-      <AdminSidebar />
+    <div className="flex h-screen overflow-hidden bg-slate-50">
+      <AdminSidebar
+        fullName={profile.fullName ?? null}
+        email={user.email ?? ""}
+        initials={initials}
+      />
 
       <div className="flex-1 flex flex-col overflow-hidden">
-        <header className="h-16 bg-white border-b border-[var(--border)] px-6 flex items-center justify-between shrink-0">
-          <h1 className="font-semibold text-base">Admin Panel</h1>
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-[var(--muted)] hidden sm:block">
-              {user.email}
-            </span>
-            <div className="w-8 h-8 rounded-full bg-[var(--brand-100)] flex items-center justify-center text-sm font-bold text-[var(--brand-700)]">
-              {initials}
-            </div>
-          </div>
-        </header>
+        <AdminHeader
+          fullName={profile.fullName ?? null}
+          email={user.email ?? ""}
+          initials={initials}
+        />
         <main className="flex-1 overflow-y-auto p-6">{children}</main>
       </div>
     </div>

@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { Card, CardContent } from "@/components/ui/Card";
 import { StatCard } from "@/components/ui/StatCard";
-import { DateRangePicker, rangeToDates } from "@/components/ui/DateRangePicker";
+import { DateRangePicker } from "@/components/ui/DateRangePicker";
+import { rangeToDates } from "@/lib/date-range";
 import { RevenueChart } from "@/components/admin/RevenueChart";
 import { StatusDonut } from "@/components/admin/StatusDonut";
 import { PaymentSplit } from "@/components/admin/PaymentSplit";
@@ -28,9 +29,9 @@ export const dynamic = "force-dynamic";
 
 export default async function AnalyticsPage({
   searchParams,
-}: {
+}: Readonly<{
   searchParams: Promise<{ range?: string; from?: string; to?: string }>;
-}) {
+}>) {
   const sp = await searchParams;
   const range = rangeToDates(sp.range, sp.from, sp.to);
 
@@ -61,7 +62,7 @@ export default async function AnalyticsPage({
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-xl font-bold">Analytics</h2>
-          <p className="text-sm text-[var(--muted)] mt-1">
+          <p className="text-sm text-muted mt-1">
             {range.from.toLocaleDateString("en-LK")} —{" "}
             {range.to.toLocaleDateString("en-LK")}
           </p>
@@ -156,7 +157,7 @@ export default async function AnalyticsPage({
                     className="flex items-center justify-between"
                   >
                     <span className="flex items-center gap-2 min-w-0">
-                      <span className="w-5 h-5 rounded bg-[var(--surface)] text-xs flex items-center justify-center font-medium shrink-0">
+                      <span className="w-5 h-5 rounded bg-surface text-xs flex items-center justify-center font-medium shrink-0">
                         {i + 1}
                       </span>
                       <span className="truncate">{p.productName}</span>

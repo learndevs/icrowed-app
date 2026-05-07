@@ -7,6 +7,7 @@ import {
   TEMPLATE_VARIABLES,
   type TemplateKey,
 } from "@/lib/email-templates/loader";
+import { TEMPLATE_DEFAULTS } from "@/lib/email-templates/defaults";
 import { TemplateEditor } from "./TemplateEditor";
 
 export const dynamic = "force-dynamic";
@@ -40,6 +41,7 @@ export default async function EditTemplatePage({
         templateKey={key}
         label={TEMPLATE_LABELS[k]}
         variables={TEMPLATE_VARIABLES[k] ?? []}
+        defaultContent={TEMPLATE_DEFAULTS[k]}
         initial={
           row
             ? {
@@ -48,7 +50,12 @@ export default async function EditTemplatePage({
                 bodyText: row.bodyText ?? "",
                 isActive: row.isActive,
               }
-            : { subject: "", bodyHtml: "", bodyText: "", isActive: true }
+            : {
+                subject: TEMPLATE_DEFAULTS[k]?.subject ?? "",
+                bodyHtml: TEMPLATE_DEFAULTS[k]?.bodyHtml ?? "",
+                bodyText: TEMPLATE_DEFAULTS[k]?.bodyText ?? "",
+                isActive: true,
+              }
         }
       />
     </div>
