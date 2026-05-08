@@ -30,7 +30,8 @@ export default async function middleware(req: NextRequest) {
   // Protect /admin/* — redirect unauthenticated users to login
   if (req.nextUrl.pathname.startsWith("/admin")) {
     if (!user) {
-      const loginUrl = new URL(`/login?next=${req.nextUrl.pathname}`, req.url);
+      const nextPath = `${req.nextUrl.pathname}${req.nextUrl.search}`;
+      const loginUrl = new URL(`/login?next=${encodeURIComponent(nextPath)}`, req.url);
       return NextResponse.redirect(loginUrl);
     }
   }

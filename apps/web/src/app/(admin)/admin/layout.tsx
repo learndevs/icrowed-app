@@ -21,6 +21,13 @@ export default async function AdminLayout({ children }: { children: ReactNode })
 
   if (!profile || profile.role !== "admin") redirect("/");
 
+  const { data: aal, error: aalError } =
+    await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+
+  if (aalError || aal.currentLevel !== "aal2") {
+    redirect("/login?next=/admin&mfa=required");
+  }
+
   const initials = profile.fullName
     ? profile.fullName
         .split(" ")
