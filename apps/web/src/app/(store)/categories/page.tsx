@@ -6,21 +6,8 @@ import { getCategories } from "@icrowed/database/queries";
 
 export const metadata: Metadata = { title: "Categories | iCrowed" };
 
-const CATEGORY_GRADIENTS = [
-  "from-sky-400 to-blue-500",
-  "from-teal-400 to-emerald-500",
-  "from-orange-400 to-amber-500",
-  "from-pink-400 to-rose-500",
-  "from-violet-400 to-purple-500",
-  "from-indigo-400 to-blue-600",
-  "from-green-400 to-teal-500",
-  "from-red-400 to-rose-600",
-] as const;
-
-function categoryGradient(id: string) {
-  const hash = id.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
-  return CATEGORY_GRADIENTS[hash % CATEGORY_GRADIENTS.length];
-}
+const CATEGORY_GLASS_GRADIENT =
+  "bg-gradient-to-br from-white/95 via-gray-100/85 to-slate-200/70";
 
 export default async function CategoriesPage() {
   const categories = await getCategories().catch(() => []);
@@ -49,38 +36,50 @@ export default async function CategoriesPage() {
             <p className="text-gray-400 text-sm">No categories available yet.</p>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4">
             {categories.map((cat) => (
               <Link
                 key={cat.id}
                 href={`/products?category=${cat.slug}`}
-                className="bento-card group p-5 flex flex-col gap-3 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200"
+                className="group relative overflow-hidden rounded-2xl sm:rounded-3xl border border-white/70 bg-white/55 backdrop-blur-xl shadow-[0_10px_26px_rgba(15,23,42,0.10)] hover:shadow-[0_16px_34px_rgba(15,23,42,0.14)] transition-all duration-300 flex flex-col"
               >
-                {/* Image or gradient placeholder */}
-                <div className={`w-full aspect-video rounded-2xl overflow-hidden flex items-center justify-center bg-gradient-to-br ${categoryGradient(cat.id)}`}>
+                <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/70 via-transparent to-gray-200/45" />
+                {/* Image or glass placeholder */}
+                <div
+                  className={`relative w-full h-32 sm:h-40 lg:h-48 rounded-xl sm:rounded-2xl overflow-hidden flex items-center justify-center ${CATEGORY_GLASS_GRADIENT}`}
+                >
                   {cat.imageUrl ? (
                     <Image
                       src={cat.imageUrl}
                       alt={cat.name}
                       width={300}
                       height={169}
-                      className="object-cover w-full h-full group-hover:scale-105 transition-transform duration-300"
+                      className="object-cover object-top w-full h-full group-hover:scale-[1.03] transition-transform duration-300"
                     />
                   ) : (
-                    <Tag className="w-8 h-8 text-white/70" />
+                    <Tag className="w-8 h-8 text-gray-500/80" />
                   )}
                 </div>
 
                 {/* Info */}
-                <div className="flex-1">
-                  <p className="font-bold text-gray-900 text-sm leading-snug">{cat.name}</p>
+                <div className="relative flex-1 p-3 sm:p-4 min-h-[118px] sm:min-h-[138px]">
+                  <p className="font-bold text-gray-900 text-sm sm:text-base leading-snug line-clamp-2">
+                    {cat.name}
+                  </p>
                   {cat.description && (
-                    <p className="text-xs text-gray-400 mt-0.5 line-clamp-2 leading-relaxed">{cat.description}</p>
+                    <p className="text-xs sm:text-sm text-gray-600 mt-1 line-clamp-3 leading-relaxed">
+                      {cat.description}
+                    </p>
+                  )}
+                  {!cat.description && (
+                    <p className="text-xs sm:text-sm text-gray-500 mt-1 line-clamp-2 leading-relaxed">
+                      Browse {cat.name} and related accessories.
+                    </p>
                   )}
                 </div>
 
                 {/* CTA */}
-                <div className="flex items-center gap-1 text-xs font-semibold text-indigo-600">
+                <div className="relative mx-3 mb-3 sm:mx-4 sm:mb-4 flex items-center justify-between gap-2 text-xs sm:text-sm font-semibold text-gray-700">
                   Shop now <ArrowRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
                 </div>
               </Link>

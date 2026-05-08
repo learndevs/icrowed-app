@@ -7,74 +7,70 @@ const CATEGORY_SHOWCASE_CARDS = [
     href: "/products?category=smartphones",
     image: "/home/categories/smartphones.png",
     count: "200+ items",
-    accentClass: "from-orange-400/30 to-amber-300/10",
+    description: "Latest phones, flagship models, and budget picks.",
   },
   {
     name: "Cases & Covers",
     href: "/products?category=cases",
     image: "/home/categories/cases.png",
     count: "500+ items",
-    accentClass: "from-pink-400/30 to-rose-300/10",
+    description: "Protective cases, covers, and premium finishes.",
   },
   {
     name: "Earbuds & Audio",
     href: "/products?category=earbuds",
     image: "/home/categories/earbuds.png",
     count: "60+ items",
-    accentClass: "from-rose-400/30 to-red-300/10",
+    description: "Wireless earbuds, headsets, and audio essentials.",
   },
   {
     name: "Chargers",
     href: "/products?category=chargers",
     image: "/home/categories/chargers.png",
     count: "80+ items",
-    accentClass: "from-slate-500/30 to-gray-400/10",
+    description: "Fast chargers, adapters, and charging solutions.",
   },
   {
     name: "Smart Watches",
     href: "/products?category=smartwatches",
     image: "/home/categories/smartwatch.png",
     count: "30+ items",
-    accentClass: "from-orange-500/30 to-yellow-400/10",
+    description: "Fitness watches and smart wearable accessories.",
   },
   {
     name: "Cables & Adapters",
     href: "/products?category=cables",
     image: "/home/categories/cables.png",
     count: "120+ items",
-    accentClass: "from-zinc-500/30 to-slate-300/10",
+    description: "USB, Type-C, and reliable everyday connectors.",
   },
 ] as const;
 
 export function CategoryShowcaseCards() {
   return (
     <section className="px-3 sm:px-5 lg:px-8 py-5 max-w-[1400px] mx-auto">
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+      <div className="grid grid-cols-2 gap-4 sm:gap-5 md:grid-cols-3 lg:grid-cols-5">
         {CATEGORY_SHOWCASE_CARDS.map((cat) => (
           <Link
             key={cat.name}
             href={cat.href}
-            className="group relative overflow-hidden rounded-[1.5rem] border border-white/40 bg-white/35 p-4 sm:p-5 backdrop-blur-xl shadow-[0_12px_30px_rgba(15,23,42,0.12)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(15,23,42,0.16)]"
+            className="group relative overflow-hidden rounded-2xl sm:rounded-[1.5rem] border border-white/70 bg-white/55 backdrop-blur-xl shadow-[0_10px_26px_rgba(15,23,42,0.10)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(15,23,42,0.16)]"
           >
-            <div className={`pointer-events-none absolute inset-0 bg-gradient-to-br ${cat.accentClass}`} />
-            <div className="pointer-events-none absolute -top-16 -right-16 h-40 w-40 rounded-full bg-white/45 blur-3xl" />
-
-            <div className="relative flex items-center gap-4">
-              <div className="relative h-24 w-24 sm:h-28 sm:w-28 shrink-0 overflow-hidden rounded-2xl border border-white/50 bg-white/65 backdrop-blur-md">
+            <div className="relative flex flex-col h-full p-3 sm:p-4 items-center">
+              <div className="relative flex-1 min-h-[12rem] sm:min-h-[14rem] lg:min-h-[16rem] w-full shrink-0 overflow-hidden rounded-xl sm:rounded-2xl bg-gray-100/80 backdrop-blur-md">
                 <Image
                   src={cat.image}
                   alt={cat.name}
                   fill
-                  className="object-contain p-1.5 transition-transform duration-300 group-hover:scale-105"
-                  sizes="(max-width: 768px) 96px, 112px"
+                  className="object-contain object-top p-2 sm:p-3 transition-transform duration-300 group-hover:scale-105"
+                  sizes="(max-width: 768px) 50vw, (max-width: 1280px) 45vw, 30vw"
                 />
               </div>
-              <div className="min-w-0">
-                <p className="text-base sm:text-lg font-black text-gray-900">{cat.name}</p>
-                <p className="text-xs sm:text-sm font-medium text-gray-600 mt-1">{cat.count}</p>
-                <span className="inline-flex mt-3 rounded-full border border-white/60 bg-white/55 px-3 py-1 text-[11px] sm:text-xs font-semibold text-gray-700 backdrop-blur-md">
-                  Explore category
-                </span>
+
+              <div className="min-w-0 w-full px-1 pt-1 pb-1 flex items-center justify-center">
+                <p className="text-sm sm:text-base font-black text-gray-900 line-clamp-2 text-center">
+                  {cat.name}
+                </p>
               </div>
             </div>
           </Link>
