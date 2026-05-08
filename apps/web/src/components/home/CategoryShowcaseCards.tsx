@@ -3,42 +3,35 @@ import Link from "next/link";
 
 const CATEGORY_SHOWCASE_CARDS = [
   {
-    name: "Smartphones",
+    name: "MOBILE PHONES",
     href: "/products?category=smartphones",
     image: "/home/categories/smartphones.png",
     count: "200+ items",
     description: "Latest phones, flagship models, and budget picks.",
   },
   {
-    name: "Cases & Covers",
-    href: "/products?category=cases",
-    image: "/home/categories/cases.png",
-    count: "500+ items",
-    description: "Protective cases, covers, and premium finishes.",
-  },
-  {
-    name: "Earbuds & Audio",
+    name: "EARBUDS",
     href: "/products?category=earbuds",
     image: "/home/categories/earbuds.png",
     count: "60+ items",
     description: "Wireless earbuds, headsets, and audio essentials.",
   },
   {
-    name: "Chargers",
+    name: "CHARGERS",
     href: "/products?category=chargers",
     image: "/home/categories/chargers.png",
     count: "80+ items",
     description: "Fast chargers, adapters, and charging solutions.",
   },
   {
-    name: "Smart Watches",
+    name: "SMART WATCHES",
     href: "/products?category=smartwatches",
     image: "/home/categories/smartwatch.png",
     count: "30+ items",
     description: "Fitness watches and smart wearable accessories.",
   },
   {
-    name: "Cables & Adapters",
+    name: "CHARGING ADAPTERS",
     href: "/products?category=cables",
     image: "/home/categories/cables.png",
     count: "120+ items",
@@ -62,6 +55,7 @@ export function CategoryShowcaseCards() {
                   src={cat.image}
                   alt={cat.name}
                   fill
+                  unoptimized
                   className="object-contain object-top p-2 sm:p-3 transition-transform duration-300 group-hover:scale-105"
                   sizes="(max-width: 768px) 50vw, (max-width: 1280px) 45vw, 30vw"
                 />
