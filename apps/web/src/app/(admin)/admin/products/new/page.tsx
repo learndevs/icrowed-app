@@ -27,7 +27,7 @@ const INPUT =
 const TEXTAREA =
   "w-full px-4 py-3 rounded-xl border border-gray-200 text-sm bg-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-all resize-none";
 
-function FieldLabel({ children, hint }: { children: React.ReactNode; hint?: string }) {
+function FieldLabel({ children, hint }: Readonly<{ children: React.ReactNode; hint?: string }>) {
   return (
     <div className="mb-2">
       <span className="text-sm font-semibold text-gray-700">{children}</span>
@@ -36,7 +36,7 @@ function FieldLabel({ children, hint }: { children: React.ReactNode; hint?: stri
   );
 }
 
-function Card({ children, className }: { children: React.ReactNode; className?: string }) {
+function Card({ children, className }: Readonly<{ children: React.ReactNode; className?: string }>) {
   return (
     <div className={cn("bg-white rounded-2xl border border-gray-100 shadow-sm p-6", className)}>
       {children}
@@ -44,7 +44,7 @@ function Card({ children, className }: { children: React.ReactNode; className?: 
   );
 }
 
-function SectionTitle({ children }: { children: React.ReactNode }) {
+function SectionTitle({ children }: Readonly<{ children: React.ReactNode }>) {
   return <h2 className="text-base font-bold text-gray-900 mb-5">{children}</h2>;
 }
 
@@ -55,12 +55,12 @@ function SpecRow({
   onKeyChange,
   onValueChange,
   onRemove,
-}: {
+}: Readonly<{
   spec: { key: string; value: string };
   onKeyChange: (v: string) => void;
   onValueChange: (v: string) => void;
   onRemove: () => void;
-}) {
+}>) {
   return (
     <div className="flex gap-2 group">
       <input

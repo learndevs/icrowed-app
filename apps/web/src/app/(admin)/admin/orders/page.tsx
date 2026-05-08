@@ -5,6 +5,7 @@ import { formatPrice, formatDate } from "@/lib/utils";
 import Link from "next/link";
 import { db, orders } from "@icrowed/database";
 import { eq, desc } from "drizzle-orm";
+import { Download } from "lucide-react";
 
 const STATUS_BADGE: Record<string, "default" | "primary" | "success" | "warning" | "error"> = {
   pending: "warning",
@@ -125,9 +126,18 @@ export default async function AdminOrdersPage({
                     </td>
                     <td className="px-4 py-3 text-[var(--muted)]">{formatDate(o.createdAt)}</td>
                     <td className="px-4 py-3">
-                      <Link href={`/admin/orders/${o.id}`}>
-                        <Button size="sm" variant="outline">View</Button>
-                      </Link>
+                      <div className="flex items-center gap-2">
+                        <Link href={`/admin/orders/${o.id}`}>
+                          <Button size="sm" variant="outline">View</Button>
+                        </Link>
+                        <a
+                          href={`/api/admin/orders/${o.id}/invoice`}
+                          className="inline-flex h-8 items-center justify-center gap-1.5 rounded-lg border border-[var(--border)] bg-white px-3 text-sm font-medium text-[var(--foreground)] transition-all duration-200 hover:bg-[var(--surface)]"
+                        >
+                          <Download className="w-3 h-3" />
+                          Invoice
+                        </a>
+                      </div>
                     </td>
                   </tr>
                 ))}
