@@ -318,7 +318,7 @@ export default function CheckoutPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   {(
                     [
-                      { label: "Full Name *", key: "fullName", placeholder: "Sandun Perera", col: 2 },
+                      { label: "Full Name *", key: "fullName", placeholder: "Jone Doe", col: 2 },
                       { label: "Phone Number *", key: "phone", placeholder: "+94 77 123 4567", col: 2 },
                       { label: "Address Line 1 *", key: "addressLine1", placeholder: "123 Main Street", col: 2 },
                       { label: "Address Line 2 (optional)", key: "addressLine2", placeholder: "Apartment, Suite, etc.", col: 2 },

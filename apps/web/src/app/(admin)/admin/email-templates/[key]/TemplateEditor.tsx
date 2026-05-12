@@ -32,14 +32,14 @@ interface Props {
 }
 
 const SAMPLE_VARS: Record<string, string> = {
-  customerName: "Jane Perera",
+  customerName: "Jone Doe",
   orderNumber: "ICR-260507-1234",
   total: "12,450",
   refundAmount: "12,450",
   productName: "Samsung Galaxy S25 Ultra",
   variantName: "Phantom Black",
   rating: "5",
-  reviewerName: "Kamal Silva",
+  reviewerName: "Jone Doe",
   trackingNumber: "TRK1234567890",
   courierName: "Pronto Lanka",
   paymentMethod: "Credit / Debit Card (Stripe)",

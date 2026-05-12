@@ -156,7 +156,7 @@ export default function ProfilePage() {
                     <input
                       type="text"
                       className="w-full h-11 px-3.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white"
-                      placeholder="Sandun Perera"
+                      placeholder="Jone Doe"
                       value={profile.fullName}
                       onChange={(e) => setProfile({ ...profile, fullName: e.target.value })}
                     />

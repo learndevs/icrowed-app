@@ -45,7 +45,20 @@ function matchCategory(param: string, available: string[]): string | undefined {
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
-export function ProductsClient({ products }: Readonly<{ products: ProductCardData[] }>) {
+export function ProductsClient({
+  products,
+  initialBrand,
+  listTitle,
+  brandFilterNames,
+}: Readonly<{
+  products: ProductCardData[];
+  /** Pre-select this brand (display name, e.g. "Apple") when present on products */
+  initialBrand?: string | null;
+  /** Override the main heading (e.g. brand name on `/products/brands/apple`) */
+  listTitle?: string;
+  /** Active brands from DB — merged into the Brand filter so names always match the catalog */
+  brandFilterNames?: readonly string[];
+}>) {
   const searchParams = useSearchParams();
   const router       = useRouter();
   const pathname     = usePathname();
@@ -56,21 +69,32 @@ export function ProductsClient({ products }: Readonly<{ products: ProductCardDat
     () => [...new Set(products.map((p) => p.category).filter((c): c is string => !!c))].sort(),
     [products],
   );
-  const BRANDS = useMemo(
-    () => [...new Set(products.map((p) => p.brand).filter((b): b is string => !!b))].sort(),
-    [products],
-  );
+  const BRANDS = useMemo(() => {
+    const fromProducts = products
+      .map((p) => p.brand)
+      .filter((b): b is string => !!b);
+    const fromCatalog = brandFilterNames ?? [];
+    return [...new Set([...fromProducts, ...fromCatalog])].sort((a, b) =>
+      a.localeCompare(b, "en", { sensitivity: "base" }),
+    );
+  }, [products, brandFilterNames]);
 
   // ── State — initialised from URL on first render ────────────────────────────
   const [sort, setSort] = useState<SortValue>("latest");
   const [search, setSearch] = useState(() => searchParams.get("search") ?? "");
   const [filters, setFilters] = useState<Filters>(() => {
-    const cat   = searchParams.get("category");
-    const brand = searchParams.get("brand");
+    const cat = searchParams.get("category");
+    const brandParam = searchParams.get("brand");
+    let brandsInit: string[] = [];
+    if (brandParam && matchCategory(brandParam, BRANDS)) {
+      brandsInit = [matchCategory(brandParam, BRANDS)!];
+    } else if (initialBrand && matchCategory(initialBrand, BRANDS)) {
+      brandsInit = [matchCategory(initialBrand, BRANDS)!];
+    }
     return {
       ...DEFAULT_FILTERS,
-      categories: cat   ? (matchCategory(cat,   CATEGORIES) ? [matchCategory(cat, CATEGORIES)!]   : []) : [],
-      brands:     brand ? (matchCategory(brand,  BRANDS)     ? [matchCategory(brand, BRANDS)!]     : []) : [],
+      categories: cat ? (matchCategory(cat, CATEGORIES) ? [matchCategory(cat, CATEGORIES)!] : []) : [],
+      brands: brandsInit,
       minPrice:   searchParams.get("minPrice")  ?? "",
       maxPrice:   searchParams.get("maxPrice")  ?? "",
       minRating:  Number(searchParams.get("minRating") ?? 0),
@@ -344,7 +368,7 @@ export function ProductsClient({ products }: Readonly<{ products: ProductCardDat
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-black text-gray-900">All Products</h1>
+              <h1 className="text-2xl sm:text-3xl font-black text-gray-900">{listTitle ?? "All Products"}</h1>
               <p className="text-sm text-gray-400 mt-0.5">
                 {filtered.length} {filtered.length === 1 ? "product" : "products"} found
               </p>

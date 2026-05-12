@@ -95,7 +95,7 @@ function RegisterForm() {
               autoComplete="name"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
-              placeholder="Sandun Perera"
+              placeholder="Jone Doe"
               className="w-full h-10 px-3 rounded-lg border border-[var(--border)] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
             />
           </div>

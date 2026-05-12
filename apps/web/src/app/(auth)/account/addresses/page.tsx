@@ -71,7 +71,7 @@ function AddressForm({
         </div>
         <div>
           <label className={labelCls}>Recipient Name <span className="text-red-400">*</span></label>
-          <input required className={inputCls} placeholder="Sandun Perera" value={form.recipientName}
+          <input required className={inputCls} placeholder="Jone Doe" value={form.recipientName}
             onChange={(e) => setForm({ ...form, recipientName: e.target.value })} />
         </div>
         <div className="sm:col-span-2">

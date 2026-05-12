@@ -1,10 +1,7 @@
 import Link from "next/link";
-import Image from "next/image";
 import {
   ArrowUpRight,
   ArrowRight,
-  Star,
-  Smartphone,
   BadgeCheck,
   Truck,
   CircleDollarSign,
@@ -13,45 +10,10 @@ import {
 import { PhoneMockup } from "@/components/home/PhoneMockup";
 import { DjiSpotlightCard } from "@/components/home/DjiSpotlightCard";
 import { CategoryShowcaseCards } from "@/components/home/CategoryShowcaseCards";
-import { NewArrivalsSection } from "@/components/home/NewArrivalsSection";
-import { getProducts } from "@icrowed/database/queries";
+import { AppleProductsSection } from "@/components/home/AppleProductsSection";
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-const CARD_GRADIENTS = [
-  "from-indigo-500 to-blue-600",
-  "from-gray-700 to-gray-900",
-  "from-teal-500 to-emerald-600",
-  "from-rose-500 to-red-600",
-  "from-orange-500 to-amber-600",
-  "from-violet-500 to-purple-600",
-  "from-sky-500 to-cyan-600",
-  "from-pink-500 to-rose-600",
-];
-
-function productGradient(id: string) {
-  const hash = id.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
-  return CARD_GRADIENTS[hash % CARD_GRADIENTS.length];
-}
-
-interface ProductImage { isPrimary: boolean; url: string }
-interface WithBrand { brand?: { name: string } | null }
-
-function mapFeatured(p: Awaited<ReturnType<typeof getProducts>>[number]) {
-  const images = p.images as ProductImage[] | null | undefined;
-  const brand  = (p as unknown as WithBrand).brand;
-  return {
-    id: p.id,
-    name: p.name,
-    slug: p.slug,
-    price: Number(p.price),
-    comparePrice: p.comparePrice ? Number(p.comparePrice) : undefined,
-    imageUrl: images?.find((i) => i.isPrimary)?.url ?? images?.[0]?.url,
-    color: productGradient(p.id),
-    badge: p.comparePrice ? "Sale" : undefined,
-    brand: brand?.name ?? undefined,
-    shortDescription: p.shortDescription ?? undefined,
-  };
-}
+/** Load Apple strip from DB on every request (avoid empty build-time cache). */
+export const dynamic = "force-dynamic";
 
 const OFFERS = [
   { id: "1", title: "Mid-Year Mega Sale", desc: "Up to 40% off smartphones", badge: "Limited", gradient: "from-purple-600 to-indigo-600", link: "/offers" },
@@ -59,21 +21,8 @@ const OFFERS = [
   { id: "3", title: "Free Delivery", desc: "Free island-wide delivery this weekend", badge: "Weekend", gradient: "from-teal-500 to-cyan-500", link: "/offers" },
 ];
 
-function formatPrice(p: number) {
-  return "LKR " + p.toLocaleString("en-LK");
-}
-
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default async function HomePage() {
-  const dbFeatured = await getProducts({ isFeatured: true, limit: 6 }).catch(() => []);
-  const dbNewArrivals = await getProducts({ limit: 4 }).catch(() => []);
-  const FEATURED_PRODUCTS = dbFeatured.length
-    ? dbFeatured.map(mapFeatured)
-    : [] as ReturnType<typeof mapFeatured>[];
-  const NEW_ARRIVALS = dbNewArrivals.length
-    ? dbNewArrivals.map(mapFeatured)
-    : [] as ReturnType<typeof mapFeatured>[];
-
   return (
     <div className="bento-bg">
       {/* ═══════════════════════════════ BENTO HERO ══════════════════════════ */}
@@ -152,68 +101,7 @@ export default async function HomePage() {
 
       <CategoryShowcaseCards />
 
-      <NewArrivalsSection
-        items={NEW_ARRIVALS.map((item) => ({
-          id: item.id,
-          name: item.name,
-          slug: item.slug,
-          price: item.price,
-          imageUrl: item.imageUrl,
-          brand: item.brand,
-        }))}
-      />
-
-      {/* ═══════════════════════════ FEATURED PRODUCTS ══════════════════════ */}
-      <section className="px-3 sm:px-5 lg:px-8 py-4 max-w-[1400px] mx-auto">
-        <div className="flex items-end justify-between mb-4">
-          <div>
-            <h2 className="text-xl sm:text-2xl font-black text-gray-900">Featured Phones</h2>
-            <p className="text-gray-400 text-xs mt-0.5">Handpicked top sellers</p>
-          </div>
-          <Link href="/products" className="flex items-center gap-1 text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition-colors">
-            View all <ArrowRight className="w-3.5 h-3.5" />
-          </Link>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-          {FEATURED_PRODUCTS.length === 0 && (
-            <p className="col-span-full text-center text-sm text-gray-400 py-8">No featured products yet. Add some in the admin panel.</p>
-          )}
-          {FEATURED_PRODUCTS.map((p) => (
-            <Link
-              key={p.id}
-              href={`/products/${p.slug}`}
-              className="bento-card p-4 flex flex-col group"
-            >
-              {/* Product image area */}
-              <div className={`relative rounded-2xl bg-gradient-to-br ${p.color} aspect-square mb-3 flex items-center justify-center overflow-hidden`}>
-                {p.imageUrl ? (
-                  <Image src={p.imageUrl} alt={p.name} fill className="object-cover group-hover:scale-105 transition-transform duration-500" sizes="(max-width:640px) 50vw, (max-width:1024px) 33vw, 16vw" />
-                ) : (
-                  <Smartphone className="w-10 h-10 text-white/70 group-hover:scale-110 transition-transform duration-300" />
-                )}
-                {p.badge && (
-                  <span className="absolute top-2 left-2 bg-white/90 text-gray-800 text-[9px] font-bold px-1.5 py-0.5 rounded-full">
-                    {p.badge}
-                  </span>
-                )}
-              </div>
-
-              {/* Info */}
-              <p className="text-[11px] text-gray-400 mb-0.5 truncate">{p.brand ?? ""}</p>
-              <p className="text-xs font-bold text-gray-900 leading-snug line-clamp-2 mb-1">{p.name}</p>
-
-              {/* Price */}
-              <div className="mt-auto">
-                <p className="text-xs font-black text-gray-900">{formatPrice(p.price)}</p>
-                {p.comparePrice && (
-                  <p className="text-[10px] text-gray-400 line-through">{formatPrice(p.comparePrice)}</p>
-                )}
-              </div>
-            </Link>
-          ))}
-        </div>
-      </section>
+      <AppleProductsSection />
 
       {/* ═══════════════════════════════ HOT OFFERS ═════════════════════════ */}
       <section className="px-3 sm:px-5 lg:px-8 py-4 max-w-[1400px] mx-auto">

@@ -1,13 +1,13 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { ProductsClient } from "./ProductsClient";
+import { getBrandBySlug, getBrands, getProductsByBrandSlug } from "@icrowed/database/queries";
+import { ProductsClient } from "../../ProductsClient";
 import type { ProductCardData } from "@/components/products/ProductCard";
-import { getBrands, getProducts } from "@icrowed/database/queries";
 
-export const metadata: Metadata = { title: "All Products | iCrowed" };
-
-/** Always merge fresh catalog + brand list (sidebar brands are not only inferred from rows). */
-export const dynamic = "force-dynamic";
+interface Props {
+  params: Promise<{ slug: string }>;
+}
 
 const CARD_GRADIENTS = [
   "from-indigo-500 to-blue-600",
@@ -25,9 +25,22 @@ function productColor(id: string): string {
   return CARD_GRADIENTS[hash % CARD_GRADIENTS.length];
 }
 
-export default async function ProductsPage() {
+export const dynamic = "force-dynamic";
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { slug } = await params;
+  const brand = await getBrandBySlug(slug).catch(() => null);
+  if (!brand) return { title: "Brand | iCrowed" };
+  return { title: `${brand.name} | iCrowed`, description: `Shop ${brand.name} products at iCrowed.` };
+}
+
+export default async function BrandProductsPage({ params }: Props) {
+  const { slug } = await params;
+  const brand = await getBrandBySlug(slug).catch(() => null);
+  if (!brand) notFound();
+
   const [dbProducts, brandRows] = await Promise.all([
-    getProducts({ limit: 500 }).catch(() => []),
+    getProductsByBrandSlug(slug, { limit: 200 }).catch(() => []),
     getBrands().catch(() => []),
   ]);
 
@@ -61,8 +74,12 @@ export default async function ProductsPage() {
 
   return (
     <Suspense fallback={<div className="bento-bg min-h-screen" />}>
-      <ProductsClient products={products} brandFilterNames={brandFilterNames} />
+      <ProductsClient
+        products={products}
+        brandFilterNames={brandFilterNames}
+        initialBrand={brand.name}
+        listTitle={brand.name}
+      />
     </Suspense>
   );
 }
-
