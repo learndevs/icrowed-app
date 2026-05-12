@@ -42,6 +42,6 @@ export default async function middleware(req: NextRequest) {
 // Must be a static string literal (not `String.raw`…) so Next can analyze segment config at build time.
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    String.raw`/((?!_next/static|_next/image|favicon.ico|.*\.(?:svg|png|jpg|jpeg|gif|webp)$).*)`,
   ],
 };

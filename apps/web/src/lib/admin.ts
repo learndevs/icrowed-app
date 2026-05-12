@@ -29,7 +29,7 @@ export async function requireAdmin(): Promise<AdminContext | NextResponse> {
     .from(profiles)
     .where(eq(profiles.id, user.id));
 
-  if (!profile || profile.role !== "admin") {
+  if (profile?.role !== "admin") {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
