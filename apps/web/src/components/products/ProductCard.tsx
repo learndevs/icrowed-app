@@ -76,14 +76,16 @@ export function ProductCard({ product }: Readonly<{ product: ProductCardData }>)
     >
       {/* Image / gradient area */}
       <div
-        className={`relative rounded-2xl bg-linear-to-br ${gradient} aspect-square mb-3 flex items-center justify-center overflow-hidden`}
+        className={`relative rounded-2xl aspect-4/5 mb-3 flex items-center justify-center overflow-hidden ${
+          product.imageUrl ? "bg-gray-50" : `bg-linear-to-br ${gradient}`
+        }`}
       >
         {product.imageUrl ? (
           <Image
             src={product.imageUrl}
             alt={product.name}
             fill
-            className={`object-cover transition-transform duration-500 ${
+            className={`object-contain p-3 transition-transform duration-500 ${
               isOOS ? "grayscale-40" : "group-hover:scale-105"
             }`}
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
