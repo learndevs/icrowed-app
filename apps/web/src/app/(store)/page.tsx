@@ -7,8 +7,7 @@ import {
   CircleDollarSign,
   RefreshCw,
 } from "lucide-react";
-import { PhoneMockup } from "@/components/home/PhoneMockup";
-import { DjiSpotlightCard } from "@/components/home/DjiSpotlightCard";
+import { HomeHero } from "@/components/home/HomeHero";
 import { CategoryShowcaseCards } from "@/components/home/CategoryShowcaseCards";
 import { AppleProductsSection } from "@/components/home/AppleProductsSection";
 
@@ -25,79 +24,7 @@ const OFFERS = [
 export default async function HomePage() {
   return (
     <div className="bento-bg">
-      {/* ═══════════════════════════════ BENTO HERO ══════════════════════════ */}
-      <section className="px-3 sm:px-5 lg:px-8 pt-5 pb-4 max-w-350 mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-6 gap-3 lg:gap-4">
-
-          {/* ── 1. MAIN HERO CARD ─────────────────────────────── lg:col-span-4 */}
-          <div className="bento-card lg:col-span-4 relative min-h-100 lg:min-h-115 p-6 sm:p-8 flex flex-col justify-between overflow-hidden border border-white/55 bg-white/45 backdrop-blur-xl shadow-[0_18px_40px_rgba(15,23,42,0.12)]">
-            <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/65 via-white/35 to-gray-100/25" />
-            <div className="pointer-events-none absolute -top-16 -right-16 h-44 w-44 rounded-full bg-white/60 blur-3xl" />
-            {/* Top area */}
-            <div className="relative">
-              {/* Badge row */}
-              <div className="flex items-center gap-2 mb-5">
-                <span className="inline-flex items-center gap-1.5 bg-indigo-50 text-indigo-700 text-[11px] font-semibold px-3 py-1 rounded-full border border-indigo-100">
-                  <span>📱</span> Sri Lanka&apos;s #1 Phone Store
-                </span>
-              </div>
-
-              {/* Slide counter */}
-              <p className="text-4xl font-black text-gray-200 leading-none mb-2 select-none">01</p>
-
-              {/* Headline */}
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-gray-900 leading-[1.08] mb-3 max-w-sm">
-                Premium Phones.<br />
-                <span className="text-indigo-600">Best Prices</span> in<br />
-                Sri Lanka.
-              </h1>
-
-              {/* Sub */}
-              <p className="text-gray-500 text-sm leading-relaxed max-w-65 mb-7">
-                Genuine products, island-wide delivery, and unbeatable prices on the latest smartphones.
-              </p>
-
-              {/* CTA */}
-              <Link
-                href="/products"
-                className="inline-flex items-center gap-2 bg-lime-400 hover:bg-lime-500 active:bg-lime-600 text-gray-900 font-bold px-6 py-3 rounded-full text-sm transition-all duration-200 shadow-lg shadow-lime-200 hover:shadow-lime-300 hover:-translate-y-0.5"
-              >
-                View All Products
-                <span className="w-6 h-6 bg-gray-900/10 rounded-full flex items-center justify-center">
-                  <ArrowUpRight className="w-3.5 h-3.5" />
-                </span>
-              </Link>
-            </div>
-
-            {/* Social links */}
-            <div className="relative flex items-center gap-3 mt-6">
-              <span className="text-[11px] text-gray-400 font-medium">Follow us:</span>
-              {[
-                { label: "FB", href: "#" },
-                { label: "TW", href: "#" },
-                { label: "IG", href: "#" },
-              ].map((s) => (
-                <a
-                  key={s.label}
-                  href={s.href}
-                  className="w-7 h-7 rounded-full bg-gray-100 hover:bg-indigo-100 hover:text-indigo-700 flex items-center justify-center text-[10px] font-bold text-gray-500 transition-colors"
-                >
-                  {s.label}
-                </a>
-              ))}
-            </div>
-
-            {/* Floating phone — absolutely positioned, hidden on smallest screens */}
-            <div className="hidden sm:block absolute right-4 lg:right-8 top-1/2 -translate-y-1/2 animate-float pointer-events-none">
-              <PhoneMockup gradient="from-indigo-400 via-purple-500 to-pink-400" />
-            </div>
-          </div>
-
-          {/* ── 2. DJI SPOTLIGHT ─────────────────────────────── lg:col-span-2 */}
-          <DjiSpotlightCard />
-
-        </div>
-      </section>
+      <HomeHero />
 
       <CategoryShowcaseCards />
 
