@@ -76,7 +76,9 @@ export function ProductCard({ product }: Readonly<{ product: ProductCardData }>)
     >
       {/* Image / gradient area */}
       <div
-        className={`relative rounded-2xl bg-linear-to-br ${gradient} aspect-square mb-3 flex items-center justify-center overflow-hidden`}
+        className={`relative rounded-2xl aspect-square mb-3 flex items-center justify-center overflow-hidden ${
+          product.imageUrl ? "bg-gray-50" : `bg-linear-to-br ${gradient}`
+        }`}
       >
         {product.imageUrl ? (
           <Image
