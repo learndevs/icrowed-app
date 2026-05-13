@@ -68,69 +68,63 @@ async function upsert(table: string, rows: unknown[]): Promise<number> {
   return skipped;
 }
 
-// ─── Categories ───────────────────────────────────────────────────────────────
+// ─── Categories (storefront — same five as home / `/categories`) ───────────────
 
 const CATEGORIES = [
   {
     id: "10000000-0000-4000-8000-000000000001",
-    name: "Electronics",
-    slug: "electronics",
-    description: "Smart devices and everyday tech essentials.",
-    image_url: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=1200&h=900&q=80",
+    name: "Mobile Phones",
+    slug: "smartphones",
+    highlight: "200+ items",
+    description: "Latest phones, flagship models, and budget picks.",
+    image_url: "/home/categories/smartphones.png",
     parent_id: null,
     is_active: true,
     sort_order: 1,
   },
   {
     id: "10000000-0000-4000-8000-000000000002",
-    name: "Audio",
-    slug: "audio",
-    description: "Headphones, earbuds, and speakers for daily listening.",
-    image_url: "https://images.unsplash.com/photo-1484704849700-f032a568e944?auto=format&fit=crop&w=1200&h=900&q=80",
-    parent_id: "10000000-0000-4000-8000-000000000001",
+    name: "Earbuds",
+    slug: "earbuds",
+    highlight: "60+ items",
+    description: "Wireless earbuds, headsets, and audio essentials.",
+    image_url: "/home/categories/earbuds.png",
+    parent_id: null,
     is_active: true,
     sort_order: 2,
   },
   {
     id: "10000000-0000-4000-8000-000000000003",
-    name: "Home Office",
-    slug: "home-office",
-    description: "Desk gear for focused work and study.",
-    image_url: "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1200&h=900&q=80",
+    name: "Chargers",
+    slug: "chargers",
+    highlight: "80+ items",
+    description: "Fast chargers, adapters, and charging solutions.",
+    image_url: "/home/categories/chargers.png",
     parent_id: null,
     is_active: true,
     sort_order: 3,
   },
   {
     id: "10000000-0000-4000-8000-000000000004",
-    name: "Bags & Accessories",
-    slug: "bags-accessories",
-    description: "Commuter bags and useful carry goods.",
-    image_url: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=1200&h=900&q=80",
+    name: "Smart Watches",
+    slug: "smartwatches",
+    highlight: "30+ items",
+    description: "Fitness watches and smart wearable accessories.",
+    image_url: "/home/categories/smartwatch.png",
     parent_id: null,
     is_active: true,
     sort_order: 4,
   },
   {
     id: "10000000-0000-4000-8000-000000000005",
-    name: "Wellness",
-    slug: "wellness",
-    description: "Hydration and personal care products.",
-    image_url: "https://images.unsplash.com/photo-1523362628745-0c100150b504?auto=format&fit=crop&w=1200&h=900&q=80",
+    name: "Charging Adapters",
+    slug: "cables",
+    highlight: "120+ items",
+    description: "USB, Type-C, and reliable everyday connectors.",
+    image_url: "/home/categories/cables.png",
     parent_id: null,
     is_active: true,
     sort_order: 5,
-  },
-  {
-    id: "10000000-0000-4000-8000-000000000010",
-    name: "Smartphones",
-    slug: "smartphones",
-    description: "Latest iPhones and Android phones with genuine warranty.",
-    image_url:
-      "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=1200&h=900&q=80",
-    parent_id: "10000000-0000-4000-8000-000000000001",
-    is_active: true,
-    sort_order: 6,
   },
 ];
 
@@ -238,7 +232,7 @@ const PRODUCTS = [
     slug: "atlas-metro-backpack",
     description: "A structured daily backpack with a padded laptop sleeve, quick-access pocket, and water-resistant fabric.",
     short_description: "Laptop backpack for daily commutes.",
-    category_id: "10000000-0000-4000-8000-000000000004",
+    category_id: "10000000-0000-4000-8000-000000000005",
     brand_id: "20000000-0000-4000-8000-000000000004",
     sku: "ATL-BAG-METRO",
     price: 15990,
@@ -298,7 +292,7 @@ const PRODUCTS = [
     slug: "nova-fit-watch-s2",
     description: "Lightweight fitness watch with heart-rate tracking, sleep insights, and a bright always-on display.",
     short_description: "Fitness watch with health tracking.",
-    category_id: "10000000-0000-4000-8000-000000000001",
+    category_id: "10000000-0000-4000-8000-000000000004",
     brand_id: "20000000-0000-4000-8000-000000000001",
     sku: "NVA-WCH-S2",
     price: 24990,
@@ -318,7 +312,7 @@ const PRODUCTS = [
     slug: "lume-workspace-desk-mat",
     description: "A smooth desk mat with stitched edges, soft texture, and enough room for keyboard and mouse.",
     short_description: "Large stitched desk mat.",
-    category_id: "10000000-0000-4000-8000-000000000003",
+    category_id: "10000000-0000-4000-8000-000000000005",
     brand_id: "20000000-0000-4000-8000-000000000003",
     sku: "LME-MAT-WORK",
     price: 4990,
@@ -338,7 +332,7 @@ const PRODUCTS = [
     slug: "orbit-insulated-bottle",
     description: "Double-wall stainless steel bottle that keeps drinks cold through long commutes and warm afternoons.",
     short_description: "Insulated stainless steel bottle.",
-    category_id: "10000000-0000-4000-8000-000000000005",
+    category_id: "10000000-0000-4000-8000-000000000003",
     brand_id: "20000000-0000-4000-8000-000000000002",
     sku: "ORB-BTL-BASE",
     price: 6490,
@@ -358,7 +352,7 @@ const PRODUCTS = [
     slug: "anker-powerline-iii-usbc-6ft",
     description: "Durable USB-C charging cable with reinforced connectors for phones, tablets, and laptops.",
     short_description: "Fast charging USB-C cable.",
-    category_id: "10000000-0000-4000-8000-000000000001",
+    category_id: "10000000-0000-4000-8000-000000000005",
     brand_id: "20000000-0000-4000-8000-000000000006",
     sku: "ANK-CBL-USBC6",
     price: 2290,
@@ -378,7 +372,7 @@ const PRODUCTS = [
     slug: "anker-powercore-10000",
     description: "Compact high-density power bank with USB-C and USB-A outputs for all-day backup power.",
     short_description: "10,000 mAh compact power bank.",
-    category_id: "10000000-0000-4000-8000-000000000001",
+    category_id: "10000000-0000-4000-8000-000000000003",
     brand_id: "20000000-0000-4000-8000-000000000006",
     sku: "ANK-PB-10K",
     price: 8490,
@@ -419,7 +413,7 @@ const PRODUCTS = [
     description:
       "Titanium design, A18 Pro chip, pro camera system with 5x telephoto, and all-day battery. Genuine Apple warranty in Sri Lanka.",
     short_description: "Flagship titanium iPhone with pro cameras.",
-    category_id: "10000000-0000-4000-8000-000000000010",
+    category_id: "10000000-0000-4000-8000-000000000001",
     brand_id: "20000000-0000-4000-8000-000000000007",
     sku: "APL-IP16P-256",
     price: 524990,
@@ -445,7 +439,7 @@ const PRODUCTS = [
     description:
       "A18 chip, Action button, 48MP Fusion camera, and USB-C. Bright Super Retina XDR display in a durable aluminum frame.",
     short_description: "Latest iPhone with A18 and 48MP camera.",
-    category_id: "10000000-0000-4000-8000-000000000010",
+    category_id: "10000000-0000-4000-8000-000000000001",
     brand_id: "20000000-0000-4000-8000-000000000007",
     sku: "APL-IP16-128",
     price: 389990,
@@ -466,7 +460,7 @@ const PRODUCTS = [
     description:
       "Largest Pro display, A17 Pro, titanium build, and longest battery life in an iPhone 15 generation device.",
     short_description: "6.7 inch Pro Max with A17 Pro.",
-    category_id: "10000000-0000-4000-8000-000000000010",
+    category_id: "10000000-0000-4000-8000-000000000001",
     brand_id: "20000000-0000-4000-8000-000000000007",
     sku: "APL-IP15PM-256",
     price: 479990,
@@ -487,7 +481,7 @@ const PRODUCTS = [
     description:
       "Dynamic Island, 48MP main camera, USB-C, and all-day battery — the balanced iPhone 15 experience.",
     short_description: "Dynamic Island and 48MP camera.",
-    category_id: "10000000-0000-4000-8000-000000000010",
+    category_id: "10000000-0000-4000-8000-000000000001",
     brand_id: "20000000-0000-4000-8000-000000000007",
     sku: "APL-IP15-128",
     price: 299990,
@@ -508,7 +502,7 @@ const PRODUCTS = [
     description:
       "A15 Bionic, advanced dual-camera system, and Crash Detection. A proven iPhone with great value.",
     short_description: "Reliable iPhone 14 with A15.",
-    category_id: "10000000-0000-4000-8000-000000000010",
+    category_id: "10000000-0000-4000-8000-000000000001",
     brand_id: "20000000-0000-4000-8000-000000000007",
     sku: "APL-IP14-128",
     price: 229990,
@@ -550,7 +544,7 @@ const PRODUCTS = [
     description:
       "Largest 6.9 inch Super Retina XDR display, A18 Pro, longest battery life in the iPhone 16 lineup, and pro camera system with 5x telephoto.",
     short_description: "Ultimate iPhone 16 Pro Max with A18 Pro.",
-    category_id: "10000000-0000-4000-8000-000000000010",
+    category_id: "10000000-0000-4000-8000-000000000001",
     brand_id: "20000000-0000-4000-8000-000000000007",
     sku: "APL-16PM-256",
     price: 584990,
@@ -571,7 +565,7 @@ const PRODUCTS = [
     description:
       "Big 6.7 inch display, A18 chip, Camera Control, and all-day battery — iPhone 16 experience in a larger size.",
     short_description: "Large-screen iPhone 16 Plus.",
-    category_id: "10000000-0000-4000-8000-000000000010",
+    category_id: "10000000-0000-4000-8000-000000000001",
     brand_id: "20000000-0000-4000-8000-000000000007",
     sku: "APL-16PL-128",
     price: 429990,
@@ -592,7 +586,7 @@ const PRODUCTS = [
     description:
       "A15 Bionic, bright OLED display, great battery life, and dual 12MP cameras — a dependable iPhone at a sharper price.",
     short_description: "Popular iPhone 13 with A15.",
-    category_id: "10000000-0000-4000-8000-000000000010",
+    category_id: "10000000-0000-4000-8000-000000000001",
     brand_id: "20000000-0000-4000-8000-000000000007",
     sku: "APL-IP13-128",
     price: 199990,
@@ -1025,7 +1019,7 @@ const OFFERS = [
     title: "Workspace Essentials",
     description: "Desk lamps, mats, and accessories for a cleaner setup.",
     image_url: "https://images.unsplash.com/photo-1497366754035-f200968a6e72?auto=format&fit=crop&w=1600&h=700&q=80",
-    link_url: "/categories/home-office",
+    link_url: "/categories",
     badge_text: "Office",
     discount_percent: 10,
     is_active: true,
@@ -1044,15 +1038,87 @@ const COUPONS = [
   { id: "61000000-0000-4000-8000-000000000003", code: "EXPIRED20", type: "percent", value: 20, min_order_amount: 8000, max_uses: 50, used_count: 50, is_active: false, expires_at: "2025-12-31T23:59:59Z" },
 ];
 
+/** Bulk upsert by primary key (updates existing rows, e.g. new `category_id`). */
+async function mergeUpsertTable(table: string, rows: unknown[]): Promise<void> {
+  if (rows.length === 0) return;
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+    method: "POST",
+    headers: {
+      ...headers,
+      Prefer: "resolution=merge-duplicates,return=minimal",
+    },
+    body: JSON.stringify(rows),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`${table} merge-upsert: ${res.status} ${text}`);
+  }
+}
+
+/** Bulk upsert categories by primary key so existing rows are updated in place. */
+async function mergeUpsertCategories(rows: unknown[]): Promise<void> {
+  await mergeUpsertTable("categories", rows);
+}
+
+/**
+ * Inactive rows still hold `*_slug_unique`. Merge-upsert only dedupes on primary
+ * key, so archive any other row using the same slug so the seeded row can claim it.
+ */
+async function archiveConflictingSlugs(
+  table: string,
+  canonical: readonly { id: string; slug: string }[],
+): Promise<void> {
+  for (const { id: keepId, slug } of canonical) {
+    const q = `slug=eq.${encodeURIComponent(slug)}&id=neq.${keepId}&select=id`;
+    const listRes = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${q}`, {
+      headers: { ...headers, Accept: "application/json" },
+    });
+    if (!listRes.ok) {
+      const text = await listRes.text();
+      throw new Error(`${table} archive list (${slug}): ${listRes.status} ${text}`);
+    }
+    const rows = (await listRes.json()) as { id: string }[];
+    for (const row of rows) {
+      const archivedSlug = `${slug}-archived-${row.id.replace(/-/g, "")}`;
+      const patchRes = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${row.id}`, {
+        method: "PATCH",
+        headers: { ...headers, Prefer: "return=minimal" },
+        body: JSON.stringify({ is_active: false, slug: archivedSlug }),
+      });
+      if (!patchRes.ok) {
+        const text = await patchRes.text();
+        throw new Error(`${table} archive patch (${row.id}): ${patchRes.status} ${text}`);
+      }
+    }
+  }
+}
+
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 async function seed() {
   console.log("🌱 Seeding database via Supabase REST API...\n");
 
+  process.stdout.write("  → categories (merge) … ");
+  await archiveConflictingSlugs(
+    "categories",
+    CATEGORIES.map((c) => ({ id: c.id, slug: c.slug })),
+  );
+  await mergeUpsertCategories(CATEGORIES);
+  console.log("✓");
+
+  process.stdout.write("  → brands (merge) … ");
+  await archiveConflictingSlugs(
+    "brands",
+    BRANDS.map((b) => ({ id: b.id, slug: b.slug })),
+  );
+  await mergeUpsertTable("brands", BRANDS);
+  console.log("✓");
+
+  process.stdout.write("  → products (merge) … ");
+  await mergeUpsertTable("products", PRODUCTS);
+  console.log("✓");
+
   const steps: [string, unknown[]][] = [
-    ["categories",       CATEGORIES],
-    ["brands",           BRANDS],
-    ["products",         PRODUCTS],
     ["product_images",   PRODUCT_IMAGES],
     ["product_variants", PRODUCT_VARIANTS],
     ["offers",           OFFERS],

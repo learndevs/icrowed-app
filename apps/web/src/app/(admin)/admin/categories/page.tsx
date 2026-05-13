@@ -15,6 +15,8 @@ import {
   Tag,
   Hash,
   AlignLeft,
+  Image as ImageIcon,
+  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -23,6 +25,8 @@ interface Category {
   name: string;
   slug: string;
   description: string | null;
+  highlight: string | null;
+  imageUrl: string | null;
   isActive: boolean;
   sortOrder: number;
 }
@@ -30,11 +34,20 @@ interface Category {
 interface FormState {
   name: string;
   description: string;
+  highlight: string;
+  imageUrl: string;
   sortOrder: string;
   isActive: boolean;
 }
 
-const EMPTY: FormState = { name: "", description: "", sortOrder: "0", isActive: true };
+const EMPTY: FormState = {
+  name: "",
+  description: "",
+  highlight: "",
+  imageUrl: "",
+  sortOrder: "0",
+  isActive: true,
+};
 
 /* ─── Shared input style (matches product pages) ── */
 const INPUT =
@@ -96,6 +109,39 @@ function CategoryForm({
             onChange={(e) => onChange({ ...form, description: e.target.value })}
           />
         </div>
+      </div>
+
+      {/* Highlight (storefront subtitle, e.g. 200+ items) */}
+      <div>
+        <FieldLabel>Storefront highlight</FieldLabel>
+        <div className="relative">
+          <Sparkles className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+          <input
+            className={cn(INPUT, "pl-10")}
+            placeholder='e.g. "200+ items"'
+            value={form.highlight}
+            onChange={(e) => onChange({ ...form, highlight: e.target.value })}
+          />
+        </div>
+        <p className="mt-1.5 text-xs text-gray-400">Short line under the category title on the home page.</p>
+      </div>
+
+      {/* Image URL (public path or full URL) */}
+      <div>
+        <FieldLabel>Category image URL</FieldLabel>
+        <div className="relative">
+          <ImageIcon className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+          <input
+            className={cn(INPUT, "pl-10 font-mono text-xs")}
+            placeholder="/home/categories/smartphones.png"
+            value={form.imageUrl}
+            onChange={(e) => onChange({ ...form, imageUrl: e.target.value })}
+          />
+        </div>
+        <p className="mt-1.5 text-xs text-gray-400">
+          Use a path under <span className="font-mono">public/</span> (e.g.{" "}
+          <span className="font-mono">/home/categories/earbuds.png</span>) or a hosted image URL.
+        </p>
       </div>
 
       {/* Sort Order */}
@@ -189,6 +235,8 @@ export default function AdminCategoriesPage() {
         body: JSON.stringify({
           name: addForm.name,
           description: addForm.description || null,
+          highlight: addForm.highlight.trim() || null,
+          imageUrl: addForm.imageUrl.trim() || null,
           sortOrder: Number(addForm.sortOrder),
           isActive: addForm.isActive,
         }),
@@ -215,6 +263,8 @@ export default function AdminCategoriesPage() {
         body: JSON.stringify({
           name: editForm.name,
           description: editForm.description || null,
+          highlight: editForm.highlight.trim() || null,
+          imageUrl: editForm.imageUrl.trim() || null,
           sortOrder: Number(editForm.sortOrder),
           isActive: editForm.isActive,
         }),
@@ -332,6 +382,8 @@ export default function AdminCategoriesPage() {
                             setEditForm({
                               name: cat.name,
                               description: cat.description ?? "",
+                              highlight: cat.highlight ?? "",
+                              imageUrl: cat.imageUrl ?? "",
                               sortOrder: String(cat.sortOrder),
                               isActive: cat.isActive,
                             });

@@ -49,6 +49,7 @@ export default async function ProductsPage() {
     const row = p as {
       brand?: { name?: string } | null;
       brandId?: string | null;
+      category?: { slug?: string } | null;
     };
     const brandName =
       row.brand?.name ?? (row.brandId ? brandById.get(row.brandId) : undefined);
@@ -63,6 +64,7 @@ export default async function ProductsPage() {
       color: productColor(p.id),
       badge: p.comparePrice ? "Sale" : undefined,
       brand: brandName,
+      categorySlug: row.category?.slug,
     };
   });
 

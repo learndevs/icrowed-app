@@ -36,6 +36,8 @@ export interface ProductCardData {
   /** tailwind gradient e.g. "from-indigo-500 to-blue-600" */
   color?: string;
   brand?: string;
+  /** Product category slug for `?category=` filtering */
+  categorySlug?: string;
 }
 
 export function ProductCard({ product }: Readonly<{ product: ProductCardData }>) {

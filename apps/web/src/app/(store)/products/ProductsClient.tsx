@@ -95,6 +95,13 @@ export function ProductsClient({
   });
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [page, setPage]             = useState(1);
+  const [categorySlug, setCategorySlug] = useState(() =>
+    (searchParams.get("category") ?? "").toLowerCase().trim(),
+  );
+
+  useEffect(() => {
+    setCategorySlug((searchParams.get("category") ?? "").toLowerCase().trim());
+  }, [searchParams]);
 
   // ── Sync state → URL (skip initial mount) ──────────────────────────────────
   useEffect(() => {
@@ -106,9 +113,10 @@ export function ProductsClient({
     if (filters.maxPrice)                params.set("maxPrice",  filters.maxPrice);
     if (filters.minRating > 0)           params.set("minRating", String(filters.minRating));
     if (filters.inStockOnly)             params.set("inStock",   "1");
+    if (categorySlug)                    params.set("category", categorySlug);
     const qs = params.toString();
     router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
-  }, [search, filters, sort]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [search, filters, sort, categorySlug]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Filtered + sorted list ──────────────────────────────────────────────────
   const filtered = useMemo(() => {
@@ -116,6 +124,9 @@ export function ProductsClient({
     if (search) {
       const q = search.toLowerCase();
       r = r.filter((p) => p.name.toLowerCase().includes(q) || p.brand?.toLowerCase().includes(q));
+    }
+    if (categorySlug) {
+      r = r.filter((p) => (p.categorySlug ?? "").toLowerCase() === categorySlug);
     }
     if (filters.brands.length) r = r.filter((p) => p.brand && filters.brands.includes(p.brand));
     if (filters.minPrice)          r = r.filter((p) => p.price >= Number(filters.minPrice) * 1000);
@@ -128,7 +139,7 @@ export function ProductsClient({
     if (sort === "rating")     r.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
     if (sort === "popular")    r.sort((a, b) => (b.reviewCount ?? 0) - (a.reviewCount ?? 0));
     return r;
-  }, [products, sort, filters, search]);
+  }, [products, sort, filters, search, categorySlug]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const safePage   = Math.min(page, totalPages);
@@ -136,6 +147,7 @@ export function ProductsClient({
 
   const activeCount =
     filters.brands.length +
+    (categorySlug ? 1 : 0) +
     (filters.minPrice ? 1 : 0) +
     (filters.maxPrice ? 1 : 0) +
     (filters.minRating > 0 ? 1 : 0) +
@@ -155,11 +167,18 @@ export function ProductsClient({
   function clearFilters() {
     setFilters(DEFAULT_FILTERS);
     setSearch("");
+    setCategorySlug("");
     resetPage();
   }
 
   // ── Active filter chips ─────────────────────────────────────────────────────
   const chips: { label: string; onRemove: () => void }[] = [
+    ...(categorySlug
+      ? [{
+          label: `Category: ${categorySlug}`,
+          onRemove: () => { setCategorySlug(""); resetPage(); },
+        }]
+      : []),
     ...filters.brands.map((b) => ({
       label: b,
       onRemove: () => {

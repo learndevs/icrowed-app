@@ -21,12 +21,13 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   try {
     const { id } = await params;
     const body = await req.json();
-    const { name, slug, description, imageUrl, parentId, isActive, sortOrder } = body;
+    const { name, slug, description, highlight, imageUrl, parentId, isActive, sortOrder } = body;
 
     const updateData: Record<string, unknown> = {};
     if (name !== undefined)        updateData.name = name;
     if (slug !== undefined)        updateData.slug = slug;
     if (description !== undefined) updateData.description = description;
+    if (highlight !== undefined)   updateData.highlight = highlight;
     if (imageUrl !== undefined)    updateData.imageUrl = imageUrl;
     if (parentId !== undefined)    updateData.parentId = parentId;
     if (isActive !== undefined)    updateData.isActive = isActive;

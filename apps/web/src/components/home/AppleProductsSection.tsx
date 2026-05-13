@@ -28,6 +28,7 @@ function mapRow(
 ): ProductCardData {
   const imgs = p.images as DbImage[] | null | undefined;
   const brand = (p as { brand?: { name?: string } | null }).brand;
+  const cat = (p as { category?: { slug?: string } | null }).category;
   return {
     id: p.id,
     name: p.name,
@@ -39,6 +40,7 @@ function mapRow(
     color: APPLE_CARD_TINT,
     badge: p.comparePrice ? "Sale" : undefined,
     brand: brand?.name,
+    categorySlug: cat?.slug,
   };
 }
 

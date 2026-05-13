@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { name, description, imageUrl, parentId, isActive, sortOrder } = body;
+    const { name, description, highlight, imageUrl, parentId, isActive, sortOrder } = body;
 
     if (!name) {
       return NextResponse.json({ error: "name is required" }, { status: 400 });
@@ -39,6 +39,7 @@ export async function POST(req: NextRequest) {
       name,
       slug: slugify(name) || `category-${Date.now()}`,
       description: description ?? null,
+      highlight: highlight ?? null,
       imageUrl: imageUrl ?? null,
       parentId: parentId ?? null,
       isActive: isActive ?? true,
