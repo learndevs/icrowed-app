@@ -6,9 +6,18 @@ import { useCart } from "@/context/CartContext";
 import { createClient } from "@/lib/supabase/client";
 import { formatPrice } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
-import { Card, CardContent } from "@/components/ui/Card";
-import { Badge } from "@/components/ui/Badge";
-import { CreditCard, Building2, Truck, ChevronRight, Tag, X, MapPin } from "lucide-react";
+import {
+  CreditCard,
+  Building2,
+  Truck,
+  ChevronRight,
+  Tag,
+  X,
+  MapPin,
+  Check,
+  ShoppingBag,
+  ChevronDown,
+} from "lucide-react";
 
 type PaymentMethod = "payhere" | "bank_transfer" | "cash_on_delivery";
 type DeliveryType = "standard" | "express";
@@ -62,8 +71,8 @@ export default function CheckoutPage() {
   const [error, setError] = useState<string | null>(null);
   const [savedAddresses, setSavedAddresses] = useState<SavedAddress[]>([]);
   const [selectedSavedId, setSelectedSavedId] = useState<string | null>(null);
+  const [summaryOpen, setSummaryOpen] = useState(false);
 
-  // Load saved addresses on mount
   useEffect(() => {
     fetch("/api/addresses")
       .then(async (res) => {
@@ -127,9 +136,10 @@ export default function CheckoutPage() {
 
     try {
       const supabase = createClient();
-      const { data: { user } } = await supabase.auth.getUser();
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
 
-      // Create order in DB
       const orderRes = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -170,7 +180,6 @@ export default function CheckoutPage() {
       const { orderNumber } = await orderRes.json();
 
       if (paymentMethod === "payhere") {
-        // Get PayHere form params from server (hash computed server-side)
         const initiateRes = await fetch("/api/payhere/initiate", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -193,12 +202,13 @@ export default function CheckoutPage() {
         const { checkoutUrl, params } = await initiateRes.json();
         clearCart();
         removeCoupon();
-        // Dynamically build and submit the form — avoids React render timing issues
         const form = document.createElement("form");
         form.method = "POST";
         form.action = checkoutUrl;
         form.style.display = "none";
-        for (const [key, value] of Object.entries(params as Record<string, string>)) {
+        for (const [key, value] of Object.entries(
+          params as Record<string, string>
+        )) {
           const input = document.createElement("input");
           input.type = "hidden";
           input.name = key;
@@ -207,17 +217,18 @@ export default function CheckoutPage() {
         }
         document.body.appendChild(form);
         form.submit();
-
       } else if (paymentMethod === "cash_on_delivery") {
         clearCart();
         removeCoupon();
-        router.push(`/checkout/success?orderNumber=${orderNumber}&method=cod`);
-
+        router.push(
+          `/checkout/success?orderNumber=${orderNumber}&method=cod`
+        );
       } else {
-        // bank_transfer
         clearCart();
         removeCoupon();
-        router.push(`/checkout/success?orderNumber=${orderNumber}&method=bank`);
+        router.push(
+          `/checkout/success?orderNumber=${orderNumber}&method=bank`
+        );
       }
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Something went wrong");
@@ -232,401 +243,789 @@ export default function CheckoutPage() {
   };
 
   const placeBtnLabel = () => {
-    if (paymentMethod === "payhere") return `Pay with Card — ${formatPrice(total)}`;
-    if (paymentMethod === "cash_on_delivery") return `Place Order (COD) — ${formatPrice(total)}`;
+    if (paymentMethod === "payhere")
+      return `Pay with Card — ${formatPrice(total)}`;
+    if (paymentMethod === "cash_on_delivery")
+      return `Place Order (COD) — ${formatPrice(total)}`;
     return `Place Order — ${formatPrice(total)}`;
   };
 
-  return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-      <h1 className="text-2xl font-bold mb-8">Checkout</h1>
+  const currentStepIndex = STEPS.findIndex((x) => x.key === step);
 
-      {/* Step indicator — hidden on mobile */}
-      <div className="hidden sm:flex items-center mb-10 gap-0">
-        {STEPS.map((s, i) => {
-          const currentIndex = STEPS.findIndex((x) => x.key === step);
-          const isDone = currentIndex > i;
-          const isActive = step === s.key;
-          return (
-            <div key={s.key} className="flex items-center flex-1 last:flex-none">
-              <div className="flex items-center gap-3">
+  /* ── Input style shared across fields ── */
+  const inputCls =
+    "w-full h-11 px-3.5 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent focus:bg-white transition-all";
+
+  return (
+    <div className="min-h-screen bento-bg">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
+
+        {/* ── Page header ── */}
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Checkout</h1>
+          <p className="text-sm text-gray-500 mt-1">
+            {items.length} item{items.length !== 1 ? "s" : ""} in your order
+          </p>
+        </div>
+
+        {/* ── Step indicator ── */}
+        <div className="mb-6 sm:mb-10">
+          {/* Mobile: progress bar */}
+          <div className="sm:hidden mb-2">
+            <div className="flex gap-1.5 mb-2">
+              {STEPS.map((_, i) => (
                 <div
-                  className={`relative flex items-center justify-center w-9 h-9 rounded-full text-sm font-bold shrink-0 transition-all duration-300 ${
-                    isActive
-                      ? "bg-[var(--color-primary)] text-white shadow-md shadow-[var(--color-primary)]/30 scale-110"
-                      : isDone
-                      ? "bg-emerald-500 text-white"
-                      : "bg-[var(--surface)] text-[var(--muted)] border-2 border-[var(--border)]"
+                  key={i}
+                  className={`flex-1 h-1.5 rounded-full transition-all duration-500 ${
+                    i <= currentStepIndex ? "bg-indigo-500" : "bg-gray-200"
                   }`}
+                />
+              ))}
+            </div>
+            <div className="flex justify-between text-xs">
+              <span className="text-gray-400">
+                Step {currentStepIndex + 1} of {STEPS.length}
+              </span>
+              <span className="font-semibold text-indigo-600">
+                {STEPS[currentStepIndex].label}
+              </span>
+            </div>
+          </div>
+
+          {/* Desktop: step bubbles */}
+          <div className="hidden sm:flex items-center">
+            {STEPS.map((s, i) => {
+              const isDone = currentStepIndex > i;
+              const isActive = step === s.key;
+              return (
+                <div
+                  key={s.key}
+                  className="flex items-center flex-1 last:flex-none"
                 >
-                  {isDone ? (
-                    <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none">
-                      <path d="M3 8l3.5 3.5L13 4.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                    </svg>
-                  ) : (
-                    i + 1
+                  <div className="flex items-center gap-2.5">
+                    <div
+                      className={`flex items-center justify-center w-10 h-10 rounded-full text-sm font-bold shrink-0 transition-all duration-300 ${
+                        isActive
+                          ? "bg-indigo-600 text-white shadow-lg shadow-indigo-200 scale-110"
+                          : isDone
+                          ? "bg-emerald-500 text-white"
+                          : "bg-white text-gray-400 border-2 border-gray-200"
+                      }`}
+                    >
+                      {isDone ? <Check className="w-4 h-4" /> : i + 1}
+                    </div>
+                    <span
+                      className={`text-sm font-semibold transition-colors ${
+                        isActive
+                          ? "text-indigo-600"
+                          : isDone
+                          ? "text-emerald-600"
+                          : "text-gray-400"
+                      }`}
+                    >
+                      {s.label}
+                    </span>
+                  </div>
+                  {i < STEPS.length - 1 && (
+                    <div className="flex-1 mx-4 h-0.5 rounded-full bg-gray-200 overflow-hidden">
+                      <div
+                        className={`h-full bg-emerald-400 transition-all duration-500 ${
+                          isDone ? "w-full" : "w-0"
+                        }`}
+                      />
+                    </div>
                   )}
                 </div>
-                <span
-                  className={`text-sm font-semibold transition-colors ${
-                    isActive ? "text-[var(--color-primary)]" : isDone ? "text-emerald-600" : "text-[var(--muted)]"
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* ── Main column ── */}
+          <div className="lg:col-span-2 space-y-4">
+
+            {/* Mobile: collapsible order summary */}
+            <div className="lg:hidden">
+              <button
+                type="button"
+                onClick={() => setSummaryOpen(!summaryOpen)}
+                className="w-full flex items-center justify-between p-4 bg-white rounded-2xl border border-gray-100 shadow-sm text-sm"
+              >
+                <div className="flex items-center gap-2">
+                  <ShoppingBag className="w-4 h-4 text-indigo-500" />
+                  <span className="font-semibold text-gray-900">
+                    Order Summary
+                  </span>
+                  <span className="text-gray-400">— {formatPrice(total)}</span>
+                </div>
+                <ChevronDown
+                  className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${
+                    summaryOpen ? "rotate-180" : ""
                   }`}
-                >
-                  {s.label}
-                </span>
-              </div>
-              {i < STEPS.length - 1 && (
-                <div className="flex-1 mx-4 h-px relative overflow-hidden rounded-full bg-[var(--border)]">
-                  <div
-                    className="absolute inset-y-0 left-0 bg-emerald-400 transition-all duration-500"
-                    style={{ width: isDone ? "100%" : "0%" }}
-                  />
+                />
+              </button>
+              {summaryOpen && (
+                <div className="mt-2 bg-white rounded-2xl border border-gray-100 shadow-sm p-4 space-y-3 text-sm">
+                  {items.map((item) => (
+                    <div key={item.id} className="flex justify-between">
+                      <div className="flex-1 min-w-0 pr-2">
+                        <p className="font-medium text-gray-900 truncate">
+                          {item.name}
+                        </p>
+                        {item.variantName && (
+                          <p className="text-xs text-gray-400">
+                            {item.variantName}
+                          </p>
+                        )}
+                        <p className="text-xs text-gray-400">
+                          Qty: {item.quantity}
+                        </p>
+                      </div>
+                      <p className="font-semibold text-gray-900 shrink-0">
+                        {formatPrice(item.price * item.quantity)}
+                      </p>
+                    </div>
+                  ))}
+                  <div className="border-t border-gray-100 pt-3 space-y-2">
+                    <div className="flex justify-between text-gray-500">
+                      <span>Subtotal</span>
+                      <span>{formatPrice(subtotal)}</span>
+                    </div>
+                    <div className="flex justify-between text-gray-500">
+                      <span>Shipping</span>
+                      <span>
+                        {shippingFee === 0 ? (
+                          <span className="text-emerald-600 font-medium">
+                            Free
+                          </span>
+                        ) : (
+                          formatPrice(shippingFee)
+                        )}
+                      </span>
+                    </div>
+                    {coupon && (
+                      <div className="flex justify-between text-emerald-600">
+                        <span>Coupon ({coupon.code})</span>
+                        <span>− {formatPrice(coupon.discount)}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between font-bold text-gray-900 border-t border-gray-100 pt-2">
+                      <span>Total</span>
+                      <span>{formatPrice(total)}</span>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>
-          );
-        })}
-      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Main form */}
-        <div className="lg:col-span-2">
+            {/* ── STEP 1: Address ── */}
+            {step === "address" && (
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                <div className="px-6 py-4 border-b border-gray-50 flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-indigo-50 flex items-center justify-center">
+                    <MapPin className="w-4 h-4 text-indigo-600" />
+                  </div>
+                  <h2 className="font-semibold text-gray-900">
+                    Shipping Address
+                  </h2>
+                </div>
 
-          {/* ── STEP 1: Address ─────────────────────────────── */}
-          {step === "address" && (
-            <Card>
-              <CardContent className="space-y-4">
-                <h2 className="font-semibold">Shipping Address</h2>
-
-                {savedAddresses.length > 0 && (
-                  <div className="space-y-2">
-                    <p className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wide">Saved Addresses</p>
+                <div className="p-6 space-y-6">
+                  {/* Saved addresses */}
+                  {savedAddresses.length > 0 && (
                     <div className="space-y-2">
-                      {savedAddresses.map((a) => (
+                      <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
+                        Saved Addresses
+                      </p>
+                      <div className="space-y-2">
+                        {savedAddresses.map((a) => (
+                          <button
+                            key={a.id}
+                            type="button"
+                            onClick={() => {
+                              setSelectedSavedId(a.id);
+                              applyAddress(a);
+                            }}
+                            className={`w-full text-left p-3.5 rounded-xl border-2 transition-all flex items-start gap-3 ${
+                              selectedSavedId === a.id
+                                ? "border-indigo-500 bg-indigo-50"
+                                : "border-gray-100 bg-gray-50/50 hover:border-indigo-300"
+                            }`}
+                          >
+                            <MapPin
+                              className={`w-4 h-4 mt-0.5 shrink-0 ${
+                                selectedSavedId === a.id
+                                  ? "text-indigo-600"
+                                  : "text-gray-400"
+                              }`}
+                            />
+                            <div className="flex-1 min-w-0 text-sm">
+                              <div className="flex items-center gap-2">
+                                <p className="font-medium text-gray-900">
+                                  {a.label} — {a.recipientName}
+                                </p>
+                                {a.isDefault && (
+                                  <span className="text-[10px] bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded-md font-semibold">
+                                    Default
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-gray-400 text-xs mt-0.5 truncate">
+                                {a.addressLine1}, {a.city}, {a.district}
+                              </p>
+                            </div>
+                            {selectedSavedId === a.id && (
+                              <div className="w-5 h-5 rounded-full bg-indigo-600 flex items-center justify-center shrink-0 mt-0.5">
+                                <Check className="w-3 h-3 text-white" />
+                              </div>
+                            )}
+                          </button>
+                        ))}
                         <button
-                          key={a.id}
                           type="button"
-                          onClick={() => { setSelectedSavedId(a.id); applyAddress(a); }}
-                          className={`w-full text-left p-3 rounded-xl border-2 transition-colors flex items-start gap-3 ${
-                            selectedSavedId === a.id
-                              ? "border-[var(--color-primary)] bg-[var(--brand-50)]"
-                              : "border-[var(--border)] hover:border-[var(--color-primary)]"
+                          onClick={() => {
+                            setSelectedSavedId(null);
+                            setAddress(EMPTY_ADDRESS);
+                          }}
+                          className={`w-full text-left p-3.5 rounded-xl border-2 transition-all text-sm font-medium ${
+                            selectedSavedId === null
+                              ? "border-indigo-500 bg-indigo-50 text-indigo-700"
+                              : "border-dashed border-gray-200 text-gray-500 hover:border-indigo-300 hover:text-indigo-600"
                           }`}
                         >
-                          <MapPin className="w-4 h-4 mt-0.5 text-[var(--color-primary)] shrink-0" />
-                          <div className="text-sm">
-                            <p className="font-medium">{a.label} — {a.recipientName}</p>
-                            <p className="text-[var(--muted)] text-xs mt-0.5">
-                              {a.addressLine1}, {a.city}, {a.district}
-                            </p>
+                          + Enter a new address
+                        </button>
+                      </div>
+                      <div className="border-t border-gray-100" />
+                    </div>
+                  )}
+
+                  {/* Address fields */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {(
+                      [
+                        {
+                          label: "Full Name",
+                          key: "fullName",
+                          placeholder: "Jane Doe",
+                          col: 2,
+                          required: true,
+                        },
+                        {
+                          label: "Phone Number",
+                          key: "phone",
+                          placeholder: "+94 77 123 4567",
+                          col: 2,
+                          required: true,
+                        },
+                        {
+                          label: "Address",
+                          key: "addressLine1",
+                          placeholder: "123 Main Street",
+                          col: 2,
+                          required: true,
+                        },
+                        {
+                          label: "District",
+                          key: "district",
+                          placeholder: "Colombo",
+                          col: 1,
+                          required: true,
+                        },
+                        {
+                          label: "Province",
+                          key: "province",
+                          placeholder: "Western",
+                          col: 1,
+                          required: false,
+                        },
+                      ] as {
+                        label: string;
+                        key: keyof AddressForm;
+                        placeholder: string;
+                        col: 1 | 2;
+                        required: boolean;
+                      }[]
+                    ).map((f) => (
+                      <div
+                        key={f.key}
+                        className={f.col === 2 ? "sm:col-span-2" : ""}
+                      >
+                        <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+                          {f.label}
+                          {f.required && (
+                            <span className="text-red-400 ml-0.5">*</span>
+                          )}
+                        </label>
+                        <input
+                          type="text"
+                          placeholder={f.placeholder}
+                          {...field(f.key)}
+                          className={inputCls}
+                        />
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Delivery type */}
+                  <div>
+                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-3">
+                      Delivery Type
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {[
+                        {
+                          key: "standard" as const,
+                          label: "Standard Delivery",
+                          sub: "1–3 business days",
+                          price:
+                            subtotal >= 500000 ? "Free" : "LKR 350",
+                          emoji: "🚚",
+                        },
+                        {
+                          key: "express" as const,
+                          label: "Express Delivery",
+                          sub: "Same / next day",
+                          price: "LKR 750",
+                          emoji: "⚡",
+                        },
+                      ].map((opt) => (
+                        <button
+                          key={opt.key}
+                          onClick={() => setDelivery(opt.key)}
+                          className={`text-left p-4 rounded-xl border-2 transition-all ${
+                            delivery === opt.key
+                              ? "border-indigo-500 bg-indigo-50"
+                              : "border-gray-100 bg-gray-50/50 hover:border-indigo-300"
+                          }`}
+                        >
+                          <div className="flex justify-between items-start mb-1.5">
+                            <div className="flex items-center gap-2">
+                              <span className="text-base leading-none">
+                                {opt.emoji}
+                              </span>
+                              <span className="font-semibold text-sm text-gray-900">
+                                {opt.label}
+                              </span>
+                            </div>
+                            {delivery === opt.key && (
+                              <div className="w-5 h-5 rounded-full bg-indigo-600 flex items-center justify-center shrink-0">
+                                <Check className="w-3 h-3 text-white" />
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex items-center justify-between pl-6">
+                            <p className="text-xs text-gray-400">{opt.sub}</p>
+                            <span className="text-xs font-bold text-indigo-600">
+                              {opt.price}
+                            </span>
                           </div>
                         </button>
                       ))}
-                      <button
-                        type="button"
-                        onClick={() => { setSelectedSavedId(null); setAddress(EMPTY_ADDRESS); }}
-                        className={`w-full text-left p-3 rounded-xl border-2 transition-colors text-sm ${
-                          selectedSavedId === null
-                            ? "border-[var(--color-primary)] bg-[var(--brand-50)]"
-                            : "border-[var(--border)] hover:border-[var(--color-primary)]"
-                        }`}
-                      >
-                        + Enter a new address
-                      </button>
                     </div>
-                    <div className="border-t border-[var(--border)] pt-2" />
                   </div>
-                )}
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {(
-                    [
-                      { label: "Full Name *", key: "fullName", placeholder: "Jone Doe", col: 2 },
-                      { label: "Phone Number *", key: "phone", placeholder: "+94 77 123 4567", col: 2 },
-                      { label: "Address *", key: "addressLine1", placeholder: "123 Main Street", col: 2 },
-                      { label: "District *", key: "district", placeholder: "Colombo", col: 1 },
-                      { label: "Province", key: "province", placeholder: "Western", col: 1 },
-                    ] as { label: string; key: keyof AddressForm; placeholder: string; col: 1 | 2 }[]
-                  ).map((f) => (
-                    <div key={f.key} className={f.col === 2 ? "sm:col-span-2" : ""}>
-                      <label className="block text-sm font-medium mb-1">{f.label}</label>
-                      <input
-                        type="text"
-                        placeholder={f.placeholder}
-                        {...field(f.key)}
-                        className="w-full h-10 px-3 rounded-lg border border-[var(--border)] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
-                      />
-                    </div>
-                  ))}
+                  <Button
+                    size="lg"
+                    className="w-full rounded-xl"
+                    disabled={!validateAddress()}
+                    onClick={() => setStep("payment")}
+                  >
+                    Continue to Payment{" "}
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* ── STEP 2: Payment ── */}
+            {step === "payment" && (
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                <div className="px-6 py-4 border-b border-gray-50 flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-indigo-50 flex items-center justify-center">
+                    <CreditCard className="w-4 h-4 text-indigo-600" />
+                  </div>
+                  <h2 className="font-semibold text-gray-900">
+                    Payment Method
+                  </h2>
                 </div>
 
-                {/* Delivery type */}
-                <div className="pt-2">
-                  <h3 className="text-sm font-semibold mb-3">Delivery Type</h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {[
-                      {
-                        key: "standard" as const,
-                        label: "Standard",
-                        sub: "1–3 business days",
-                        price: subtotal >= 500000 ? "Free" : "LKR 350",
-                      },
-                      {
-                        key: "express" as const,
-                        label: "Express",
-                        sub: "Same / next day",
-                        price: "LKR 750",
-                      },
-                    ].map((opt) => (
+                <div className="p-6 space-y-5">
+                  <div className="space-y-3">
+                    {(
+                      [
+                        {
+                          key: "payhere" as PaymentMethod,
+                          Icon: CreditCard,
+                          title: "Card / Online Payment",
+                          desc: "Visa, Mastercard, and more — powered by PayHere secure checkout",
+                          badge: "Recommended",
+                        },
+                        {
+                          key: "bank_transfer" as PaymentMethod,
+                          Icon: Building2,
+                          title: "Bank Deposit / Transfer",
+                          desc: "Pay via bank transfer — order confirmed within 24 hours of verification",
+                          badge: null,
+                        },
+                        {
+                          key: "cash_on_delivery" as PaymentMethod,
+                          Icon: Truck,
+                          title: "Cash on Delivery",
+                          desc: "Pay in cash when your order arrives — available for selected areas",
+                          badge: null,
+                        },
+                      ] as {
+                        key: PaymentMethod;
+                        Icon: React.ElementType;
+                        title: string;
+                        desc: string;
+                        badge: string | null;
+                      }[]
+                    ).map(({ key, Icon, title, desc, badge }) => (
                       <button
-                        key={opt.key}
-                        onClick={() => setDelivery(opt.key)}
-                        className={`text-left p-3 rounded-xl border-2 transition-colors ${
-                          delivery === opt.key
-                            ? "border-[var(--color-primary)] bg-[var(--brand-50)]"
-                            : "border-[var(--border)] hover:border-[var(--color-primary)]"
+                        key={key}
+                        onClick={() => setPaymentMethod(key)}
+                        className={`w-full text-left p-4 rounded-xl border-2 transition-all flex items-start gap-3.5 ${
+                          paymentMethod === key
+                            ? "border-indigo-500 bg-indigo-50"
+                            : "border-gray-100 bg-gray-50/50 hover:border-indigo-300"
                         }`}
                       >
-                        <div className="flex justify-between items-start">
-                          <span className="font-medium text-sm">{opt.label}</span>
-                          <span className="text-xs font-bold text-[var(--color-primary)]">{opt.price}</span>
+                        <div
+                          className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
+                            paymentMethod === key
+                              ? "bg-indigo-100"
+                              : "bg-gray-100"
+                          }`}
+                        >
+                          <Icon
+                            className={`w-5 h-5 ${
+                              paymentMethod === key
+                                ? "text-indigo-600"
+                                : "text-gray-500"
+                            }`}
+                          />
                         </div>
-                        <p className="text-xs text-[var(--muted)] mt-1">{opt.sub}</p>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="font-semibold text-sm text-gray-900">
+                              {title}
+                            </p>
+                            {badge && (
+                              <span className="text-[10px] bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded-md font-semibold">
+                                {badge}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-xs text-gray-400 mt-0.5">
+                            {desc}
+                          </p>
+                        </div>
+                        <div
+                          className={`w-5 h-5 rounded-full border-2 shrink-0 mt-0.5 flex items-center justify-center transition-all ${
+                            paymentMethod === key
+                              ? "border-indigo-600 bg-indigo-600"
+                              : "border-gray-300"
+                          }`}
+                        >
+                          {paymentMethod === key && (
+                            <div className="w-2 h-2 rounded-full bg-white" />
+                          )}
+                        </div>
                       </button>
                     ))}
                   </div>
-                </div>
 
-                <Button
-                  size="lg"
-                  className="w-full"
-                  disabled={!validateAddress()}
-                  onClick={() => setStep("payment")}
-                >
-                  Continue to Payment <ChevronRight className="w-4 h-4" />
-                </Button>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* ── STEP 2: Payment ─────────────────────────────── */}
-          {step === "payment" && (
-            <Card>
-              <CardContent className="space-y-5">
-                <h2 className="font-semibold">Payment Method</h2>
-
-                <div className="space-y-3">
-                  {/* PayHere — Card / Online */}
-                  <button
-                    onClick={() => setPaymentMethod("payhere")}
-                    className={`w-full text-left p-4 rounded-xl border-2 transition-colors flex items-start gap-3 ${
-                      paymentMethod === "payhere"
-                        ? "border-[var(--color-primary)] bg-[var(--brand-50)]"
-                        : "border-[var(--border)]"
-                    }`}
-                  >
-                    <CreditCard className="w-5 h-5 mt-0.5 text-[var(--color-primary)] shrink-0" />
-                    <div>
-                      <p className="font-medium text-sm">Card / Online Payment</p>
-                      <p className="text-xs text-[var(--muted)]">
-                        Visa, Mastercard, and more — powered by PayHere secure checkout
+                  {/* Bank transfer details */}
+                  {paymentMethod === "bank_transfer" && (
+                    <div className="p-4 bg-amber-50 rounded-xl border border-amber-200 space-y-3">
+                      <p className="text-sm font-semibold text-amber-900">
+                        Bank Account Details
                       </p>
-                    </div>
-                  </button>
-
-                  {/* Bank Transfer */}
-                  <button
-                    onClick={() => setPaymentMethod("bank_transfer")}
-                    className={`w-full text-left p-4 rounded-xl border-2 transition-colors flex items-start gap-3 ${
-                      paymentMethod === "bank_transfer"
-                        ? "border-[var(--color-primary)] bg-[var(--brand-50)]"
-                        : "border-[var(--border)]"
-                    }`}
-                  >
-                    <Building2 className="w-5 h-5 mt-0.5 text-[var(--color-primary)] shrink-0" />
-                    <div>
-                      <p className="font-medium text-sm">Bank Deposit / Transfer</p>
-                      <p className="text-xs text-[var(--muted)]">
-                        Pay via bank transfer — order confirmed within 24 hours of verification
-                      </p>
-                    </div>
-                  </button>
-
-                  {/* Cash on Delivery */}
-                  <button
-                    onClick={() => setPaymentMethod("cash_on_delivery")}
-                    className={`w-full text-left p-4 rounded-xl border-2 transition-colors flex items-start gap-3 ${
-                      paymentMethod === "cash_on_delivery"
-                        ? "border-[var(--color-primary)] bg-[var(--brand-50)]"
-                        : "border-[var(--border)]"
-                    }`}
-                  >
-                    <Truck className="w-5 h-5 mt-0.5 text-[var(--color-primary)] shrink-0" />
-                    <div>
-                      <p className="font-medium text-sm">Cash on Delivery</p>
-                      <p className="text-xs text-[var(--muted)]">
-                        Pay in cash when your order arrives — available for selected areas
-                      </p>
-                    </div>
-                  </button>
-                </div>
-
-                {/* Bank transfer details */}
-                {paymentMethod === "bank_transfer" && (
-                  <div className="p-4 bg-amber-50 rounded-xl border border-amber-200 text-sm space-y-2">
-                    <p className="font-semibold">Bank Account Details</p>
-                    <div className="space-y-1 text-xs text-amber-900">
-                      <p>Bank: <strong>Commercial Bank of Ceylon</strong></p>
-                      <p>Account Name: <strong>iCrowed (Pvt) Ltd</strong></p>
-                      <p>Account Number: <strong>8002-XXXXXXXX</strong></p>
-                      <p>Branch: <strong>Colombo 03</strong></p>
-                    </div>
-                    <p className="text-xs text-amber-700">
-                      After placing your order, note your order number and use it as the transfer reference.
-                    </p>
-                  </div>
-                )}
-
-                {/* COD notice */}
-                {paymentMethod === "cash_on_delivery" && (
-                  <div className="p-4 bg-blue-50 rounded-xl border border-blue-200 text-sm space-y-1">
-                    <p className="font-semibold text-blue-900">Cash on Delivery</p>
-                    <p className="text-xs text-blue-800">
-                      Have the exact amount ready when our delivery partner arrives. A confirmation call may be made before dispatch.
-                    </p>
-                  </div>
-                )}
-
-                <div className="flex gap-3">
-                  <Button variant="outline" className="flex-1" onClick={() => setStep("address")}>
-                    Back
-                  </Button>
-                  <Button className="flex-1" onClick={() => setStep("review")}>
-                    Review Order <ChevronRight className="w-4 h-4" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* ── STEP 3: Review ──────────────────────────────── */}
-          {step === "review" && (
-            <Card>
-              <CardContent className="space-y-5">
-                <h2 className="font-semibold">Review & Place Order</h2>
-
-                {/* Address summary */}
-                <div className="p-3 bg-[var(--surface)] rounded-xl text-sm space-y-0.5">
-                  <p className="font-medium">{address.fullName}</p>
-                  <p className="text-[var(--muted)]">{address.phone}</p>
-                  <p className="text-[var(--muted)]">{address.addressLine1}</p>
-                  <p className="text-[var(--muted)]">
-                    {address.district}
-                    {address.province ? `, ${address.province}` : ""}
-                  </p>
-                </div>
-
-                {/* Items */}
-                <div className="divide-y divide-[var(--border)]">
-                  {items.map((item) => (
-                    <div key={item.id} className="flex justify-between py-3 text-sm">
-                      <div>
-                        <p className="font-medium">{item.name}</p>
-                        {item.variantName && (
-                          <p className="text-xs text-[var(--muted)]">{item.variantName}</p>
-                        )}
-                        <p className="text-xs text-[var(--muted)]">Qty: {item.quantity}</p>
+                      <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
+                        {[
+                          ["Bank", "Commercial Bank of Ceylon"],
+                          ["Account Name", "iCrowed (Pvt) Ltd"],
+                          ["Account Number", "8002-XXXXXXXX"],
+                          ["Branch", "Colombo 03"],
+                        ].map(([label, value]) => (
+                          <div key={label}>
+                            <p className="text-amber-600">{label}</p>
+                            <p className="font-semibold text-amber-900">
+                              {value}
+                            </p>
+                          </div>
+                        ))}
                       </div>
-                      <p className="font-semibold">{formatPrice(item.price * item.quantity)}</p>
+                      <p className="text-xs text-amber-700 border-t border-amber-200 pt-2">
+                        After placing your order, use your order number as the
+                        transfer reference.
+                      </p>
+                    </div>
+                  )}
+
+                  {/* COD notice */}
+                  {paymentMethod === "cash_on_delivery" && (
+                    <div className="p-4 bg-blue-50 rounded-xl border border-blue-200 space-y-1">
+                      <p className="text-sm font-semibold text-blue-900">
+                        Cash on Delivery
+                      </p>
+                      <p className="text-xs text-blue-700">
+                        Have the exact amount ready when our delivery partner
+                        arrives. A confirmation call may be made before
+                        dispatch.
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="flex gap-3 pt-1">
+                    <Button
+                      variant="outline"
+                      className="flex-1 rounded-xl"
+                      onClick={() => setStep("address")}
+                    >
+                      Back
+                    </Button>
+                    <Button
+                      className="flex-1 rounded-xl"
+                      onClick={() => setStep("review")}
+                    >
+                      Review Order <ChevronRight className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── STEP 3: Review ── */}
+            {step === "review" && (
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                <div className="px-6 py-4 border-b border-gray-50 flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-xl bg-indigo-50 flex items-center justify-center">
+                    <ShoppingBag className="w-4 h-4 text-indigo-600" />
+                  </div>
+                  <h2 className="font-semibold text-gray-900">
+                    Review & Place Order
+                  </h2>
+                </div>
+
+                <div className="p-6 space-y-5">
+                  {/* Address summary */}
+                  <div className="p-4 bg-gray-50 rounded-xl border border-gray-100 flex items-start gap-3">
+                    <MapPin className="w-4 h-4 text-indigo-500 shrink-0 mt-0.5" />
+                    <div className="text-sm space-y-0.5 flex-1 min-w-0">
+                      <p className="font-semibold text-gray-900">
+                        {address.fullName}
+                      </p>
+                      <p className="text-gray-500">{address.phone}</p>
+                      <p className="text-gray-500">{address.addressLine1}</p>
+                      <p className="text-gray-500">
+                        {address.district}
+                        {address.province ? `, ${address.province}` : ""}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setStep("address")}
+                      className="text-xs text-indigo-600 hover:underline shrink-0"
+                    >
+                      Edit
+                    </button>
+                  </div>
+
+                  {/* Payment summary */}
+                  <div className="p-4 bg-gray-50 rounded-xl border border-gray-100 flex items-center gap-3">
+                    <CreditCard className="w-4 h-4 text-indigo-500 shrink-0" />
+                    <span className="text-sm font-medium text-gray-700 flex-1">
+                      {paymentBadgeLabel[paymentMethod]}
+                    </span>
+                    <button
+                      onClick={() => setStep("payment")}
+                      className="text-xs text-indigo-600 hover:underline shrink-0"
+                    >
+                      Edit
+                    </button>
+                  </div>
+
+                  {/* Items */}
+                  <div>
+                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">
+                      Items
+                    </p>
+                    <div className="divide-y divide-gray-50">
+                      {items.map((item) => (
+                        <div
+                          key={item.id}
+                          className="flex justify-between py-3 text-sm"
+                        >
+                          <div className="flex-1 min-w-0 pr-3">
+                            <p className="font-medium text-gray-900">
+                              {item.name}
+                            </p>
+                            {item.variantName && (
+                              <p className="text-xs text-gray-400">
+                                {item.variantName}
+                              </p>
+                            )}
+                            <p className="text-xs text-gray-400">
+                              Qty: {item.quantity}
+                            </p>
+                          </div>
+                          <p className="font-semibold text-gray-900 shrink-0">
+                            {formatPrice(item.price * item.quantity)}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Customer note */}
+                  <div>
+                    <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5">
+                      Order Note{" "}
+                      <span className="font-normal normal-case text-gray-400">
+                        (optional)
+                      </span>
+                    </label>
+                    <textarea
+                      rows={2}
+                      placeholder="Any special instructions..."
+                      value={customerNote}
+                      onChange={(e) => setCustomerNote(e.target.value)}
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 bg-gray-50 text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent focus:bg-white transition-all resize-none"
+                    />
+                  </div>
+
+                  {error && (
+                    <div className="flex items-start gap-2.5 text-sm text-red-700 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+                      <X className="w-4 h-4 shrink-0 mt-0.5" />
+                      <p>{error}</p>
+                    </div>
+                  )}
+
+                  <div className="flex gap-3 pt-1">
+                    <Button
+                      variant="outline"
+                      className="flex-1 rounded-xl"
+                      onClick={() => setStep("payment")}
+                    >
+                      Back
+                    </Button>
+                    <Button
+                      className="flex-1 rounded-xl"
+                      loading={loading}
+                      onClick={handlePlaceOrder}
+                    >
+                      {placeBtnLabel()}
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* ── Order summary sidebar (desktop only) ── */}
+          <div className="hidden lg:block">
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm sticky top-24 overflow-hidden">
+              <div className="px-5 py-4 border-b border-gray-50 flex items-center gap-2">
+                <ShoppingBag className="w-4 h-4 text-indigo-500" />
+                <h2 className="font-semibold text-gray-900">Order Summary</h2>
+              </div>
+
+              <div className="p-5 space-y-4">
+                {coupon && (
+                  <div className="flex items-center justify-between px-3 py-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs">
+                    <span className="text-emerald-700 font-medium flex items-center gap-1.5">
+                      <Tag className="w-3.5 h-3.5" />
+                      {coupon.message}
+                    </span>
+                    <button
+                      onClick={removeCoupon}
+                      className="text-emerald-600 hover:text-emerald-800 ml-2"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                )}
+
+                {/* Item list */}
+                <div className="space-y-3">
+                  {items.map((item) => (
+                    <div key={item.id} className="flex gap-2 text-sm">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-gray-900 truncate">
+                          {item.name}
+                        </p>
+                        {item.variantName && (
+                          <p className="text-xs text-gray-400 truncate">
+                            {item.variantName}
+                          </p>
+                        )}
+                        <p className="text-xs text-gray-400">
+                          × {item.quantity}
+                        </p>
+                      </div>
+                      <p className="font-semibold text-gray-900 shrink-0">
+                        {formatPrice(item.price * item.quantity)}
+                      </p>
                     </div>
                   ))}
                 </div>
 
-                {/* Customer note */}
-                <div>
-                  <label className="block text-sm font-medium mb-1">Order Note (optional)</label>
-                  <textarea
-                    rows={2}
-                    placeholder="Any special instructions..."
-                    value={customerNote}
-                    onChange={(e) => setCustomerNote(e.target.value)}
-                    className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] resize-none"
-                  />
-                </div>
-
-                {error && (
-                  <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
-                    {error}
-                  </p>
-                )}
-
-                <div className="flex gap-3">
-                  <Button variant="outline" className="flex-1" onClick={() => setStep("payment")}>
-                    Back
-                  </Button>
-                  <Button
-                    className="flex-1"
-                    loading={loading}
-                    onClick={handlePlaceOrder}
-                  >
-                    {placeBtnLabel()}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-
-        {/* Order summary sidebar */}
-        <Card className="self-start sticky top-24">
-          <CardContent className="space-y-3">
-            <h2 className="font-semibold">Summary</h2>
-            {coupon && (
-              <div className="flex items-center justify-between px-3 py-2 rounded-lg bg-green-50 border border-green-200 text-xs">
-                <span className="text-green-700 font-medium flex items-center gap-1">
-                  <Tag className="w-3 h-3" />{coupon.message}
-                </span>
-                <button onClick={removeCoupon} className="text-green-600 hover:text-green-800 ml-2">
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            )}
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-[var(--muted)]">Items ({items.length})</span>
-                <span>{formatPrice(subtotal)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-[var(--muted)]">Shipping</span>
-                <span>
-                  {shippingFee === 0 ? (
-                    <span className="text-green-600">Free</span>
-                  ) : (
-                    formatPrice(shippingFee)
+                {/* Price breakdown */}
+                <div className="border-t border-gray-100 pt-4 space-y-2 text-sm">
+                  <div className="flex justify-between text-gray-500">
+                    <span>Subtotal ({items.length} items)</span>
+                    <span>{formatPrice(subtotal)}</span>
+                  </div>
+                  <div className="flex justify-between text-gray-500">
+                    <span>Shipping</span>
+                    <span>
+                      {shippingFee === 0 ? (
+                        <span className="text-emerald-600 font-medium">
+                          Free
+                        </span>
+                      ) : (
+                        formatPrice(shippingFee)
+                      )}
+                    </span>
+                  </div>
+                  {coupon && (
+                    <div className="flex justify-between text-emerald-600">
+                      <span className="flex items-center gap-1">
+                        <Tag className="w-3 h-3" />
+                        {coupon.code}
+                      </span>
+                      <span>− {formatPrice(coupon.discount)}</span>
+                    </div>
                   )}
-                </span>
-              </div>
-              <div className="flex justify-between text-[var(--muted)]">
-                <span>Payment</span>
-                <Badge variant={paymentMethod === "payhere" ? "primary" : "warning"}>
-                  {paymentBadgeLabel[paymentMethod]}
-                </Badge>
-              </div>
-              {coupon && (
-                <div className="flex justify-between text-green-600">
-                  <span className="flex items-center gap-1 text-xs">
-                    <Tag className="w-3 h-3" />{coupon.code}
-                  </span>
-                  <span>− {formatPrice(coupon.discount)}</span>
+                  <div className="border-t border-gray-100 pt-2 flex justify-between font-bold text-gray-900 text-base">
+                    <span>Total</span>
+                    <span>{formatPrice(total)}</span>
+                  </div>
                 </div>
-              )}
-              <div className="border-t border-[var(--border)] pt-2 flex justify-between font-bold">
-                <span>Total</span>
-                <span>{formatPrice(total)}</span>
+
+                {/* Trust badges */}
+                <div className="border-t border-gray-100 pt-3 space-y-2">
+                  {[
+                    { emoji: "🔒", text: "Secure checkout" },
+                    { emoji: "✅", text: "100% genuine products" },
+                    { emoji: "↩️", text: "7-day easy returns" },
+                  ].map((t) => (
+                    <div
+                      key={t.text}
+                      className="flex items-center gap-2 text-xs text-gray-400"
+                    >
+                      <span>{t.emoji}</span>
+                      <span>{t.text}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </div>
   );
