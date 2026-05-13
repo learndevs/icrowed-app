@@ -1,4 +1,5 @@
 export { db, type DB } from "./db";
+export * from "./variant-options";
 
 export * from "./schema";
 export {

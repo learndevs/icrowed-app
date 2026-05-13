@@ -1,4 +1,9 @@
 export * from "./products";
+export {
+  listVariantsForProduct,
+  syncProductVariants,
+  type ProductVariantInput,
+} from "./productVariants";
 export * from "./orders";
 export * from "./categories";
 export * from "./profiles";
