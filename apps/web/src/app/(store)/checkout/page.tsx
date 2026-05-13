@@ -116,7 +116,6 @@ export default function CheckoutPage() {
       address.fullName.trim() &&
       address.phone.trim() &&
       address.addressLine1.trim() &&
-      address.city.trim() &&
       address.district.trim()
     );
   }
@@ -320,12 +319,9 @@ export default function CheckoutPage() {
                     [
                       { label: "Full Name *", key: "fullName", placeholder: "Jone Doe", col: 2 },
                       { label: "Phone Number *", key: "phone", placeholder: "+94 77 123 4567", col: 2 },
-                      { label: "Address Line 1 *", key: "addressLine1", placeholder: "123 Main Street", col: 2 },
-                      { label: "Address Line 2 (optional)", key: "addressLine2", placeholder: "Apartment, Suite, etc.", col: 2 },
-                      { label: "City *", key: "city", placeholder: "Colombo", col: 1 },
+                      { label: "Address *", key: "addressLine1", placeholder: "123 Main Street", col: 2 },
                       { label: "District *", key: "district", placeholder: "Colombo", col: 1 },
                       { label: "Province", key: "province", placeholder: "Western", col: 1 },
-                      { label: "Postal Code", key: "postalCode", placeholder: "00100", col: 1 },
                     ] as { label: string; key: keyof AddressForm; placeholder: string; col: 1 | 2 }[]
                   ).map((f) => (
                     <div key={f.key} className={f.col === 2 ? "sm:col-span-2" : ""}>
@@ -499,14 +495,10 @@ export default function CheckoutPage() {
                 <div className="p-3 bg-[var(--surface)] rounded-xl text-sm space-y-0.5">
                   <p className="font-medium">{address.fullName}</p>
                   <p className="text-[var(--muted)]">{address.phone}</p>
+                  <p className="text-[var(--muted)]">{address.addressLine1}</p>
                   <p className="text-[var(--muted)]">
-                    {address.addressLine1}
-                    {address.addressLine2 ? `, ${address.addressLine2}` : ""}
-                  </p>
-                  <p className="text-[var(--muted)]">
-                    {address.city}, {address.district}
+                    {address.district}
                     {address.province ? `, ${address.province}` : ""}
-                    {address.postalCode ? ` ${address.postalCode}` : ""}
                   </p>
                 </div>
 
