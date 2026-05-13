@@ -25,6 +25,17 @@ function productColor(id: string): string {
   return CARD_GRADIENTS[hash % CARD_GRADIENTS.length];
 }
 
+function primaryImageUrl(images: unknown): string | undefined {
+  if (!Array.isArray(images)) return undefined;
+  const rows = images as { url?: string; sortOrder?: number; isPrimary?: boolean }[];
+  const valid = rows.filter((img) => typeof img?.url === "string" && img.url.length > 0);
+  if (valid.length === 0) return undefined;
+  const primary = valid.find((img) => img.isPrimary);
+  if (primary?.url) return primary.url;
+  const sorted = [...valid].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+  return sorted[0]?.url;
+}
+
 export default async function ProductsPage() {
   const [dbProducts, brandRows] = await Promise.all([
     getProducts({ limit: 500 }).catch(() => []),
@@ -38,7 +49,6 @@ export default async function ProductsPage() {
     const row = p as {
       brand?: { name?: string } | null;
       brandId?: string | null;
-      category?: { name?: string } | null;
     };
     const brandName =
       row.brand?.name ?? (row.brandId ? brandById.get(row.brandId) : undefined);
@@ -48,14 +58,11 @@ export default async function ProductsPage() {
       slug: p.slug,
       price: Number(p.price),
       comparePrice: p.comparePrice ? Number(p.comparePrice) : undefined,
-      imageUrl:
-        (p.images as { isPrimary?: boolean; url: string }[])?.find((img) => img.isPrimary)?.url ??
-        (p.images as { url: string }[])?.[0]?.url,
+      imageUrl: primaryImageUrl(p.images),
       stock: p.stock,
       color: productColor(p.id),
       badge: p.comparePrice ? "Sale" : undefined,
       brand: brandName,
-      category: row.category?.name,
     };
   });
 

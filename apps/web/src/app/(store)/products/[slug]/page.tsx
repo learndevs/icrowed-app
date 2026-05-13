@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   Shield, Truck, RefreshCw, Star,
-  ChevronRight, Check,
+  ChevronRight,
 } from "lucide-react";
 import { ProductDetailClient } from "./ProductDetailClient";
 import { ProductImages } from "./ProductImages";
@@ -51,13 +51,9 @@ async function getProduct(slug: string) {
     name: p.name,
     slug: p.slug,
     price: Number(p.price),
-    comparePrice: p.comparePrice ? Number(p.comparePrice) : undefined,
     stock: p.stock,
     description: p.description ?? p.shortDescription ?? "",
     specifications: mapSpecifications(p.specifications as Record<string, unknown> | null),
-    highlights: (p.tags ?? []).slice(0, 5),
-    category: (p as any).category?.name ?? "",
-    brand: (p as any).brand?.name ?? "",
     rating: 0,
     reviewCount: 0,
     gradient: productGradient(p.id),
@@ -70,6 +66,7 @@ async function getProduct(slug: string) {
         stock: v.stock ?? 0,
         price: v.price ? Number(v.price) : null,
         sku: v.sku ?? null,
+        options: v.options ?? null,
       })),
   };
 }
@@ -85,10 +82,6 @@ export default async function ProductDetailPage({ params }: Props) {
   const { slug } = await params;
   const product = await getProduct(slug);
   if (!product) notFound();
-
-  const baseDiscount = product.comparePrice
-    ? Math.round((1 - product.price / product.comparePrice) * 100)
-    : null;
 
   return (
     <div className="bento-bg min-h-screen">
@@ -112,33 +105,27 @@ export default async function ProductDetailPage({ params }: Props) {
               images={product.images}
               productName={product.name}
               gradient={product.gradient}
-              discount={baseDiscount}
-              brand={product.brand}
             />
           </div>
 
           {/* Right: product info */}
           <div className="bento-card relative z-10 p-5 sm:p-7 flex flex-col gap-5">
 
-            {/* Brand + category */}
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-extrabold tracking-widest uppercase text-indigo-600 bg-indigo-50 border border-indigo-100 px-2.5 py-1 rounded-full">
-                {product.category}
-              </span>
-              <span className="text-[10px] font-extrabold tracking-widest uppercase text-gray-500 bg-gray-100 px-2.5 py-1 rounded-full">
-                {product.brand}
-              </span>
-              {product.stock > 0 && product.stock <= 5 && (
-                <span className="text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full">
-                  Only {product.stock} left
-                </span>
-              )}
-              {product.stock === 0 && (
-                <span className="text-[10px] font-bold text-rose-700 bg-rose-50 border border-rose-200 px-2.5 py-1 rounded-full">
-                  Out of Stock
-                </span>
-              )}
-            </div>
+            {/* Stock (base SKU only — variant stock is in the buy box) */}
+            {product.variants.length === 0 &&
+              (product.stock > 0 && product.stock <= 5 ? (
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full">
+                    Only {product.stock} left
+                  </span>
+                </div>
+              ) : product.stock === 0 ? (
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-bold text-rose-700 bg-rose-50 border border-rose-200 px-2.5 py-1 rounded-full">
+                    Out of Stock
+                  </span>
+                </div>
+              ) : null)}
 
             {/* Name */}
             <div>
@@ -161,22 +148,11 @@ export default async function ProductDetailPage({ params }: Props) {
               </div>
             </div>
 
-            {/* Highlights */}
-            <div className="flex flex-wrap gap-2">
-              {product.highlights.map((h) => (
-                <span key={h} className="flex items-center gap-1 text-[11px] font-semibold text-gray-700 bg-gray-50 border border-gray-200 px-2.5 py-1 rounded-full">
-                  <Check className="w-3 h-3 text-emerald-500 shrink-0" /> {h}
-                </span>
-              ))}
-            </div>
-
-            {/* Price + Variants (client — price updates on variant selection) */}
             <ProductDetailClient
               product={{
                 id: product.id,
                 name: product.name,
                 price: product.price,
-                comparePrice: product.comparePrice,
                 stock: product.stock,
                 variants: product.variants,
                 primaryImageUrl: product.images.find((i) => i.isPrimary)?.url ?? product.images[0]?.url ?? null,

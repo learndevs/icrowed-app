@@ -1,13 +1,20 @@
 /**
  * Seed script — uses Supabase REST API (PostgREST) so it works even when the
- * direct PostgreSQL port is blocked.  Run with:
+ * direct PostgreSQL port is blocked. Loads env from (in order, first wins):
+ *   apps/web/.env.local, repo .env.local, packages/database/.env.local
  *
  *   npm run db:seed          (from packages/database)
  *   npm run db:seed -w @icrowed/database  (from repo root)
+ *   npm run db:seed          (from repo root — see root package.json)
+ *
+ * Includes Apple brand, Smartphones category, iPhones + AirPods + images.
+ * The Next.js storefront needs DATABASE_URL in apps/web/.env.local to read products.
  */
 import * as dotenv from "dotenv";
 import path from "path";
 
+// Prefer apps/web — most devs only keep Supabase keys there.
+dotenv.config({ path: path.resolve(__dirname, "../../../apps/web/.env.local") });
 dotenv.config({ path: path.resolve(__dirname, "../../../.env.local") });
 dotenv.config({ path: path.resolve(__dirname, "../.env.local") });
 
@@ -31,21 +38,34 @@ const headers = {
   apikey: KEY,
   Authorization: `Bearer ${KEY}`,
   "Content-Type": "application/json",
-  // ignore-duplicates = INSERT … ON CONFLICT DO NOTHING
+  // ignore-duplicates — still often 409 on unique(slug) in bulk; we insert row-by-row and skip 409.
   Prefer: "resolution=ignore-duplicates,return=minimal",
 };
 
-async function upsert(table: string, rows: unknown[]) {
-  if (rows.length === 0) return;
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
-    method: "POST",
-    headers,
-    body: JSON.stringify(rows),
-  });
-  if (!res.ok) {
+/** Insert one row at a time so duplicates only skip that row; tolerate 409 / 23505 (already exists). */
+async function upsert(table: string, rows: unknown[]): Promise<number> {
+  if (rows.length === 0) return 0;
+  let skipped = 0;
+  for (const row of rows) {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
+      method: "POST",
+      headers,
+      body: JSON.stringify([row]),
+    });
+    if (res.ok) continue;
     const text = await res.text();
+    const duplicate =
+      res.status === 409 ||
+      text.includes("23505") ||
+      text.includes("duplicate key") ||
+      text.includes("already exists");
+    if (duplicate) {
+      skipped++;
+      continue;
+    }
     throw new Error(`${table}: ${res.status} ${text}`);
   }
+  return skipped;
 }
 
 // ─── Categories ───────────────────────────────────────────────────────────────
@@ -101,6 +121,17 @@ const CATEGORIES = [
     is_active: true,
     sort_order: 5,
   },
+  {
+    id: "10000000-0000-4000-8000-000000000010",
+    name: "Smartphones",
+    slug: "smartphones",
+    description: "Latest iPhones and Android phones with genuine warranty.",
+    image_url:
+      "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=1200&h=900&q=80",
+    parent_id: "10000000-0000-4000-8000-000000000001",
+    is_active: true,
+    sort_order: 6,
+  },
 ];
 
 // ─── Brands ───────────────────────────────────────────────────────────────────
@@ -145,8 +176,16 @@ const BRANDS = [
     id: "20000000-0000-4000-8000-000000000006",
     name: "Anker",
     slug: "anker",
-    logoUrl: "/home/anker-logo.svg",
-    isActive: true,
+    logo_url: "/home/anker-logo.svg",
+    is_active: true,
+  },
+  {
+    id: "20000000-0000-4000-8000-000000000007",
+    name: "Apple",
+    slug: "apple",
+    logo_url:
+      "https://images.unsplash.com/photo-1621761191319-6df1f31816de?auto=format&fit=crop&w=400&h=200&q=80",
+    is_active: true,
   },
 ];
 
@@ -318,60 +357,191 @@ const PRODUCTS = [
     name: "Anker PowerLine III USB-C Cable (6 ft)",
     slug: "anker-powerline-iii-usbc-6ft",
     description: "Durable USB-C charging cable with reinforced connectors for phones, tablets, and laptops.",
-    shortDescription: "Fast charging USB-C cable.",
-    categoryId: "10000000-0000-4000-8000-000000000001",
-    brandId: "20000000-0000-4000-8000-000000000006",
+    short_description: "Fast charging USB-C cable.",
+    category_id: "10000000-0000-4000-8000-000000000001",
+    brand_id: "20000000-0000-4000-8000-000000000006",
     sku: "ANK-CBL-USBC6",
-    price: "2290",
-    comparePrice: "3490",
-    cost: "950",
+    price: 2290,
+    compare_price: 3490,
+    cost: 950,
     stock: 120,
-    lowStockThreshold: 15,
-    isFeatured: false,
-    isActive: true,
+    low_stock_threshold: 15,
+    is_featured: false,
+    is_active: true,
     specifications: { length: "6 ft", rating: "USB 2.0 data", jacket: "Double-braided nylon" },
     tags: ["anker", "cable", "usb-c"],
-    weight: "0.06",
+    weight: 0.06,
   },
   {
     id: "30000000-0000-4000-8000-000000000010",
     name: "Anker PowerCore 10000 Portable Charger",
     slug: "anker-powercore-10000",
     description: "Compact high-density power bank with USB-C and USB-A outputs for all-day backup power.",
-    shortDescription: "10,000 mAh compact power bank.",
-    categoryId: "10000000-0000-4000-8000-000000000001",
-    brandId: "20000000-0000-4000-8000-000000000006",
+    short_description: "10,000 mAh compact power bank.",
+    category_id: "10000000-0000-4000-8000-000000000001",
+    brand_id: "20000000-0000-4000-8000-000000000006",
     sku: "ANK-PB-10K",
-    price: "8490",
-    comparePrice: "9990",
-    cost: "4200",
+    price: 8490,
+    compare_price: 9990,
+    cost: 4200,
     stock: 38,
-    lowStockThreshold: 8,
-    isFeatured: true,
-    isActive: true,
+    low_stock_threshold: 8,
+    is_featured: true,
+    is_active: true,
     specifications: { capacity: "10000 mAh", ports: "USB-C + USB-A", input: "USB-C" },
     tags: ["anker", "power-bank", "charging"],
-    weight: "0.22",
+    weight: 0.22,
   },
   {
     id: "30000000-0000-4000-8000-000000000011",
     name: "Anker Soundcore P20i True Wireless Earbuds",
     slug: "anker-soundcore-p20i",
     description: "True wireless earbuds with punchy bass, clear calls, and long battery life in a pocketable case.",
-    shortDescription: "True wireless earbuds with deep bass.",
-    categoryId: "10000000-0000-4000-8000-000000000002",
-    brandId: "20000000-0000-4000-8000-000000000006",
+    short_description: "True wireless earbuds with deep bass.",
+    category_id: "10000000-0000-4000-8000-000000000002",
+    brand_id: "20000000-0000-4000-8000-000000000006",
     sku: "ANK-SCP-P20I",
-    price: "13990",
-    comparePrice: "16990",
-    cost: "7800",
+    price: 13990,
+    compare_price: 16990,
+    cost: 7800,
     stock: 55,
-    lowStockThreshold: 10,
-    isFeatured: true,
-    isActive: true,
+    low_stock_threshold: 10,
+    is_featured: true,
+    is_active: true,
     specifications: { connectivity: "Bluetooth 5.3", battery: "30 hours with case", drivers: "10 mm" },
     tags: ["anker", "audio", "earbuds"],
-    weight: "0.05",
+    weight: 0.05,
+  },
+  {
+    id: "30000000-0000-4000-8000-000000000012",
+    name: "Apple iPhone 16 Pro 256GB",
+    slug: "apple-iphone-16-pro-256gb",
+    description:
+      "Titanium design, A18 Pro chip, pro camera system with 5x telephoto, and all-day battery. Genuine Apple warranty in Sri Lanka.",
+    short_description: "Flagship titanium iPhone with pro cameras.",
+    category_id: "10000000-0000-4000-8000-000000000010",
+    brand_id: "20000000-0000-4000-8000-000000000007",
+    sku: "APL-IP16P-256",
+    price: 524990,
+    compare_price: 549990,
+    cost: 410000,
+    stock: 14,
+    low_stock_threshold: 4,
+    is_featured: true,
+    is_active: true,
+    specifications: {
+      display: "6.3 inch Super Retina XDR",
+      chip: "A18 Pro",
+      storage: "256GB",
+      connectivity: "5G",
+    },
+    tags: ["apple", "iphone", "smartphone", "5g"],
+    weight: 0.2,
+  },
+  {
+    id: "30000000-0000-4000-8000-000000000013",
+    name: "Apple iPhone 16 128GB",
+    slug: "apple-iphone-16-128gb",
+    description:
+      "A18 chip, Action button, 48MP Fusion camera, and USB-C. Bright Super Retina XDR display in a durable aluminum frame.",
+    short_description: "Latest iPhone with A18 and 48MP camera.",
+    category_id: "10000000-0000-4000-8000-000000000010",
+    brand_id: "20000000-0000-4000-8000-000000000007",
+    sku: "APL-IP16-128",
+    price: 389990,
+    compare_price: 409990,
+    cost: 305000,
+    stock: 22,
+    low_stock_threshold: 5,
+    is_featured: true,
+    is_active: true,
+    specifications: { display: "6.1 inch", chip: "A18", storage: "128GB", connectivity: "5G" },
+    tags: ["apple", "iphone", "smartphone"],
+    weight: 0.17,
+  },
+  {
+    id: "30000000-0000-4000-8000-000000000014",
+    name: "Apple iPhone 15 Pro Max 256GB",
+    slug: "apple-iphone-15-pro-max-256gb",
+    description:
+      "Largest Pro display, A17 Pro, titanium build, and longest battery life in an iPhone 15 generation device.",
+    short_description: "6.7 inch Pro Max with A17 Pro.",
+    category_id: "10000000-0000-4000-8000-000000000010",
+    brand_id: "20000000-0000-4000-8000-000000000007",
+    sku: "APL-IP15PM-256",
+    price: 479990,
+    compare_price: null,
+    cost: 375000,
+    stock: 9,
+    low_stock_threshold: 4,
+    is_featured: false,
+    is_active: true,
+    specifications: { display: "6.7 inch", chip: "A17 Pro", storage: "256GB", connectivity: "5G" },
+    tags: ["apple", "iphone", "pro-max"],
+    weight: 0.22,
+  },
+  {
+    id: "30000000-0000-4000-8000-000000000015",
+    name: "Apple iPhone 15 128GB",
+    slug: "apple-iphone-15-128gb",
+    description:
+      "Dynamic Island, 48MP main camera, USB-C, and all-day battery — the balanced iPhone 15 experience.",
+    short_description: "Dynamic Island and 48MP camera.",
+    category_id: "10000000-0000-4000-8000-000000000010",
+    brand_id: "20000000-0000-4000-8000-000000000007",
+    sku: "APL-IP15-128",
+    price: 299990,
+    compare_price: 324990,
+    cost: 235000,
+    stock: 31,
+    low_stock_threshold: 6,
+    is_featured: false,
+    is_active: true,
+    specifications: { display: "6.1 inch", chip: "A16 Bionic", storage: "128GB", connectivity: "5G" },
+    tags: ["apple", "iphone", "smartphone"],
+    weight: 0.17,
+  },
+  {
+    id: "30000000-0000-4000-8000-000000000016",
+    name: "Apple iPhone 14 128GB",
+    slug: "apple-iphone-14-128gb",
+    description:
+      "A15 Bionic, advanced dual-camera system, and Crash Detection. A proven iPhone with great value.",
+    short_description: "Reliable iPhone 14 with A15.",
+    category_id: "10000000-0000-4000-8000-000000000010",
+    brand_id: "20000000-0000-4000-8000-000000000007",
+    sku: "APL-IP14-128",
+    price: 229990,
+    compare_price: 259990,
+    cost: 178000,
+    stock: 18,
+    low_stock_threshold: 5,
+    is_featured: false,
+    is_active: true,
+    specifications: { display: "6.1 inch", chip: "A15 Bionic", storage: "128GB", connectivity: "5G" },
+    tags: ["apple", "iphone", "value"],
+    weight: 0.17,
+  },
+  {
+    id: "30000000-0000-4000-8000-000000000017",
+    name: "Apple AirPods Pro (2nd generation)",
+    slug: "apple-airpods-pro-2nd-gen",
+    description:
+      "Active Noise Cancellation, Adaptive Audio, Personalized Spatial Audio, and MagSafe charging case (USB-C).",
+    short_description: "Pro earbuds with ANC and Spatial Audio.",
+    category_id: "10000000-0000-4000-8000-000000000002",
+    brand_id: "20000000-0000-4000-8000-000000000007",
+    sku: "APL-APP2-USBc",
+    price: 89990,
+    compare_price: 99990,
+    cost: 62000,
+    stock: 40,
+    low_stock_threshold: 8,
+    is_featured: false,
+    is_active: true,
+    specifications: { chip: "H2", case: "MagSafe USB-C", resistance: "IP54" },
+    tags: ["apple", "airpods", "audio"],
+    weight: 0.06,
   },
 ];
 
@@ -380,91 +550,139 @@ const PRODUCTS = [
 const PRODUCT_IMAGES = [
   {
     id: "32000000-0000-4000-8000-000000000001",
-    productId: "30000000-0000-4000-8000-000000000001",
+    product_id: "30000000-0000-4000-8000-000000000001",
     url: "https://images.unsplash.com/photo-1606220945770-b5b6c2c55bf1?auto=format&fit=crop&w=1200&h=900&q=80",
-    altText: "Nova Airbuds Pro case and earbuds",
-    isPrimary: true,
-    sortOrder: 1,
+    alt_text: "Nova Airbuds Pro case and earbuds",
+    is_primary: true,
+    sort_order: 1,
   },
   {
     id: "32000000-0000-4000-8000-000000000002",
-    productId: "30000000-0000-4000-8000-000000000002",
+    product_id: "30000000-0000-4000-8000-000000000002",
     url: "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?auto=format&fit=crop&w=1200&h=900&q=80",
-    altText: "Orbit Mini Bluetooth Speaker",
-    isPrimary: true,
-    sortOrder: 1,
+    alt_text: "Orbit Mini Bluetooth Speaker",
+    is_primary: true,
+    sort_order: 1,
   },
   {
     id: "32000000-0000-4000-8000-000000000003",
-    productId: "30000000-0000-4000-8000-000000000003",
+    product_id: "30000000-0000-4000-8000-000000000003",
     url: "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=1200&h=900&q=80",
-    altText: "Atlas Metro Backpack",
-    isPrimary: true,
-    sortOrder: 1,
+    alt_text: "Atlas Metro Backpack",
+    is_primary: true,
+    sort_order: 1,
   },
   {
     id: "32000000-0000-4000-8000-000000000004",
-    productId: "30000000-0000-4000-8000-000000000004",
+    product_id: "30000000-0000-4000-8000-000000000004",
     url: "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?auto=format&fit=crop&w=1200&h=900&q=80",
-    altText: "Lume Flex Desk Lamp",
-    isPrimary: true,
-    sortOrder: 1,
+    alt_text: "Lume Flex Desk Lamp",
+    is_primary: true,
+    sort_order: 1,
   },
   {
     id: "32000000-0000-4000-8000-000000000005",
-    productId: "30000000-0000-4000-8000-000000000005",
+    product_id: "30000000-0000-4000-8000-000000000005",
     url: "https://images.unsplash.com/photo-1517668808822-9ebb02f2a0e6?auto=format&fit=crop&w=1200&h=900&q=80",
-    altText: "Sachi Gooseneck Kettle",
-    isPrimary: true,
-    sortOrder: 1,
+    alt_text: "Sachi Gooseneck Kettle",
+    is_primary: true,
+    sort_order: 1,
   },
   {
     id: "32000000-0000-4000-8000-000000000006",
-    productId: "30000000-0000-4000-8000-000000000006",
+    product_id: "30000000-0000-4000-8000-000000000006",
     url: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=1200&h=900&q=80",
-    altText: "Nova Fit Watch S2",
-    isPrimary: true,
-    sortOrder: 1,
+    alt_text: "Nova Fit Watch S2",
+    is_primary: true,
+    sort_order: 1,
   },
   {
     id: "32000000-0000-4000-8000-000000000007",
-    productId: "30000000-0000-4000-8000-000000000007",
+    product_id: "30000000-0000-4000-8000-000000000007",
     url: "https://images.unsplash.com/photo-1516321497487-e288fb19713f?auto=format&fit=crop&w=1200&h=900&q=80",
-    altText: "Lume Workspace Desk Mat",
-    isPrimary: true,
-    sortOrder: 1,
+    alt_text: "Lume Workspace Desk Mat",
+    is_primary: true,
+    sort_order: 1,
   },
   {
     id: "32000000-0000-4000-8000-000000000008",
-    productId: "30000000-0000-4000-8000-000000000008",
+    product_id: "30000000-0000-4000-8000-000000000008",
     url: "https://images.unsplash.com/photo-1602143407151-7111542de6e8?auto=format&fit=crop&w=1200&h=900&q=80",
-    altText: "Orbit Insulated Bottle",
-    isPrimary: true,
-    sortOrder: 1,
+    alt_text: "Orbit Insulated Bottle",
+    is_primary: true,
+    sort_order: 1,
   },
   {
     id: "32000000-0000-4000-8000-000000000009",
-    productId: "30000000-0000-4000-8000-000000000009",
+    product_id: "30000000-0000-4000-8000-000000000009",
     url: "https://images.unsplash.com/photo-1583863788434-e58a363be820?auto=format&fit=crop&w=1200&h=900&q=80",
-    altText: "Anker USB-C cable",
-    isPrimary: true,
-    sortOrder: 1,
+    alt_text: "Anker USB-C cable",
+    is_primary: true,
+    sort_order: 1,
   },
   {
     id: "32000000-0000-4000-8000-000000000010",
-    productId: "30000000-0000-4000-8000-000000000010",
+    product_id: "30000000-0000-4000-8000-000000000010",
     url: "https://images.unsplash.com/photo-1609091839311-d5365f9ff1c5?auto=format&fit=crop&w=1200&h=900&q=80",
-    altText: "Anker portable charger",
-    isPrimary: true,
-    sortOrder: 1,
+    alt_text: "Anker portable charger",
+    is_primary: true,
+    sort_order: 1,
   },
   {
     id: "32000000-0000-4000-8000-000000000011",
-    productId: "30000000-0000-4000-8000-000000000011",
+    product_id: "30000000-0000-4000-8000-000000000011",
     url: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?auto=format&fit=crop&w=1200&h=900&q=80",
-    altText: "Anker Soundcore wireless earbuds",
-    isPrimary: true,
-    sortOrder: 1,
+    alt_text: "Anker Soundcore wireless earbuds",
+    is_primary: true,
+    sort_order: 1,
+  },
+  {
+    id: "32000000-0000-4000-8000-000000000012",
+    product_id: "30000000-0000-4000-8000-000000000012",
+    url: "https://images.unsplash.com/photo-1695048133142-1a20484d2569?auto=format&fit=crop&w=1200&h=1200&q=80",
+    alt_text: "Apple iPhone 16 Pro",
+    is_primary: true,
+    sort_order: 1,
+  },
+  {
+    id: "32000000-0000-4000-8000-000000000013",
+    product_id: "30000000-0000-4000-8000-000000000013",
+    url: "https://images.unsplash.com/photo-1696442016688-c6542c9320a5?auto=format&fit=crop&w=1200&h=1200&q=80",
+    alt_text: "Apple iPhone 16",
+    is_primary: true,
+    sort_order: 1,
+  },
+  {
+    id: "32000000-0000-4000-8000-000000000014",
+    product_id: "30000000-0000-4000-8000-000000000014",
+    url: "https://images.unsplash.com/photo-1678685881267-93167bacb76a?auto=format&fit=crop&w=1200&h=1200&q=80",
+    alt_text: "Apple iPhone 15 Pro Max",
+    is_primary: true,
+    sort_order: 1,
+  },
+  {
+    id: "32000000-0000-4000-8000-000000000015",
+    product_id: "30000000-0000-4000-8000-000000000015",
+    url: "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?auto=format&fit=crop&w=1200&h=1200&q=80",
+    alt_text: "Apple iPhone 15",
+    is_primary: true,
+    sort_order: 1,
+  },
+  {
+    id: "32000000-0000-4000-8000-000000000016",
+    product_id: "30000000-0000-4000-8000-000000000016",
+    url: "https://images.unsplash.com/photo-1585060544812-6b45742d762f?auto=format&fit=crop&w=1200&h=1200&q=80",
+    alt_text: "Apple iPhone 14",
+    is_primary: true,
+    sort_order: 1,
+  },
+  {
+    id: "32000000-0000-4000-8000-000000000017",
+    product_id: "30000000-0000-4000-8000-000000000017",
+    url: "https://images.unsplash.com/photo-1606841837239-9879333b4ff9?auto=format&fit=crop&w=1200&h=1200&q=80",
+    alt_text: "Apple AirPods Pro",
+    is_primary: true,
+    sort_order: 1,
   },
 ];
 
@@ -537,8 +755,12 @@ async function seed() {
 
   for (const [table, rows] of steps) {
     process.stdout.write(`  → ${table} … `);
-    await upsert(table, rows);
-    console.log(`✓ (${rows.length})`);
+    const skipped = await upsert(table, rows);
+    if (skipped > 0) {
+      console.log(`✓ (${rows.length} rows, ${skipped} already present — skipped)`);
+    } else {
+      console.log(`✓ (${rows.length})`);
+    }
   }
 
   console.log("\n✅ Seed complete.");

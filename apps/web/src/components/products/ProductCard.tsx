@@ -36,14 +36,13 @@ export interface ProductCardData {
   /** tailwind gradient e.g. "from-indigo-500 to-blue-600" */
   color?: string;
   brand?: string;
-  category?: string;
 }
 
 export function ProductCard({ product }: Readonly<{ product: ProductCardData }>) {
   const { addItem } = useCart();
   const { isWishlisted, toggle: toggleWishlist } = useWishlist();
 
-  const isOOS      = product.stock === 0;
+  const isOOS = product.stock === 0;
   const isLowStock = !isOOS && product.stock <= 5;
 
   const gradient =
@@ -74,7 +73,6 @@ export function ProductCard({ product }: Readonly<{ product: ProductCardData }>)
         isOOS ? "opacity-70" : "group hover:shadow-md"
       }`}
     >
-      {/* Image / gradient area */}
       <div
         className={`relative rounded-2xl aspect-square mb-3 flex items-center justify-center overflow-hidden ${
           product.imageUrl ? "bg-gray-50" : `bg-linear-to-br ${gradient}`
@@ -86,15 +84,16 @@ export function ProductCard({ product }: Readonly<{ product: ProductCardData }>)
             alt={product.name}
             fill
             className={`object-cover transition-transform duration-500 ${
-              isOOS ? "grayscale-40" : "group-hover:scale-105"
+              isOOS ? "grayscale-[0.35]" : "group-hover:scale-105"
             }`}
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
           />
         ) : (
-          <Smartphone className={`w-10 h-10 text-white/70 transition-transform duration-300 ${isOOS ? "" : "group-hover:scale-110"}`} />
+          <Smartphone
+            className={`w-10 h-10 text-white/70 transition-transform duration-300 ${isOOS ? "" : "group-hover:scale-110"}`}
+          />
         )}
 
-        {/* Top-left badges */}
         <div className="absolute top-2 left-2 flex flex-col gap-1">
           {isOOS ? (
             <span className="bg-gray-800/80 backdrop-blur-sm text-white text-[9px] font-bold px-2 py-0.5 rounded-full">
@@ -126,9 +125,11 @@ export function ProductCard({ product }: Readonly<{ product: ProductCardData }>)
           )}
         </div>
 
-        {/* Wishlist heart */}
         <button
-          onClick={(e) => { e.preventDefault(); toggleWishlist(product.id); }}
+          onClick={(e) => {
+            e.preventDefault();
+            toggleWishlist(product.id);
+          }}
           className="absolute top-2 right-2 w-7 h-7 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-sm hover:scale-110 transition-transform"
           aria-label={isWishlisted(product.id) ? "Remove from wishlist" : "Save to wishlist"}
         >
@@ -139,11 +140,10 @@ export function ProductCard({ product }: Readonly<{ product: ProductCardData }>)
           />
         </button>
 
-        {/* Out-of-stock overlay — frosted glass with icon */}
         {isOOS && (
           <div className="absolute inset-0 rounded-2xl bg-white/25 backdrop-blur-[2px] flex flex-col items-center justify-center gap-1.5">
             <div className="w-9 h-9 rounded-full bg-gray-900/65 flex items-center justify-center">
-              <Ban className="w-4.5 h-4.5 text-white" />
+              <Ban className="w-4 h-4 text-white" />
             </div>
             <span className="text-[10px] font-bold text-gray-800 bg-white/75 backdrop-blur-sm px-2.5 py-0.5 rounded-full shadow-sm">
               Out of Stock
@@ -152,39 +152,29 @@ export function ProductCard({ product }: Readonly<{ product: ProductCardData }>)
         )}
       </div>
 
-      {/* Brand */}
       {product.brand && (
         <p className="text-[11px] text-gray-400 mb-0.5 truncate">{product.brand}</p>
       )}
 
-      {/* Name */}
       <p className={`text-xs font-bold leading-snug line-clamp-2 mb-1 ${isOOS ? "text-gray-400" : "text-gray-900"}`}>
         {product.name}
       </p>
 
-      {/* Rating */}
       {product.rating != null && (
         <div className="flex items-center gap-1 mb-2">
           <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-          <span className="text-[10px] font-semibold text-gray-600">
-            {product.rating.toFixed(1)}
-          </span>
+          <span className="text-[10px] font-semibold text-gray-600">{product.rating.toFixed(1)}</span>
           {product.reviewCount != null && (
             <span className="text-[10px] text-gray-400">({product.reviewCount})</span>
           )}
         </div>
       )}
 
-      {/* Price + cart */}
       <div className="mt-auto flex items-end justify-between gap-2">
         <div>
-          <p className={`text-xs font-black ${isOOS ? "text-gray-400" : "text-gray-900"}`}>
-            {fmt(product.price)}
-          </p>
+          <p className={`text-xs font-black ${isOOS ? "text-gray-400" : "text-gray-900"}`}>{fmt(product.price)}</p>
           {product.comparePrice && product.comparePrice > product.price && (
-            <p className="text-[10px] text-gray-400 line-through">
-              {fmt(product.comparePrice)}
-            </p>
+            <p className="text-[10px] text-gray-400 line-through">{fmt(product.comparePrice)}</p>
           )}
         </div>
 

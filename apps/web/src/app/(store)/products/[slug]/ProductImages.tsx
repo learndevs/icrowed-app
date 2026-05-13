@@ -16,11 +16,9 @@ interface Props {
   images: ProductImage[];
   productName: string;
   gradient: string;
-  discount: number | null;
-  brand: string;
 }
 
-export function ProductImages({ images, productName, gradient, discount, brand }: Readonly<Props>) {
+export function ProductImages({ images, productName, gradient }: Readonly<Props>) {
   const sorted = [...images].sort((a, b) => a.sortOrder - b.sortOrder);
   const [selectedIdx, setSelectedIdx] = useState(0);
   const selected = sorted[selectedIdx];
@@ -53,18 +51,6 @@ export function ProductImages({ images, productName, gradient, discount, brand }
         ) : (
           <Smartphone className="w-28 h-28 sm:w-36 sm:h-36 text-white/60" />
         )}
-
-        {/* Discount badge */}
-        {!!discount && (
-          <span className="pointer-events-none absolute top-4 left-4 bg-rose-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">
-            -{discount}% OFF
-          </span>
-        )}
-
-        {/* Brand badge */}
-        <span className="pointer-events-none absolute top-4 right-4 bg-white/20 backdrop-blur-sm text-white text-[10px] font-bold px-2.5 py-1 rounded-full border border-white/30">
-          {brand}
-        </span>
 
         {/* Carousel arrows — only when multiple images */}
         {total > 1 && (

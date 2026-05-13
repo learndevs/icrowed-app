@@ -5,10 +5,10 @@ export default function Footer() {
   return (
     <footer className="bg-[var(--surface)] border-t border-[var(--border)]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 text-center sm:text-left">
           {/* Brand */}
           <div>
-            <Link href="/" className="flex items-center gap-2 font-bold text-lg mb-3">
+            <Link href="/" className="flex items-center gap-2 font-bold text-lg mb-3 justify-center sm:justify-start">
               <div className="w-8 h-8 rounded-lg bg-[var(--color-primary)] flex items-center justify-center">
                 <Smartphone className="w-4 h-4 text-white" />
               </div>
@@ -53,7 +53,7 @@ export default function Footer() {
           </div>
         </div>
 
-        <div className="mt-10 pt-6 border-t border-[var(--border)] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[var(--muted)]">
+        <div className="mt-10 pt-6 border-t border-[var(--border)] flex flex-col sm:flex-row items-center justify-center sm:justify-between gap-3 text-xs text-[var(--muted)] text-center sm:text-left">
           <p>© {new Date().getFullYear()} iCrowed. All rights reserved.</p>
           <p>Made with ❤️ in Sri Lanka</p>
         </div>

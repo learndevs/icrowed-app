@@ -1,6 +1,7 @@
 import { eq, ilike, and, desc, asc, sql, count } from "drizzle-orm";
 import { db } from "../db";
 import { products, productImages, productVariants, categories, brands } from "../schema";
+import { getBrandBySlug } from "./categories";
 
 export async function getProducts(opts?: {
   categoryId?: string;
@@ -23,6 +24,20 @@ export async function getProducts(opts?: {
     with: { images: true, category: true, brand: true },
     orderBy: [desc(products.createdAt)],
     limit: opts?.limit ?? 20,
+    offset: opts?.offset ?? 0,
+  });
+}
+
+/** Active storefront products for a brand identified by URL slug (e.g. `apple`). */
+export async function getProductsByBrandSlug(
+  brandSlug: string,
+  opts?: { limit?: number; offset?: number }
+) {
+  const brand = await getBrandBySlug(brandSlug);
+  if (!brand) return [];
+  return getProducts({
+    brandId: brand.id,
+    limit: opts?.limit ?? 24,
     offset: opts?.offset ?? 0,
   });
 }
@@ -81,23 +96,6 @@ export async function getLowestPricedProductByBrandSlug(brandSlug: string) {
     where: and(eq(products.brandId, brandRow.id), eq(products.isActive, true)),
     orderBy: [asc(products.price)],
     with: { images: true, brand: true },
-  });
-}
-
-export async function getProductsByBrandSlug(
-  brandSlug: string,
-  opts?: { limit?: number; offset?: number },
-) {
-  const brandRow = await db.query.brands.findFirst({
-    where: eq(brands.slug, brandSlug),
-  });
-  if (!brandRow) return [];
-  return db.query.products.findMany({
-    where: and(eq(products.brandId, brandRow.id), eq(products.isActive, true)),
-    with: { images: true, category: true, brand: true },
-    orderBy: [desc(products.createdAt)],
-    limit: opts?.limit ?? 20,
-    offset: opts?.offset ?? 0,
   });
 }
 

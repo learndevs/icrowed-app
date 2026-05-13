@@ -1,17 +1,25 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Heart, ShoppingCart, Zap, AlertTriangle, PackageX } from "lucide-react";
+import {
+  activeVariantDimensions,
+  formatVariantChoiceLabel,
+  normalizeVariantOptions,
+  type VariantOptionKey,
+  VARIANT_OPTION_LABELS,
+} from "@icrowed/database/variant-options";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { useRouter } from "next/navigation";
 
-interface Variant {
+export interface ProductVariantRow {
   id: string;
   name: string;
   stock: number;
   price: number | null;
   sku: string | null;
+  options: unknown;
 }
 
 interface Props {
@@ -19,11 +27,80 @@ interface Props {
     id: string;
     name: string;
     price: number;
-    comparePrice?: number;
     stock: number;
-    variants: Variant[];
+    variants: ProductVariantRow[];
     primaryImageUrl: string | null;
   };
+}
+
+function matchesPartial(
+  v: ProductVariantRow,
+  sel: Partial<Record<VariantOptionKey, string>>,
+  dims: VariantOptionKey[],
+  skipDim: VariantOptionKey,
+) {
+  const opts = normalizeVariantOptions(v.options);
+  for (const d of dims) {
+    if (d === skipDim) continue;
+    const want = sel[d];
+    if (!want) continue;
+    if (opts[d] !== want) return false;
+  }
+  return true;
+}
+
+function matchesCurrentSelection(
+  v: ProductVariantRow,
+  sel: Partial<Record<VariantOptionKey, string>>,
+  dims: VariantOptionKey[],
+) {
+  const opts = normalizeVariantOptions(v.options);
+  for (const d of dims) {
+    const want = sel[d];
+    if (!want) continue;
+    if (opts[d] !== want) return false;
+  }
+  return true;
+}
+
+function uniqueValuesForDimension(
+  variants: ProductVariantRow[],
+  dim: VariantOptionKey,
+  dims: VariantOptionKey[],
+  sel: Partial<Record<VariantOptionKey, string>>,
+): string[] {
+  const pool = variants.filter((v) => matchesPartial(v, sel, dims, dim));
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const v of pool) {
+    const val = normalizeVariantOptions(v.options)[dim];
+    if (val && !seen.has(val)) {
+      seen.add(val);
+      out.push(val);
+    }
+  }
+  return out;
+}
+
+function pickDefaultSelection(variants: ProductVariantRow[], dims: VariantOptionKey[]) {
+  const first = variants.find((v) => Number(v.stock) > 0) ?? variants[0];
+  if (!first) return {} as Partial<Record<VariantOptionKey, string>>;
+  const opts = normalizeVariantOptions(first.options);
+  const sel: Partial<Record<VariantOptionKey, string>> = {};
+  for (const d of dims) {
+    if (opts[d]) sel[d] = opts[d]!;
+  }
+  return sel;
+}
+
+function resolveSelectedVariant(
+  variants: ProductVariantRow[],
+  sel: Partial<Record<VariantOptionKey, string>>,
+  dims: VariantOptionKey[],
+): ProductVariantRow | null {
+  const candidates = variants.filter((v) => matchesCurrentSelection(v, sel, dims));
+  if (candidates.length === 0) return null;
+  return candidates.find((v) => Number(v.stock) > 0) ?? candidates[0] ?? null;
 }
 
 function BaseStockIndicator({ stock }: Readonly<{ stock: number }>) {
@@ -44,12 +121,17 @@ function BaseStockIndicator({ stock }: Readonly<{ stock: number }>) {
   if (stock <= 10) {
     const veryLow = stock <= 3;
     return (
-      <div className={`flex items-center gap-3 px-4 py-3 rounded-2xl border ${veryLow ? "bg-rose-50 border-rose-200" : "bg-amber-50 border-amber-200"}`}>
+      <div
+        className={`flex items-center gap-3 px-4 py-3 rounded-2xl border ${
+          veryLow ? "bg-rose-50 border-rose-200" : "bg-amber-50 border-amber-200"
+        }`}
+      >
         <AlertTriangle className={`w-4 h-4 shrink-0 ${veryLow ? "text-rose-500" : "text-amber-500"}`} />
         <div className="flex-1 min-w-0">
           <p className={`text-xs font-bold ${veryLow ? "text-rose-700" : "text-amber-700"}`}>
             {veryLow ? "Almost gone — only " : "Low stock — only "}
-            <span className="font-black">{stock}</span>{" left in stock"}
+            <span className="font-black">{stock}</span>
+            {" left in stock"}
           </p>
           <div className="mt-1.5 h-1.5 bg-white/60 rounded-full overflow-hidden">
             <div
@@ -69,183 +151,168 @@ export function ProductDetailClient({ product }: Readonly<Props>) {
   const { addItem } = useCart();
   const { isWishlisted, toggle: toggleWishlist } = useWishlist();
   const router = useRouter();
-  const [selectedVariant, setSelectedVariant] = useState<Variant | null>(
-    product.variants.find((v) => Number(v.stock) > 0) ?? product.variants[0] ?? null
+
+  const dims = useMemo(
+    () => activeVariantDimensions(product.variants.map((v) => ({ options: v.options }))),
+    [product.variants],
   );
+
+  const [selection, setSelection] = useState<Partial<Record<VariantOptionKey, string>>>({});
   const [added, setAdded] = useState(false);
+
+  useEffect(() => {
+    if (product.variants.length === 0) {
+      setSelection({});
+      return;
+    }
+    setSelection(pickDefaultSelection(product.variants, dims));
+  }, [product.id, product.variants, dims]);
+
+  const selectedVariant = useMemo(() => {
+    if (product.variants.length === 0) return null;
+    return resolveSelectedVariant(product.variants, selection, dims);
+  }, [product.variants, selection, dims]);
 
   const displayPrice = selectedVariant?.price ?? product.price;
   const outOfStock =
     product.variants.length > 0
       ? !selectedVariant || Number(selectedVariant.stock) <= 0
       : Number(product.stock) <= 0;
+
   const fmt = (p: number) => "LKR " + p.toLocaleString("en-LK");
 
-  const discount = product.comparePrice
-    ? Math.round((1 - displayPrice / product.comparePrice) * 100)
-    : null;
-  const logDebug = (event: string, details?: Record<string, unknown>) => {
-    if (process.env.NODE_ENV !== "production") {
-      console.info(`[ProductDetailClient] ${event}`, details ?? {});
-    }
-  };
-
-  useEffect(() => {
-    logDebug("state_update", {
-      productId: product.id,
-      productStock: product.stock,
-      variantsCount: product.variants.length,
-      selectedVariantId: selectedVariant?.id ?? null,
-      selectedVariantStock: selectedVariant?.stock ?? null,
-      outOfStock,
+  function setDimension(dim: VariantOptionKey, value: string) {
+    setSelection((prev) => {
+      const next = { ...prev, [dim]: value };
+      const pool = product.variants.filter((v) => matchesCurrentSelection(v, next, dims));
+      if (pool.length === 0) {
+        const anchor = product.variants.find(
+          (v) => normalizeVariantOptions(v.options)[dim] === value && Number(v.stock) > 0,
+        );
+        const anchorRow = anchor ?? product.variants.find((v) => normalizeVariantOptions(v.options)[dim] === value);
+        if (anchorRow) return pickDefaultSelection([anchorRow], dims);
+      }
+      return next;
     });
-  }, [product.id, product.stock, product.variants.length, selectedVariant, outOfStock]);
+  }
 
-  function handleAddToCart() {
-    logDebug("add_to_cart_click", {
-      productId: product.id,
-      variantId: selectedVariant?.id ?? null,
-      outOfStock,
-      hasVariants: product.variants.length > 0,
-    });
-    if (outOfStock) {
-      logDebug("add_to_cart_blocked_out_of_stock");
-      return;
-    }
-    if (product.variants.length > 0 && !selectedVariant) {
-      logDebug("add_to_cart_blocked_no_variant_selected");
-      return;
-    }
+  function addThenFeedback() {
+    if (outOfStock) return;
+    if (product.variants.length > 0 && !selectedVariant) return;
 
-    const payload = {
+    const choiceLabel = selectedVariant
+      ? formatVariantChoiceLabel(selectedVariant.options, selectedVariant.name)
+      : undefined;
+
+    addItem({
       id: selectedVariant?.id ?? product.id,
       productId: product.id,
       variantId: selectedVariant?.id,
       name: product.name,
-      variantName: selectedVariant?.name,
+      variantName: choiceLabel,
       price: displayPrice,
       sku: selectedVariant?.sku ?? undefined,
       imageUrl: product.primaryImageUrl ?? undefined,
-    };
-    logDebug("add_to_cart_dispatch", payload);
-    addItem({
-      ...payload,
     });
     setAdded(true);
     setTimeout(() => setAdded(false), 1800);
-    logDebug("add_to_cart_done");
   }
 
   function handleBuyNow() {
-    logDebug("buy_now_click", {
-      productId: product.id,
-      variantId: selectedVariant?.id ?? null,
-      outOfStock,
-      hasVariants: product.variants.length > 0,
-    });
-    if (outOfStock) {
-      logDebug("buy_now_blocked_out_of_stock");
-      return;
-    }
-    if (product.variants.length > 0 && !selectedVariant) {
-      logDebug("buy_now_blocked_no_variant_selected");
-      return;
-    }
+    if (outOfStock) return;
+    if (product.variants.length > 0 && !selectedVariant) return;
+
+    const choiceLabel = selectedVariant
+      ? formatVariantChoiceLabel(selectedVariant.options, selectedVariant.name)
+      : undefined;
 
     addItem({
       id: selectedVariant?.id ?? product.id,
       productId: product.id,
       variantId: selectedVariant?.id,
       name: product.name,
-      variantName: selectedVariant?.name,
+      variantName: choiceLabel,
       price: displayPrice,
       sku: selectedVariant?.sku ?? undefined,
       imageUrl: product.primaryImageUrl ?? undefined,
     });
-
-    logDebug("buy_now_navigate", { path: "/cart" });
     router.push("/cart");
   }
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Price — reactive to variant selection */}
       <div className="flex items-baseline gap-3">
         <span className="text-3xl font-black text-gray-900">{fmt(displayPrice)}</span>
-        {!!product.comparePrice && (
-          <span className="text-base text-gray-400 line-through">{fmt(product.comparePrice)}</span>
-        )}
-        {!!discount && discount > 0 && (
-          <span className="text-sm font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg">
-            Save {fmt((product.comparePrice ?? displayPrice) - displayPrice)}
-          </span>
-        )}
       </div>
 
-      {/* Base-product stock indicator — only rendered when no variants */}
-      {product.variants.length === 0 && (
-        <BaseStockIndicator stock={product.stock} />
-      )}
+      {product.variants.length === 0 && <BaseStockIndicator stock={product.stock} />}
 
-      {/* Variants */}
-      {product.variants.length > 0 && (
-        <div>
-          <p className="text-xs font-extrabold text-gray-500 uppercase tracking-widest mb-2.5">
-            Variant
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {product.variants.map((v) => {
-              const isSelected = selectedVariant?.id === v.id;
-              const soldOut = v.stock === 0;
-              return (
-                <button
-                  key={v.id}
-                  type="button"
-                  onClick={() => !soldOut && setSelectedVariant(v)}
-                  disabled={soldOut}
-                  className={`relative px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all duration-150 ${
-                    soldOut
-                      ? "border-gray-100 bg-gray-50 text-gray-300 cursor-not-allowed line-through"
-                      : isSelected
-                      ? "border-gray-900 bg-gray-900 text-white shadow-sm scale-[1.03]"
-                      : "border-gray-200 bg-white text-gray-700 hover:border-gray-400 hover:text-gray-900"
-                  }`}
-                >
-                  {v.name}
-                  {v.price && v.price !== product.price && (
-                    <span className={`ml-1.5 ${isSelected ? "text-gray-300" : "text-gray-400"}`}>
-                      {fmt(v.price)}
-                    </span>
-                  )}
-                  {!soldOut && v.stock <= 3 && (
-                    <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 bg-amber-400 rounded-full text-[8px] font-black text-white flex items-center justify-center">
-                      {v.stock}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-          {selectedVariant && selectedVariant.stock > 0 && selectedVariant.stock <= 5 && (
-            <p className="mt-2 text-xs text-amber-600 font-semibold">
-              Only {selectedVariant.stock} left in this variant
-            </p>
-          )}
+      {dims.length > 0 && (
+        <div className="flex flex-col gap-4">
+          {dims.map((dim) => {
+            const values = uniqueValuesForDimension(product.variants, dim, dims, selection);
+            if (values.length === 0) return null;
+            const label = VARIANT_OPTION_LABELS[dim];
+            return (
+              <div key={dim}>
+                <p className="text-xs font-extrabold text-gray-500 uppercase tracking-widest mb-2.5">
+                  {label}
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {values.map((val) => {
+                    const isSelected = selection[dim] === val;
+                    const anyInStock = product.variants.some(
+                      (v) =>
+                        normalizeVariantOptions(v.options)[dim] === val &&
+                        matchesPartial(v, selection, dims, dim) &&
+                        Number(v.stock) > 0,
+                    );
+                    const soldOut = !anyInStock;
+                    return (
+                      <button
+                        key={val}
+                        type="button"
+                        onClick={() => !soldOut && setDimension(dim, val)}
+                        disabled={soldOut}
+                        className={`relative px-3.5 py-2 rounded-xl text-xs font-semibold border transition-all duration-150 ${
+                          soldOut
+                            ? "border-gray-100 bg-gray-50 text-gray-300 cursor-not-allowed line-through"
+                            : isSelected
+                              ? "border-gray-900 bg-gray-900 text-white shadow-sm scale-[1.03]"
+                              : "border-gray-200 bg-white text-gray-700 hover:border-gray-400 hover:text-gray-900"
+                        }`}
+                      >
+                        {val}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
         </div>
       )}
 
-      {/* CTA buttons */}
+      {selectedVariant &&
+        selectedVariant.stock > 0 &&
+        selectedVariant.stock <= 5 &&
+        product.variants.length > 0 && (
+          <p className="text-xs text-amber-600 font-semibold">
+            Only {selectedVariant.stock} left for this selection
+          </p>
+        )}
+
       <div className="flex gap-3">
         <button
           type="button"
-          onClick={handleAddToCart}
+          onClick={addThenFeedback}
           disabled={outOfStock}
           className={`flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl text-sm font-bold transition-all duration-200 ${
             outOfStock
               ? "bg-gray-100 text-gray-400 cursor-not-allowed"
               : added
-              ? "bg-emerald-500 text-white scale-[0.98]"
-              : "bg-gray-900 hover:bg-indigo-600 text-white active:scale-[0.97] shadow-sm hover:shadow-indigo-200"
+                ? "bg-emerald-500 text-white scale-[0.98]"
+                : "bg-gray-900 hover:bg-indigo-600 text-white active:scale-[0.97] shadow-sm hover:shadow-indigo-200"
           }`}
         >
           <ShoppingCart className="w-4 h-4" />
@@ -277,7 +344,7 @@ export function ProductDetailClient({ product }: Readonly<Props>) {
       </div>
       {outOfStock && (
         <p className="text-xs text-rose-600 font-semibold">
-          Action blocked: selected item is out of stock.
+          This selection is out of stock.
         </p>
       )}
     </div>

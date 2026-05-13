@@ -22,20 +22,18 @@ const SORT_OPTIONS = [
 type SortValue = (typeof SORT_OPTIONS)[number]["value"];
 
 interface Filters {
-  categories:  string[];
-  brands:      string[];
-  minPrice:    string;
-  maxPrice:    string;
-  minRating:   number;
+  brands: string[];
+  minPrice: string;
+  maxPrice: string;
+  minRating: number;
   inStockOnly: boolean;
 }
 
 const DEFAULT_FILTERS: Filters = {
-  categories:  [],
-  brands:      [],
-  minPrice:    "",
-  maxPrice:    "",
-  minRating:   0,
+  brands: [],
+  minPrice: "",
+  maxPrice: "",
+  minRating: 0,
   inStockOnly: false,
 };
 
@@ -65,10 +63,6 @@ export function ProductsClient({
   const isMounted    = useRef(false);
 
   // ── Derived filter options ──────────────────────────────────────────────────
-  const CATEGORIES = useMemo(
-    () => [...new Set(products.map((p) => p.category).filter((c): c is string => !!c))].sort(),
-    [products],
-  );
   const BRANDS = useMemo(() => {
     const fromProducts = products
       .map((p) => p.brand)
@@ -83,7 +77,6 @@ export function ProductsClient({
   const [sort, setSort] = useState<SortValue>("latest");
   const [search, setSearch] = useState(() => searchParams.get("search") ?? "");
   const [filters, setFilters] = useState<Filters>(() => {
-    const cat = searchParams.get("category");
     const brandParam = searchParams.get("brand");
     let brandsInit: string[] = [];
     if (brandParam && matchCategory(brandParam, BRANDS)) {
@@ -93,7 +86,6 @@ export function ProductsClient({
     }
     return {
       ...DEFAULT_FILTERS,
-      categories: cat ? (matchCategory(cat, CATEGORIES) ? [matchCategory(cat, CATEGORIES)!] : []) : [],
       brands: brandsInit,
       minPrice:   searchParams.get("minPrice")  ?? "",
       maxPrice:   searchParams.get("maxPrice")  ?? "",
@@ -108,9 +100,8 @@ export function ProductsClient({
   useEffect(() => {
     if (!isMounted.current) { isMounted.current = true; return; }
     const params = new URLSearchParams();
-    if (search)                          params.set("search",    search);
-    if (filters.categories.length === 1) params.set("category",  filters.categories[0].toLowerCase());
-    if (filters.brands.length === 1)     params.set("brand",     filters.brands[0].toLowerCase());
+    if (search) params.set("search", search);
+    if (filters.brands.length === 1) params.set("brand", filters.brands[0].toLowerCase());
     if (filters.minPrice)                params.set("minPrice",  filters.minPrice);
     if (filters.maxPrice)                params.set("maxPrice",  filters.maxPrice);
     if (filters.minRating > 0)           params.set("minRating", String(filters.minRating));
@@ -126,8 +117,7 @@ export function ProductsClient({
       const q = search.toLowerCase();
       r = r.filter((p) => p.name.toLowerCase().includes(q) || p.brand?.toLowerCase().includes(q));
     }
-    if (filters.categories.length) r = r.filter((p) => p.category && filters.categories.includes(p.category));
-    if (filters.brands.length)     r = r.filter((p) => p.brand && filters.brands.includes(p.brand));
+    if (filters.brands.length) r = r.filter((p) => p.brand && filters.brands.includes(p.brand));
     if (filters.minPrice)          r = r.filter((p) => p.price >= Number(filters.minPrice) * 1000);
     if (filters.maxPrice)          r = r.filter((p) => p.price <= Number(filters.maxPrice) * 1000);
     if (filters.minRating)         r = r.filter((p) => (p.rating ?? 0) >= filters.minRating);
@@ -145,7 +135,6 @@ export function ProductsClient({
   const paginated  = filtered.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
 
   const activeCount =
-    filters.categories.length +
     filters.brands.length +
     (filters.minPrice ? 1 : 0) +
     (filters.maxPrice ? 1 : 0) +
@@ -155,10 +144,10 @@ export function ProductsClient({
   // ── Helpers ─────────────────────────────────────────────────────────────────
   function resetPage() { setPage(1); }
 
-  function toggle(key: "categories" | "brands", value: string) {
+  function toggleBrand(value: string) {
     setFilters((f) => ({
       ...f,
-      [key]: f[key].includes(value) ? f[key].filter((x) => x !== value) : [...f[key], value],
+      brands: f.brands.includes(value) ? f.brands.filter((x) => x !== value) : [...f.brands, value],
     }));
     resetPage();
   }
@@ -171,13 +160,11 @@ export function ProductsClient({
 
   // ── Active filter chips ─────────────────────────────────────────────────────
   const chips: { label: string; onRemove: () => void }[] = [
-    ...filters.categories.map((c) => ({
-      label: c,
-      onRemove: () => { toggle("categories", c); },
-    })),
     ...filters.brands.map((b) => ({
       label: b,
-      onRemove: () => { toggle("brands", b); },
+      onRemove: () => {
+        toggleBrand(b);
+      },
     })),
     ...(filters.minPrice || filters.maxPrice
       ? [{
@@ -203,35 +190,6 @@ export function ProductsClient({
   const filterPanel = (
     <div className="flex flex-col gap-6">
 
-      {/* Category */}
-      <div>
-        <p className="text-[10px] font-extrabold text-gray-400 uppercase tracking-widest mb-3">Category</p>
-        <div className="flex flex-col gap-2">
-          {CATEGORIES.map((cat) => (
-            <label key={cat} className="flex items-center gap-2.5 cursor-pointer group">
-              <div
-                className={`w-4 h-4 rounded flex items-center justify-center border transition-colors ${
-                  filters.categories.includes(cat)
-                    ? "bg-indigo-600 border-indigo-600"
-                    : "border-gray-300 group-hover:border-indigo-400"
-                }`}
-                onClick={() => toggle("categories", cat)}
-              >
-                {filters.categories.includes(cat) && (
-                  <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 10 8" fill="none">
-                    <path d="M1 4l3 3 5-6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                )}
-              </div>
-              <input type="checkbox" className="sr-only" checked={filters.categories.includes(cat)} onChange={() => toggle("categories", cat)} />
-              <span className={`text-sm transition-colors ${filters.categories.includes(cat) ? "text-gray-900 font-semibold" : "text-gray-600 group-hover:text-gray-900"}`}>
-                {cat}
-              </span>
-            </label>
-          ))}
-        </div>
-      </div>
-
       {/* Brand */}
       <div>
         <p className="text-[10px] font-extrabold text-gray-400 uppercase tracking-widest mb-3">Brand</p>
@@ -244,7 +202,7 @@ export function ProductsClient({
                     ? "bg-indigo-600 border-indigo-600"
                     : "border-gray-300 group-hover:border-indigo-400"
                 }`}
-                onClick={() => toggle("brands", brand)}
+                onClick={() => toggleBrand(brand)}
               >
                 {filters.brands.includes(brand) && (
                   <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 10 8" fill="none">
@@ -252,7 +210,7 @@ export function ProductsClient({
                   </svg>
                 )}
               </div>
-              <input type="checkbox" className="sr-only" checked={filters.brands.includes(brand)} onChange={() => toggle("brands", brand)} />
+              <input type="checkbox" className="sr-only" checked={filters.brands.includes(brand)} onChange={() => toggleBrand(brand)} />
               <span className={`text-sm transition-colors ${filters.brands.includes(brand) ? "text-gray-900 font-semibold" : "text-gray-600 group-hover:text-gray-900"}`}>
                 {brand}
               </span>

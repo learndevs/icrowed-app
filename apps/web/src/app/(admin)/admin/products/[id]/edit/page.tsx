@@ -23,6 +23,10 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import {
+  VARIANT_OPTION_KEYS,
+  VARIANT_OPTION_LABELS,
+} from "@icrowed/database/variant-options";
 
 interface Category { id: string; name: string; }
 interface Brand    { id: string; name: string; }
@@ -32,6 +36,74 @@ interface ProductImage {
   altText: string | null;
   isPrimary: boolean;
   sortOrder: number;
+}
+
+interface EditVariantRow {
+  id?: string;
+  stock: string;
+  price: string;
+  sku: string;
+  color: string;
+  storage: string;
+  warranty: string;
+  volume: string;
+  ram: string;
+}
+
+function emptyVariantRow(): EditVariantRow {
+  return {
+    stock: "0",
+    price: "",
+    sku: "",
+    color: "",
+    storage: "",
+    warranty: "",
+    volume: "",
+    ram: "",
+  };
+}
+
+function mapApiVariantToRow(v: {
+  id?: string;
+  stock?: number;
+  price?: string | null;
+  sku?: string | null;
+  options?: unknown;
+}): EditVariantRow {
+  const o =
+    v.options && typeof v.options === "object" ? (v.options as Record<string, unknown>) : {};
+  return {
+    id: v.id,
+    stock: String(v.stock ?? 0),
+    price: v.price != null && v.price !== "" ? String(v.price) : "",
+    sku: v.sku ?? "",
+    color: String(o.color ?? ""),
+    storage: String(o.storage ?? ""),
+    warranty: String(o.warranty ?? ""),
+    volume: String(o.volume ?? o.size ?? ""),
+    ram: String(o.ram ?? ""),
+  };
+}
+
+function variantRowsToPayload(rows: EditVariantRow[]) {
+  return rows.map((r) => {
+    const opts: Record<string, string> = {};
+    for (const k of VARIANT_OPTION_KEYS) {
+      const val = r[k]?.trim();
+      if (val) opts[k] = val;
+    }
+    const parts = VARIANT_OPTION_KEYS.map((k) => opts[k]).filter(Boolean);
+    const name = parts.length > 0 ? parts.join(" · ") : r.sku.trim() || "Configuration";
+    return {
+      id: r.id,
+      name,
+      sku: r.sku.trim() || null,
+      price: r.price.trim() || null,
+      stock: Number(r.stock) || 0,
+      options: Object.keys(opts).length ? opts : null,
+      isActive: true as boolean,
+    };
+  });
 }
 
 /* ─── Shared primitives (same as Add page) ─────── */
@@ -148,6 +220,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
   const [specs, setSpecs] = useState<{ key: string; value: string }[]>([]);
+  const [variantRows, setVariantRows] = useState<EditVariantRow[]>([]);
 
   const [images, setImages] = useState<ProductImage[]>([]);
   const [activeImageIdx, setActiveImageIdx] = useState(0);
@@ -197,6 +270,9 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
         if (rawSpecs && typeof rawSpecs === "object") {
           setSpecs(Object.entries(rawSpecs as Record<string, string>).map(([key, value]) => ({ key, value })));
         }
+        setVariantRows(
+          Array.isArray(product.variants) ? product.variants.map(mapApiVariantToRow) : [],
+        );
       })
       .catch(() => setError("Failed to load product"))
       .finally(() => setLoadingProduct(false));
@@ -210,6 +286,14 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
     const t = tagInput.trim();
     if (t && !tags.includes(t)) setTags((prev) => [...prev, t]);
     setTagInput("");
+  }
+
+  function updateVariantRow(i: number, field: keyof EditVariantRow, val: string) {
+    setVariantRows((prev) => {
+      const next = [...prev];
+      next[i] = { ...next[i], [field]: val };
+      return next;
+    });
   }
 
   async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -284,6 +368,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
           stock: Number(stock), lowStockThreshold: Number(lowStockThreshold),
           isActive, isFeatured, tags,
           specifications: Object.keys(specsObj).length ? specsObj : null,
+          variants: variantRowsToPayload(variantRows),
         }),
       });
       if (!res.ok) throw new Error((await res.json()).error ?? "Failed to save");
@@ -437,6 +522,89 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
                 <span className="text-xs font-semibold text-green-700">{discount}% discount applied</span>
               </div>
             )}
+          </SectionCard>
+
+          <SectionCard
+            icon={Package}
+            title="Stock configurations"
+            action={
+              <button
+                type="button"
+                onClick={() => setVariantRows((prev) => [...prev, emptyVariantRow()])}
+                className="flex items-center gap-1.5 text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition-colors"
+              >
+                <Plus className="w-3.5 h-3.5" /> Add row
+              </button>
+            }
+          >
+            <p className="text-xs text-gray-500 mb-4">
+              Each row is a sellable configuration. Fill <strong>Color</strong>, <strong>Storage</strong>,{" "}
+              <strong>Warranty</strong>, <strong>Volume</strong>, or <strong>RAM</strong> only when needed; empty fields are
+              hidden on the product page.
+            </p>
+            <div className="space-y-6">
+              {variantRows.length === 0 && (
+                <p className="text-sm text-gray-400 text-center py-4">
+                  No configurations — the listing uses base price and stock only. Click &ldquo;Add row&rdquo; to add options.
+                </p>
+              )}
+              {variantRows.map((row, i) => (
+                <div
+                  key={row.id ?? `new-${i}`}
+                  className="p-4 rounded-xl border border-gray-100 bg-gray-50/50 space-y-3"
+                >
+                  <div className="flex justify-between items-center gap-2">
+                    <span className="text-xs font-bold text-gray-500 uppercase tracking-wide">Row {i + 1}</span>
+                    <button
+                      type="button"
+                      onClick={() => setVariantRows((prev) => prev.filter((_, j) => j !== i))}
+                      className="text-xs font-semibold text-rose-600 hover:text-rose-700"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    <div>
+                      <FieldLabel>Stock Qty</FieldLabel>
+                      <input
+                        type="number"
+                        className={INPUT}
+                        value={row.stock}
+                        onChange={(e) => updateVariantRow(i, "stock", e.target.value)}
+                      />
+                    </div>
+                    <div>
+                      <FieldLabel hint="(optional)">Price LKR</FieldLabel>
+                      <input
+                        type="number"
+                        className={INPUT}
+                        placeholder="Uses base price if empty"
+                        value={row.price}
+                        onChange={(e) => updateVariantRow(i, "price", e.target.value)}
+                      />
+                    </div>
+                    <div>
+                      <FieldLabel>SKU</FieldLabel>
+                      <input
+                        className={INPUT}
+                        value={row.sku}
+                        onChange={(e) => updateVariantRow(i, "sku", e.target.value)}
+                      />
+                    </div>
+                    {VARIANT_OPTION_KEYS.map((k) => (
+                      <div key={k}>
+                        <FieldLabel>{VARIANT_OPTION_LABELS[k]}</FieldLabel>
+                        <input
+                          className={INPUT}
+                          value={row[k]}
+                          onChange={(e) => updateVariantRow(i, k, e.target.value)}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
           </SectionCard>
 
           {/* Specifications */}

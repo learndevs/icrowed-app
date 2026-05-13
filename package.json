@@ -15,7 +15,8 @@
     "db:generate": "turbo db:generate --filter=@icrowed/database",
     "db:push": "turbo db:push --filter=@icrowed/database",
     "db:studio": "turbo db:studio --filter=@icrowed/database",
-    "db:migrate": "turbo db:migrate --filter=@icrowed/database"
+    "db:migrate": "turbo db:migrate --filter=@icrowed/database",
+    "db:seed": "npm run db:seed -w @icrowed/database"
   },
   "devDependencies": {
     "@netlify/plugin-nextjs": "^5.15.10",

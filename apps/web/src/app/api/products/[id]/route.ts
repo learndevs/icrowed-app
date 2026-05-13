@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { db } from "@icrowed/database";
 import { products, categories, brands } from "@icrowed/database";
 import { eq } from "drizzle-orm";
-import { updateProduct, deleteProduct } from "@icrowed/database/queries";
+import { updateProduct, deleteProduct, listVariantsForProduct, syncProductVariants } from "@icrowed/database/queries";
 import { requireAdmin } from "@/lib/admin";
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
@@ -39,7 +39,9 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
       .where(eq(products.id, id));
 
     if (!row) return NextResponse.json({ error: "Not found" }, { status: 404 });
-    return NextResponse.json(row);
+
+    const variants = await listVariantsForProduct(id);
+    return NextResponse.json({ ...row, variants });
   } catch (err) {
     console.error("[GET /api/products/[id]]", err);
     return NextResponse.json({ error: "Failed to fetch product" }, { status: 500 });
@@ -57,6 +59,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       name, description, shortDescription, categoryId, brandId,
       sku, price, comparePrice, cost, stock, lowStockThreshold,
       isFeatured, isActive, specifications, tags, weight, slug,
+      variants: variantsBody,
     } = body;
 
     const updateData: Record<string, unknown> = {};
@@ -80,7 +83,35 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
     const product = await updateProduct(id, updateData as any);
     if (!product) return NextResponse.json({ error: "Not found" }, { status: 404 });
-    return NextResponse.json(product);
+
+    if (Array.isArray(variantsBody)) {
+      const normalized = variantsBody.map(
+        (v: {
+          id?: string;
+          name?: string;
+          sku?: string | null;
+          price?: string | number | null;
+          stock?: number;
+          options?: Record<string, unknown> | null;
+          isActive?: boolean;
+        }) => ({
+          id: v.id,
+          name: String(v.name ?? "").trim() || "Configuration",
+          sku: v.sku ?? null,
+          price:
+            v.price === null || v.price === undefined || v.price === ""
+              ? null
+              : String(v.price),
+          stock: Number(v.stock ?? 0),
+          options: v.options ?? null,
+          isActive: v.isActive ?? true,
+        }),
+      );
+      await syncProductVariants(id, normalized);
+    }
+
+    const variants = await listVariantsForProduct(id);
+    return NextResponse.json({ ...product, variants });
   } catch (err: any) {
     console.error("[PUT /api/products/[id]]", err);
     if (err?.code === "23505") {

@@ -74,7 +74,10 @@ export async function getBrandById(id: string) {
 }
 
 export async function getBrandBySlug(slug: string) {
-  const [brand] = await db.select().from(brands).where(eq(brands.slug, slug));
+  const [brand] = await db
+    .select()
+    .from(brands)
+    .where(and(eq(brands.slug, slug), eq(brands.isActive, true)));
   return brand ?? null;
 }
 

@@ -11,6 +11,16 @@ const APPLE_CARD_TINT = "from-neutral-800 to-neutral-950";
 interface DbImage {
   isPrimary?: boolean;
   url: string;
+  sortOrder?: number;
+}
+
+function primaryFromImages(imgs: DbImage[] | null | undefined): string | undefined {
+  if (!imgs?.length) return undefined;
+  const valid = imgs.filter((i) => i.url);
+  if (!valid.length) return undefined;
+  const hit = valid.find((i) => i.isPrimary);
+  if (hit?.url) return hit.url;
+  return [...valid].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))[0]?.url;
 }
 
 function mapRow(
@@ -18,19 +28,17 @@ function mapRow(
 ): ProductCardData {
   const imgs = p.images as DbImage[] | null | undefined;
   const brand = (p as { brand?: { name?: string } | null }).brand;
-  const category = (p as { category?: { name?: string } | null }).category;
   return {
     id: p.id,
     name: p.name,
     slug: p.slug,
     price: Number(p.price),
     comparePrice: p.comparePrice ? Number(p.comparePrice) : undefined,
-    imageUrl: imgs?.find((i) => i.isPrimary)?.url ?? imgs?.[0]?.url,
+    imageUrl: primaryFromImages(imgs ?? undefined),
     stock: p.stock,
     color: APPLE_CARD_TINT,
     badge: p.comparePrice ? "Sale" : undefined,
     brand: brand?.name,
-    category: category?.name,
   };
 }
 
