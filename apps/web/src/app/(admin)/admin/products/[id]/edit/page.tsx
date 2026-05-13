@@ -26,6 +26,7 @@ import { cn } from "@/lib/utils";
 import {
   VARIANT_OPTION_KEYS,
   VARIANT_OPTION_LABELS,
+  normalizeSwatchHexInput,
 } from "@icrowed/database/variant-options";
 
 interface Category { id: string; name: string; }
@@ -44,6 +45,7 @@ interface EditVariantRow {
   price: string;
   sku: string;
   color: string;
+  colorHex: string;
   storage: string;
   warranty: string;
   volume: string;
@@ -56,6 +58,7 @@ function emptyVariantRow(): EditVariantRow {
     price: "",
     sku: "",
     color: "",
+    colorHex: "",
     storage: "",
     warranty: "",
     volume: "",
@@ -78,6 +81,7 @@ function mapApiVariantToRow(v: {
     price: v.price != null && v.price !== "" ? String(v.price) : "",
     sku: v.sku ?? "",
     color: String(o.color ?? ""),
+    colorHex: String(o.colorHex ?? o.colourHex ?? o.color_code ?? ""),
     storage: String(o.storage ?? ""),
     warranty: String(o.warranty ?? ""),
     volume: String(o.volume ?? o.size ?? ""),
@@ -92,6 +96,8 @@ function variantRowsToPayload(rows: EditVariantRow[]) {
       const val = r[k]?.trim();
       if (val) opts[k] = val;
     }
+    const hex = normalizeSwatchHexInput(r.colorHex);
+    if (hex && opts.color) opts.colorHex = hex;
     const parts = VARIANT_OPTION_KEYS.map((k) => opts[k]).filter(Boolean);
     const name = parts.length > 0 ? parts.join(" · ") : r.sku.trim() || "Configuration";
     return {
@@ -538,9 +544,9 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
             }
           >
             <p className="text-xs text-gray-500 mb-4">
-              Each row is a sellable configuration. Fill <strong>Color</strong>, <strong>Storage</strong>,{" "}
-              <strong>Warranty</strong>, <strong>Volume</strong>, or <strong>RAM</strong> only when needed; empty fields are
-              hidden on the product page.
+              Each row is a sellable configuration. For <strong>Color</strong>, optionally set a{" "}
+              <strong>swatch hex</strong> (<code className="text-[11px] bg-gray-100 px-1 rounded">#RRGGBB</code>) so the
+              storefront shows a color circle. Other fields are hidden on the product page when empty.
             </p>
             <div className="space-y-6">
               {variantRows.length === 0 && (
@@ -548,7 +554,9 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
                   No configurations — the listing uses base price and stock only. Click &ldquo;Add row&rdquo; to add options.
                 </p>
               )}
-              {variantRows.map((row, i) => (
+              {variantRows.map((row, i) => {
+                const colorSwatchPreview = normalizeSwatchHexInput(row.colorHex);
+                return (
                 <div
                   key={row.id ?? `new-${i}`}
                   className="p-4 rounded-xl border border-gray-100 bg-gray-50/50 space-y-3"
@@ -591,19 +599,56 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
                         onChange={(e) => updateVariantRow(i, "sku", e.target.value)}
                       />
                     </div>
-                    {VARIANT_OPTION_KEYS.map((k) => (
-                      <div key={k}>
-                        <FieldLabel>{VARIANT_OPTION_LABELS[k]}</FieldLabel>
-                        <input
-                          className={INPUT}
-                          value={row[k]}
-                          onChange={(e) => updateVariantRow(i, k, e.target.value)}
-                        />
-                      </div>
-                    ))}
+                    {VARIANT_OPTION_KEYS.map((k) =>
+                      k === "color" ? (
+                        <div key="color" className="sm:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                          <div>
+                            <FieldLabel>{VARIANT_OPTION_LABELS.color}</FieldLabel>
+                            <input
+                              className={INPUT}
+                              placeholder="e.g. Titanium Black"
+                              value={row.color}
+                              onChange={(e) => updateVariantRow(i, "color", e.target.value)}
+                            />
+                          </div>
+                          <div>
+                            <FieldLabel hint="#RRGGBB">Swatch</FieldLabel>
+                            <div className="flex items-center gap-2">
+                              <span
+                                className={cn(
+                                  "w-10 h-10 rounded-full border-2 border-gray-200 shrink-0 shadow-inner",
+                                  !colorSwatchPreview && "bg-gradient-to-br from-gray-100 to-gray-300",
+                                )}
+                                style={
+                                  colorSwatchPreview ? { backgroundColor: colorSwatchPreview } : undefined
+                                }
+                                title="How this color appears on the storefront"
+                                aria-hidden
+                              />
+                              <input
+                                className={cn(INPUT, "flex-1 min-w-0")}
+                                placeholder="#3a3a3c"
+                                value={row.colorHex}
+                                onChange={(e) => updateVariantRow(i, "colorHex", e.target.value)}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div key={k}>
+                          <FieldLabel>{VARIANT_OPTION_LABELS[k]}</FieldLabel>
+                          <input
+                            className={INPUT}
+                            value={row[k]}
+                            onChange={(e) => updateVariantRow(i, k, e.target.value)}
+                          />
+                        </div>
+                      ),
+                    )}
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           </SectionCard>
 

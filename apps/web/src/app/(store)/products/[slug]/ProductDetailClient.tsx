@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Heart, ShoppingCart, Zap, AlertTriangle, PackageX } from "lucide-react";
 import {
   activeVariantDimensions,
+  colorSwatchHexByValue,
   formatVariantChoiceLabel,
   normalizeVariantOptions,
   type VariantOptionKey,
@@ -12,6 +13,7 @@ import {
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { useRouter } from "next/navigation";
+import { cn } from "@/lib/utils";
 
 export interface ProductVariantRow {
   id: string;
@@ -157,6 +159,11 @@ export function ProductDetailClient({ product }: Readonly<Props>) {
     [product.variants],
   );
 
+  const colorHexByLabel = useMemo(
+    () => (dims.includes("color") ? colorSwatchHexByValue(product.variants) : new Map<string, string>()),
+    [product.variants, dims],
+  );
+
   const [selection, setSelection] = useState<Partial<Record<VariantOptionKey, string>>>({});
   const [added, setAdded] = useState(false);
 
@@ -258,7 +265,7 @@ export function ProductDetailClient({ product }: Readonly<Props>) {
                 <p className="text-xs font-extrabold text-gray-500 uppercase tracking-widest mb-2.5">
                   {label}
                 </p>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-3">
                   {values.map((val) => {
                     const isSelected = selection[dim] === val;
                     const anyInStock = product.variants.some(
@@ -268,6 +275,44 @@ export function ProductDetailClient({ product }: Readonly<Props>) {
                         Number(v.stock) > 0,
                     );
                     const soldOut = !anyInStock;
+                    const swatchHex = dim === "color" ? colorHexByLabel.get(val) : undefined;
+
+                    if (dim === "color") {
+                      return (
+                        <button
+                          key={val}
+                          type="button"
+                          onClick={() => !soldOut && setDimension(dim, val)}
+                          disabled={soldOut}
+                          aria-label={`${VARIANT_OPTION_LABELS[dim]}: ${val}`}
+                          className={cn(
+                            "flex flex-col items-center gap-1.5 min-w-[52px] transition-transform",
+                            soldOut ? "cursor-not-allowed opacity-40" : "hover:scale-[1.02] active:scale-[0.98]",
+                          )}
+                        >
+                          <span
+                            className={cn(
+                              "relative block w-11 h-11 rounded-full border-2 shadow-inner",
+                              !swatchHex && "bg-gradient-to-br from-gray-100 to-gray-300",
+                              isSelected
+                                ? "ring-2 ring-gray-900 ring-offset-2 border-gray-400"
+                                : "border-gray-300 hover:border-gray-500",
+                            )}
+                            style={swatchHex ? { backgroundColor: swatchHex } : undefined}
+                            title={swatchHex ? val : `${val} — set swatch hex in admin for a custom color`}
+                          />
+                          <span
+                            className={cn(
+                              "text-[10px] font-semibold text-center leading-tight max-w-[4.5rem] truncate",
+                              soldOut ? "text-gray-400 line-through" : "text-gray-600",
+                            )}
+                          >
+                            {val}
+                          </span>
+                        </button>
+                      );
+                    }
+
                     return (
                       <button
                         key={val}
