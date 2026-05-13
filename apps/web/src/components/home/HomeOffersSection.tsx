@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, SlidersHorizontal } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { getActiveOffers } from "@icrowed/database/queries";
 import { StoreOfferCard } from "@/components/offers/StoreOfferCard";
 
@@ -29,33 +29,25 @@ export async function HomeOffersSection() {
       {ordered.length === 0 ? (
         <p className="text-sm text-gray-500">No active offers right now. Check back soon!</p>
       ) : (
-        <>
-          {ordered.length > 1 ? (
-            <p className="sm:hidden text-[11px] text-gray-500 mb-2 flex items-center gap-1.5">
-              <SlidersHorizontal className="w-3.5 h-3.5 shrink-0 opacity-70" aria-hidden />
-              <span>Swipe to browse offers</span>
-            </p>
-          ) : null}
-          {/* Mobile: touch carousel (no arrows); fixed slide size so every card matches */}
-          <div
-            role="region"
-            aria-roledescription="carousel"
-            aria-label="Hot offers"
-            className="flex flex-nowrap gap-3 overflow-x-auto overflow-y-hidden overscroll-x-contain scroll-smooth snap-x snap-mandatory touch-pan-x pb-2 -mx-3 px-3 scrollbar-hide sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-3 sm:overflow-visible sm:overscroll-auto sm:snap-none sm:touch-auto sm:px-0 sm:pb-0 lg:grid-cols-3"
-          >
-            {ordered.map((offer) => (
-              <div
-                key={offer.id}
-                className="snap-center shrink-0 h-44 w-[min(20rem,calc(100vw-2rem))] sm:h-auto sm:w-auto sm:min-h-0 sm:shrink"
-              >
-                <StoreOfferCard
-                  offer={offer}
-                  className="h-full min-h-0 sm:h-auto sm:min-h-44"
-                />
-              </div>
-            ))}
-          </div>
-        </>
+        /* Mobile: snap carousel | sm+: 2-col grid | lg+: 3-col grid */
+        <div
+          role="region"
+          aria-roledescription="carousel"
+          aria-label="Hot offers"
+          className="flex gap-4 overflow-x-auto snap-x snap-mandatory -mx-3 px-3 sm:mx-0 sm:grid sm:grid-cols-2 sm:gap-4 sm:overflow-visible sm:snap-none sm:px-0 lg:grid-cols-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        >
+          {ordered.map((offer) => (
+            <div
+              key={offer.id}
+              className="snap-start shrink-0 w-[80vw] sm:w-auto"
+            >
+              <StoreOfferCard
+                offer={offer}
+                className="h-64 sm:h-72"
+              />
+            </div>
+          ))}
+        </div>
       )}
     </section>
   );
