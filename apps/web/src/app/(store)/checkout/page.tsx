@@ -241,27 +241,51 @@ export default function CheckoutPage() {
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       <h1 className="text-2xl font-bold mb-8">Checkout</h1>
 
-      {/* Step indicator */}
-      <div className="flex items-center gap-0 mb-10">
-        {STEPS.map((s, i) => (
-          <div key={s.key} className="flex items-center flex-1">
-            <div
-              className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold shrink-0 ${
-                step === s.key
-                  ? "bg-[var(--color-primary)] text-white"
-                  : STEPS.findIndex((x) => x.key === step) > i
-                  ? "bg-green-500 text-white"
-                  : "bg-[var(--surface)] text-[var(--muted)] border border-[var(--border)]"
-              }`}
-            >
-              {i + 1}
+      {/* Step indicator — hidden on mobile */}
+      <div className="hidden sm:flex items-center mb-10 gap-0">
+        {STEPS.map((s, i) => {
+          const currentIndex = STEPS.findIndex((x) => x.key === step);
+          const isDone = currentIndex > i;
+          const isActive = step === s.key;
+          return (
+            <div key={s.key} className="flex items-center flex-1 last:flex-none">
+              <div className="flex items-center gap-3">
+                <div
+                  className={`relative flex items-center justify-center w-9 h-9 rounded-full text-sm font-bold shrink-0 transition-all duration-300 ${
+                    isActive
+                      ? "bg-[var(--color-primary)] text-white shadow-md shadow-[var(--color-primary)]/30 scale-110"
+                      : isDone
+                      ? "bg-emerald-500 text-white"
+                      : "bg-[var(--surface)] text-[var(--muted)] border-2 border-[var(--border)]"
+                  }`}
+                >
+                  {isDone ? (
+                    <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none">
+                      <path d="M3 8l3.5 3.5L13 4.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                    </svg>
+                  ) : (
+                    i + 1
+                  )}
+                </div>
+                <span
+                  className={`text-sm font-semibold transition-colors ${
+                    isActive ? "text-[var(--color-primary)]" : isDone ? "text-emerald-600" : "text-[var(--muted)]"
+                  }`}
+                >
+                  {s.label}
+                </span>
+              </div>
+              {i < STEPS.length - 1 && (
+                <div className="flex-1 mx-4 h-px relative overflow-hidden rounded-full bg-[var(--border)]">
+                  <div
+                    className="absolute inset-y-0 left-0 bg-emerald-400 transition-all duration-500"
+                    style={{ width: isDone ? "100%" : "0%" }}
+                  />
+                </div>
+              )}
             </div>
-            <span className="ml-2 text-sm font-medium hidden sm:block">{s.label}</span>
-            {i < STEPS.length - 1 && (
-              <div className="flex-1 h-px bg-[var(--border)] mx-3" />
-            )}
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

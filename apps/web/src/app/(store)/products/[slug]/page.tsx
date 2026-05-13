@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
   Shield, Truck, RefreshCw, Star,
-  ChevronRight,
+  ChevronRight, SlidersHorizontal,
 } from "lucide-react";
 import { ProductDetailClient } from "./ProductDetailClient";
 import { ProductImages } from "./ProductImages";
@@ -187,36 +187,33 @@ export default async function ProductDetailPage({ params }: Props) {
         {product.specifications.length > 0 && (
           <div className="bento-card p-5 sm:p-8">
             {/* Header */}
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-1 h-6 rounded-full bg-indigo-500" />
-              <h2 className="text-xl font-black text-gray-900">Specifications</h2>
+            <div className="flex items-center gap-4 mb-8">
+              <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center shadow-md shadow-indigo-200">
+                <SlidersHorizontal className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h2 className="text-xl font-black text-gray-900">Specifications</h2>
+                <p className="text-xs text-gray-400 mt-0.5">Full technical details</p>
+              </div>
             </div>
 
             {product.specifications.map((group) => (
-              <div key={group.group} className="mb-6 last:mb-0">
-                {/* Group label */}
-                <p className="text-[11px] font-extrabold tracking-widest text-indigo-500 uppercase mb-3 px-1">
-                  {group.group}
-                </p>
-
-                {/* Spec rows */}
-                <div className="rounded-2xl overflow-hidden border border-gray-100">
-                  {group.specs.map((spec, i) => (
+              <div key={group.group}>
+                <dl className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {group.specs.map((spec) => (
                     <div
                       key={spec.label}
-                      className={`grid grid-cols-2 sm:grid-cols-[2fr_3fr] gap-2 px-4 py-3 ${
-                        i % 2 === 0 ? "bg-white" : "bg-gray-50/70"
-                      } ${i !== 0 ? "border-t border-gray-100" : ""}`}
+                      className="group flex flex-col gap-2 p-4 rounded-2xl bg-gray-50/80 border border-gray-100 hover:border-indigo-200 hover:bg-indigo-50/40 hover:shadow-sm transition-all duration-200"
                     >
-                      <span className="text-xs font-semibold text-gray-400 self-center leading-snug">
+                      <dt className="text-[10px] font-extrabold tracking-widest text-gray-400 uppercase group-hover:text-indigo-500 transition-colors leading-none">
                         {spec.label}
-                      </span>
-                      <span className="text-xs font-bold text-gray-800 leading-snug text-right sm:text-left">
+                      </dt>
+                      <dd className="text-sm font-bold text-gray-900 leading-snug">
                         {spec.value}
-                      </span>
+                      </dd>
                     </div>
                   ))}
-                </div>
+                </dl>
               </div>
             ))}
           </div>
