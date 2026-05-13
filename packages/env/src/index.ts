@@ -1,7 +1,14 @@
 import { z } from "zod";
 
 const serverSchema = z.object({
-  DATABASE_URL: z.string().url(),
+  /** Postgres connection string (Supabase "URI" from dashboard, or local). */
+  DATABASE_URL: z
+    .string()
+    .min(1)
+    .refine(
+      (s) => /^postgres(ql)?:\/\//i.test(s.trim()),
+      "DATABASE_URL must start with postgres:// or postgresql://",
+    ),
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
   STRIPE_SECRET_KEY: z.string().startsWith("sk_"),
   STRIPE_WEBHOOK_SECRET: z.string().startsWith("whsec_"),
