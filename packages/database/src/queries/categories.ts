@@ -73,6 +73,11 @@ export async function getBrandById(id: string) {
   return brand ?? null;
 }
 
+export async function getBrandBySlug(slug: string) {
+  const [brand] = await db.select().from(brands).where(eq(brands.slug, slug));
+  return brand ?? null;
+}
+
 export async function createBrand(
   data: Omit<typeof brands.$inferInsert, "id" | "createdAt">
 ) {

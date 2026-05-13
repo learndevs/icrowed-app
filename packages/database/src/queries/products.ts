@@ -84,6 +84,23 @@ export async function getLowestPricedProductByBrandSlug(brandSlug: string) {
   });
 }
 
+export async function getProductsByBrandSlug(
+  brandSlug: string,
+  opts?: { limit?: number; offset?: number },
+) {
+  const brandRow = await db.query.brands.findFirst({
+    where: eq(brands.slug, brandSlug),
+  });
+  if (!brandRow) return [];
+  return db.query.products.findMany({
+    where: and(eq(products.brandId, brandRow.id), eq(products.isActive, true)),
+    with: { images: true, category: true, brand: true },
+    orderBy: [desc(products.createdAt)],
+    limit: opts?.limit ?? 20,
+    offset: opts?.offset ?? 0,
+  });
+}
+
 export async function getProductBySlug(slug: string) {
   return db.query.products.findFirst({
     where: and(eq(products.slug, slug), eq(products.isActive, true)),

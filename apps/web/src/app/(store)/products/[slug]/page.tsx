@@ -208,26 +208,34 @@ export default async function ProductDetailPage({ params }: Props) {
         </div>
 
         {/* ── Specifications ──────────────────────────────────────────────── */}
-        <div className="bento-card p-5 sm:p-7">
-          <h2 className="text-xl font-black text-gray-900 mb-6">Specifications</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {product.specifications.length > 0 && (
+          <div className="bento-card p-5 sm:p-8">
+            {/* Header */}
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-1 h-6 rounded-full bg-indigo-500" />
+              <h2 className="text-xl font-black text-gray-900">Specifications</h2>
+            </div>
+
             {product.specifications.map((group) => (
-              <div key={group.group} className="rounded-2xl overflow-hidden border border-gray-100">
-                <div className="bg-gray-900 px-4 py-2.5">
-                  <p className="text-[11px] font-extrabold tracking-widest text-gray-300 uppercase">
-                    {group.group}
-                  </p>
-                </div>
-                <div className="divide-y divide-gray-50">
+              <div key={group.group} className="mb-6 last:mb-0">
+                {/* Group label */}
+                <p className="text-[11px] font-extrabold tracking-widest text-indigo-500 uppercase mb-3 px-1">
+                  {group.group}
+                </p>
+
+                {/* Spec rows */}
+                <div className="rounded-2xl overflow-hidden border border-gray-100">
                   {group.specs.map((spec, i) => (
                     <div
                       key={spec.label}
-                      className={`flex items-start px-4 py-3 gap-3 ${i % 2 === 0 ? "bg-white" : "bg-gray-50/60"}`}
+                      className={`grid grid-cols-2 sm:grid-cols-[2fr_3fr] gap-2 px-4 py-3 ${
+                        i % 2 === 0 ? "bg-white" : "bg-gray-50/70"
+                      } ${i !== 0 ? "border-t border-gray-100" : ""}`}
                     >
-                      <span className="w-36 shrink-0 text-xs font-semibold text-gray-400">
+                      <span className="text-xs font-semibold text-gray-400 self-center leading-snug">
                         {spec.label}
                       </span>
-                      <span className="text-xs font-bold text-gray-800 leading-relaxed">
+                      <span className="text-xs font-bold text-gray-800 leading-snug text-right sm:text-left">
                         {spec.value}
                       </span>
                     </div>
@@ -236,7 +244,7 @@ export default async function ProductDetailPage({ params }: Props) {
               </div>
             ))}
           </div>
-        </div>
+        )}
 
         {/* ── Reviews ─────────────────────────────────────────────────────── */}
         <ProductReviews productId={product.id} />
