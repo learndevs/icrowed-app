@@ -1,6 +1,7 @@
 [build]
   base = "."
-  command = "npm install --workspace=web --no-save @tailwindcss/oxide-linux-x64-gnu lightningcss-linux-x64-gnu && npm rebuild lightningcss --workspace=web && npm run build --workspace=web"
+  # Single command — avoids Netlify/config UI line-wrapping that truncated `lightningcss-linux-x64-gnu` to `lightningcss-linux-x64`.
+  command = "npm run netlify:build"
   publish = "apps/web/.next"
 
 [build.environment]
@@ -8,7 +9,7 @@
   NPM_FLAGS = "--include=optional"
 
 [context.production]
-  command = "npm install --workspace=web --no-save @tailwindcss/oxide-linux-x64-gnu lightningcss-linux-x64-gnu && npm rebuild lightningcss --workspace=web && npm run build --workspace=web"
+  command = "npm run netlify:build"
 
 [context.deploy-preview]
-  command = "npm install --workspace=web --no-save @tailwindcss/oxide-linux-x64-gnu lightningcss-linux-x64-gnu && npm rebuild lightningcss --workspace=web && npm run build --workspace=web"
+  command = "npm run netlify:build"
