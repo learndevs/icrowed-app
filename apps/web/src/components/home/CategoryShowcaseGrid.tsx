@@ -14,7 +14,6 @@ export type CategoryShowcaseItem = {
 function showcaseImageSrc(slug: string, imageUrl: string | null | undefined): string {
   const u = imageUrl?.trim();
   if (u) return u;
-  if (slug === "smartwatches") return "/home/categories/smartwatch.png";
   return `/home/categories/${slug}.png`;
 }
 
@@ -39,7 +38,7 @@ export function CategoryShowcaseGrid({ items }: Readonly<{ items: CategoryShowca
   if (items.length === 0) return null;
 
   return (
-    <div className="grid grid-cols-2 gap-4 sm:gap-5 md:grid-cols-3 lg:grid-cols-5">
+    <div className="grid grid-cols-2 gap-4 sm:gap-5 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
       {items.map((cat) => (
         <Link
           key={cat.slug}
