@@ -7,7 +7,7 @@
  *   npm run db:seed -w @icrowed/database  (from repo root)
  *   npm run db:seed          (from repo root — see root package.json)
  *
- * Includes Apple brand, Smartphones category, iPhones + AirPods + images.
+ * Includes Apple brand, 10 Figma categories, iPhones + AirPods + images.
  * The Next.js storefront needs DATABASE_URL in apps/web/.env.local to read products.
  */
 import * as dotenv from "dotenv";
@@ -68,16 +68,16 @@ async function upsert(table: string, rows: unknown[]): Promise<number> {
   return skipped;
 }
 
-// ─── Categories (storefront — same five as home / `/categories`) ───────────────
+// ─── Categories (storefront — 10 categories matching Figma design) ─────────────
 
 const CATEGORIES = [
   {
     id: "10000000-0000-4000-8000-000000000001",
-    name: "Mobile Phones",
-    slug: "smartphones",
+    name: "Phone",
+    slug: "phones",
     highlight: "200+ items",
-    description: "Latest phones, flagship models, and budget picks.",
-    image_url: "/home/categories/smartphones.png",
+    description: "Latest smartphones, flagship models, and budget picks.",
+    image_url: "/home/categories/phones.png",
     parent_id: null,
     is_active: true,
     sort_order: 1,
@@ -87,7 +87,7 @@ const CATEGORIES = [
     name: "Earbuds",
     slug: "earbuds",
     highlight: "60+ items",
-    description: "Wireless earbuds, headsets, and audio essentials.",
+    description: "Wireless earbuds and audio essentials.",
     image_url: "/home/categories/earbuds.png",
     parent_id: null,
     is_active: true,
@@ -95,36 +95,91 @@ const CATEGORIES = [
   },
   {
     id: "10000000-0000-4000-8000-000000000003",
-    name: "Chargers",
-    slug: "chargers",
-    highlight: "80+ items",
-    description: "Fast chargers, adapters, and charging solutions.",
-    image_url: "/home/categories/chargers.png",
+    name: "iPads",
+    slug: "ipads",
+    highlight: "30+ items",
+    description: "Apple iPads and tablet accessories.",
+    image_url: "/home/categories/ipads.png",
     parent_id: null,
     is_active: true,
     sort_order: 3,
   },
   {
     id: "10000000-0000-4000-8000-000000000004",
-    name: "Smart Watches",
-    slug: "smartwatches",
-    highlight: "30+ items",
-    description: "Fitness watches and smart wearable accessories.",
-    image_url: "/home/categories/smartwatch.png",
+    name: "Macbooks",
+    slug: "macbooks",
+    highlight: "20+ items",
+    description: "MacBook laptops and accessories.",
+    image_url: "/home/categories/macbooks.png",
     parent_id: null,
     is_active: true,
     sort_order: 4,
   },
   {
     id: "10000000-0000-4000-8000-000000000005",
-    name: "Charging Adapters",
-    slug: "cables",
-    highlight: "120+ items",
-    description: "USB, Type-C, and reliable everyday connectors.",
-    image_url: "/home/categories/cables.png",
+    name: "Charging Adapter",
+    slug: "charging-adapters",
+    highlight: "80+ items",
+    description: "Fast chargers, adapters, and charging solutions.",
+    image_url: "/home/categories/charging-adapters.png",
     parent_id: null,
     is_active: true,
     sort_order: 5,
+  },
+  {
+    id: "10000000-0000-4000-8000-000000000006",
+    name: "Powerbank",
+    slug: "powerbanks",
+    highlight: "40+ items",
+    description: "Portable power banks for on-the-go charging.",
+    image_url: "/home/categories/powerbanks.png",
+    parent_id: null,
+    is_active: true,
+    sort_order: 6,
+  },
+  {
+    id: "10000000-0000-4000-8000-000000000007",
+    name: "Wireless Mic",
+    slug: "wireless-mics",
+    highlight: "25+ items",
+    description: "Wireless microphones for content creators.",
+    image_url: "/home/categories/wireless-mics.png",
+    parent_id: null,
+    is_active: true,
+    sort_order: 7,
+  },
+  {
+    id: "10000000-0000-4000-8000-000000000008",
+    name: "Speaker",
+    slug: "speakers",
+    highlight: "35+ items",
+    description: "Bluetooth speakers and portable sound systems.",
+    image_url: "/home/categories/speakers.png",
+    parent_id: null,
+    is_active: true,
+    sort_order: 8,
+  },
+  {
+    id: "10000000-0000-4000-8000-000000000009",
+    name: "Headphone",
+    slug: "headphones",
+    highlight: "45+ items",
+    description: "Over-ear and on-ear headphones.",
+    image_url: "/home/categories/headphones.png",
+    parent_id: null,
+    is_active: true,
+    sort_order: 9,
+  },
+  {
+    id: "10000000-0000-4000-8000-000000000010",
+    name: "Gimbal",
+    slug: "gimbals",
+    highlight: "15+ items",
+    description: "Camera stabilizers and gimbals for creators.",
+    image_url: "/home/categories/gimbals.png",
+    parent_id: null,
+    is_active: true,
+    sort_order: 10,
   },
 ];
 

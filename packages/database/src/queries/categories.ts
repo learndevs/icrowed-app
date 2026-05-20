@@ -4,11 +4,16 @@ import { categories, brands } from "../schema";
 
 /** Top nav / home showcase — must match `CATEGORIES` seed slugs. */
 export const STOREFRONT_CATEGORY_SLUGS = [
-  "smartphones",
+  "phones",
   "earbuds",
-  "chargers",
-  "smartwatches",
-  "cables",
+  "ipads",
+  "macbooks",
+  "charging-adapters",
+  "powerbanks",
+  "wireless-mics",
+  "speakers",
+  "headphones",
+  "gimbals",
 ] as const;
 
 export type StorefrontCategorySlug = (typeof STOREFRONT_CATEGORY_SLUGS)[number];
