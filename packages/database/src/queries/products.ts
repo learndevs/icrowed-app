@@ -1,4 +1,4 @@
-import { eq, ilike, and, desc, asc, sql, count } from "drizzle-orm";
+import { eq, ilike, and, desc, asc, sql, count, inArray } from "drizzle-orm";
 import { db } from "../db";
 import { products, productImages, productVariants, categories, brands } from "../schema";
 import { getBrandBySlug } from "./categories";
@@ -26,6 +26,28 @@ export async function getProducts(opts?: {
     limit: opts?.limit ?? 20,
     offset: opts?.offset ?? 0,
   });
+}
+
+/** Home showcase — 6 products in a 5×2 desktop grid (row 1: five, row 2: one). */
+export const TOP_SELLING_SLUGS = [
+  "iphone-17-pro",
+  "ipad-pro",
+  "macbook-pro",
+  "earpods-pro",
+  "headset-pro",
+  "gimbal-pro",
+] as const;
+
+export async function getTopSellingProducts() {
+  const rows = await db.query.products.findMany({
+    where: and(
+      eq(products.isActive, true),
+      inArray(products.slug, [...TOP_SELLING_SLUGS]),
+    ),
+    with: { images: true, category: true, brand: true },
+  });
+  const order = new Map<string, number>(TOP_SELLING_SLUGS.map((s, i) => [s, i]));
+  return [...rows].sort((a, b) => (order.get(a.slug) ?? 99) - (order.get(b.slug) ?? 99));
 }
 
 /** Active storefront products for a brand identified by URL slug (e.g. `apple`). */
