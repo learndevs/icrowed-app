@@ -39,8 +39,8 @@ export function MobileBottomNav({ itemCount }: MobileBottomNavProps) {
             className={cn(
               "relative z-10 flex h-12 min-w-[58px] flex-col items-center justify-center gap-0.5 rounded-full px-2 transition-all",
               link.active
-                ? "bg-white/80 text-black shadow-[0_8px_20px_rgba(15,23,42,0.12)]"
-                : "text-gray-700 hover:text-black"
+                ? "bg-[#E6E6E6] text-[#404040] shadow-[0_8px_20px_rgba(15,23,42,0.12)]"
+                : "text-gray-700 hover:text-[#404040]"
             )}
             aria-label={link.label}
           >

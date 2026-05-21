@@ -73,7 +73,7 @@ export default function Header() {
                 className={cn(
                   "px-4 py-2 rounded-lg text-sm font-medium transition-colors",
                   pathname.startsWith(link.href)
-                    ? "bg-[var(--brand-50)] text-[var(--color-primary)]"
+                    ? "bg-[#E6E6E6] text-[#404040]"
                     : "text-[var(--muted)] hover:text-[var(--foreground)] hover:bg-[var(--surface)]"
                 )}
               >

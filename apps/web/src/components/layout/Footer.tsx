@@ -2,8 +2,21 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { Inter } from "next/font/google";
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
+
+const inter = Inter({
+  subsets: ["latin"],
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
+  adjustFontFallback: false,
+});
+
+const SECTION_HEADING_CLASS =
+  "text-sm font-semibold uppercase tracking-wide text-black mb-4";
+const CONTACT_LABEL_CLASS =
+  "text-sm font-semibold uppercase tracking-wide text-black";
 
 const ACCORDION_SECTIONS = [
   {
@@ -48,7 +61,7 @@ function FooterLogo({ className = "" }: { className?: string }) {
   return (
     <Link
       href="/"
-      className={`inline-flex items-center gap-3 font-sans ${className}`}
+      className={`inline-flex items-center gap-3 ${className}`}
     >
       <Image
         src="/icrowed-logo.svg"
@@ -58,10 +71,12 @@ function FooterLogo({ className = "" }: { className?: string }) {
         className="h-11 w-11 shrink-0 sm:h-12 sm:w-12"
       />
       <div className="flex flex-col gap-1">
-        <span className="type-logo-wordmark text-[1.625rem] text-black sm:text-[1.75rem]">
+        <span className="text-[1.625rem] font-bold leading-none tracking-tight text-black sm:text-[1.75rem]">
           iCrowed
         </span>
-        <span className="type-logo-url text-black">WWW.ICROWED.COM</span>
+        <span className="text-[0.625rem] font-medium uppercase leading-tight tracking-[0.28em] text-black">
+          WWW.ICROWED.COM
+        </span>
       </div>
     </Link>
   );
@@ -76,7 +91,7 @@ function MenuColumn({
 }) {
   return (
     <div>
-      <h4 className="text-sm font-black uppercase tracking-wide text-zinc-900 mb-4">
+      <h4 className={SECTION_HEADING_CLASS}>
         {label}
       </h4>
       <ul className="space-y-2.5">
@@ -110,7 +125,7 @@ function AccordionSection({
       <div className="px-4 sm:px-5">
         <button
           type="button"
-          className="flex w-full items-center justify-between py-4 text-left text-base font-bold text-black"
+          className="flex w-full items-center justify-between py-4 text-left text-base font-semibold text-black"
           onClick={() => setOpen((o) => !o)}
           aria-expanded={open}
         >
@@ -143,25 +158,25 @@ function ContactBlock({ className = "" }: { className?: string }) {
     <div className={className}>
       <div className="grid grid-cols-2 gap-x-6 gap-y-6">
         <div>
-          <p className="text-sm font-black uppercase tracking-wide text-black">Address</p>
-          <p className="mt-2 text-base font-normal text-black leading-relaxed">
+          <p className={CONTACT_LABEL_CLASS}>Address</p>
+          <p className="mt-2 text-base font-medium text-black leading-relaxed">
             123 Simply Quidem
           </p>
         </div>
         <div>
-          <p className="text-sm font-black uppercase tracking-wide text-black">Email</p>
+          <p className={CONTACT_LABEL_CLASS}>Email</p>
           <a
             href="mailto:icrowed@gmail.com"
-            className="mt-2 block text-base font-normal text-black hover:opacity-80 transition-opacity"
+            className="mt-2 block text-base font-medium text-black hover:opacity-80 transition-opacity"
           >
             icrowed@gmail.com
           </a>
         </div>
         <div>
-          <p className="text-sm font-black uppercase tracking-wide text-black">Phone no.</p>
+          <p className={CONTACT_LABEL_CLASS}>Phone no.</p>
           <a
             href="tel:+94123456789"
-            className="mt-2 block text-base font-normal text-black hover:opacity-80 transition-opacity"
+            className="mt-2 block text-base font-medium text-black hover:opacity-80 transition-opacity"
           >
             (123) 4567890
           </a>
@@ -184,7 +199,7 @@ function ContactForm({ className = "" }: { className?: string }) {
       />
       <button
         type="submit"
-        className="w-full rounded-[10px] bg-black py-3.5 text-base font-bold uppercase tracking-wide text-white transition hover:bg-zinc-800 active:scale-[0.99]"
+        className="w-full rounded-[10px] bg-black py-3.5 text-base font-semibold uppercase tracking-wide text-white transition hover:bg-zinc-800 active:scale-[0.99]"
       >
         SUBMIT
       </button>
@@ -273,11 +288,11 @@ function FooterBottom({ className = "" }: { className?: string }) {
 
 export default function Footer() {
   return (
-    <footer className="mt-6 bg-[#E6E6E6]">
+    <footer className="mt-6 bg-[#E6E6E6]" style={{ fontFamily: inter.style.fontFamily }}>
       <div className="mx-auto max-w-[1400px] px-4 pb-10 pt-8 sm:px-5 lg:px-8">
 
         {/* ── Mobile ─────────────────────────────────────────────────── */}
-        <div className="lg:hidden font-sans">
+        <div className="lg:hidden">
           <FooterLogo className="mb-8" />
 
           {/* Full-bleed accordion dividers (edge to edge) */}
@@ -293,7 +308,7 @@ export default function Footer() {
         </div>
 
         {/* ── Desktop / web ──────────────────────────────────────────── */}
-        <div className="hidden font-sans lg:block">
+        <div className="hidden lg:block">
           <div className="grid grid-cols-12 gap-10 pb-10">
             <div className="col-span-3">
               <FooterLogo />
@@ -306,7 +321,7 @@ export default function Footer() {
             ))}
 
             <div className="col-span-3">
-              <h4 className="text-sm font-black uppercase tracking-wide text-black mb-4">
+              <h4 className={SECTION_HEADING_CLASS}>
                 Contact
               </h4>
               <ContactBlock />
@@ -314,7 +329,7 @@ export default function Footer() {
           </div>
 
           <div className="border-t border-zinc-500/50 pt-10">
-            <h4 className="text-sm font-black uppercase tracking-wide text-black mb-4">
+            <h4 className={SECTION_HEADING_CLASS}>
               Get in touch
             </h4>
             <ContactForm className="max-w-md" />
