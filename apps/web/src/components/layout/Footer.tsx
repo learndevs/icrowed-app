@@ -35,29 +35,33 @@ const ACCORDION_SECTIONS = [
 ];
 
 const LEGAL_LINKS = [
-  { label: "Terms and Conditions", href: "/terms" },
+  { label: "Terms And Conditions", href: "/terms" },
   { label: "About Us", href: "/about" },
   { label: "Contact Us", href: "/contact" },
   { label: "FAQ", href: "/faq" },
 ];
 
-function FooterLogo() {
+const INPUT_CLASS =
+  "w-full rounded-[10px] border-0 bg-white px-4 py-3.5 text-base text-zinc-900 placeholder:text-zinc-600 focus:outline-none focus:ring-2 focus:ring-zinc-400";
+
+function FooterLogo({ className = "" }: { className?: string }) {
   return (
-    <Link href="/" className="inline-flex items-center gap-3">
+    <Link
+      href="/"
+      className={`inline-flex items-center gap-3 font-sans ${className}`}
+    >
       <Image
         src="/icrowed-logo.svg"
         alt="iCrowed"
-        width={40}
-        height={40}
-        className="shrink-0"
+        width={48}
+        height={48}
+        className="h-11 w-11 shrink-0 sm:h-12 sm:w-12"
       />
-      <div className="flex flex-col">
-        <span className="type-logo-wordmark text-zinc-900">
+      <div className="flex flex-col gap-1">
+        <span className="type-logo-wordmark text-[1.625rem] text-black sm:text-[1.75rem]">
           iCrowed
         </span>
-        <span className="type-logo-url mt-1 text-zinc-500">
-          www.icrowed.com
-        </span>
+        <span className="type-logo-url text-black">WWW.ICROWED.COM</span>
       </div>
     </Link>
   );
@@ -72,7 +76,7 @@ function MenuColumn({
 }) {
   return (
     <div>
-      <h4 className="type-label-caps text-zinc-900 mb-4">
+      <h4 className="text-sm font-black uppercase tracking-wide text-zinc-900 mb-4">
         {label}
       </h4>
       <ul className="space-y-2.5">
@@ -80,7 +84,7 @@ function MenuColumn({
           <li key={l.label}>
             <Link
               href={l.href}
-              className="text-sm font-normal text-zinc-600 hover:text-zinc-900 transition-colors"
+              className="text-base font-normal text-zinc-700 hover:text-zinc-900 transition-colors"
             >
               {l.label}
             </Link>
@@ -94,40 +98,42 @@ function MenuColumn({
 function AccordionSection({
   label,
   links,
-  defaultOpen = false,
+  isFirst = false,
 }: {
   label: string;
   links: { label: string; href: string }[];
-  defaultOpen?: boolean;
+  isFirst?: boolean;
 }) {
-  const [open, setOpen] = useState(defaultOpen);
+  const [open, setOpen] = useState(false);
   return (
-    <div className="border-b border-zinc-300/70">
-      <button
-        type="button"
-        className="flex w-full items-center justify-between py-4 text-left type-body-medium text-zinc-900"
-        onClick={() => setOpen((o) => !o)}
-        aria-expanded={open}
-      >
-        {label}
-        <ChevronDown
-          className={`h-4 w-4 text-zinc-500 transition-transform duration-200 ${open ? "rotate-180" : ""}`}
-        />
-      </button>
-      {open && (
-        <ul className="space-y-2.5 pb-4">
-          {links.map((l) => (
-            <li key={l.label}>
-              <Link
-                href={l.href}
-                className="text-sm font-normal text-zinc-600 hover:text-zinc-900 transition-colors"
-              >
-                {l.label}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      )}
+    <div className={`border-b border-zinc-500/50 ${isFirst ? "border-t border-zinc-500/50" : ""}`}>
+      <div className="px-4 sm:px-5">
+        <button
+          type="button"
+          className="flex w-full items-center justify-between py-4 text-left text-base font-bold text-black"
+          onClick={() => setOpen((o) => !o)}
+          aria-expanded={open}
+        >
+          {label}
+          <ChevronDown
+            className={`h-5 w-5 shrink-0 text-black transition-transform duration-200 ${open ? "rotate-180" : ""}`}
+          />
+        </button>
+        {open && (
+          <ul className="space-y-2.5 pb-4">
+            {links.map((l) => (
+              <li key={l.label}>
+                <Link
+                  href={l.href}
+                  className="text-base font-normal text-zinc-800 hover:text-black transition-colors"
+                >
+                  {l.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   );
 }
@@ -135,31 +141,27 @@ function AccordionSection({
 function ContactBlock({ className = "" }: { className?: string }) {
   return (
     <div className={className}>
-      <div className="grid grid-cols-2 gap-x-6 gap-y-5 sm:grid-cols-3 lg:grid-cols-2 lg:gap-x-8">
+      <div className="grid grid-cols-2 gap-x-6 gap-y-6">
         <div>
-          <p className="type-label-caps text-zinc-900">
-            Address
+          <p className="text-sm font-black uppercase tracking-wide text-black">Address</p>
+          <p className="mt-2 text-base font-normal text-black leading-relaxed">
+            123 Simply Quidem
           </p>
-          <p className="mt-1.5 type-body text-zinc-600 leading-relaxed">123 Simply quidem</p>
         </div>
         <div>
-          <p className="type-label-caps text-zinc-900">
-            Email
-          </p>
+          <p className="text-sm font-black uppercase tracking-wide text-black">Email</p>
           <a
             href="mailto:icrowed@gmail.com"
-            className="mt-1.5 block type-body text-zinc-600 hover:text-zinc-900 transition-colors"
+            className="mt-2 block text-base font-normal text-black hover:opacity-80 transition-opacity"
           >
             icrowed@gmail.com
           </a>
         </div>
-        <div className="col-span-2 sm:col-span-1">
-          <p className="type-label-caps text-zinc-900">
-            Phone no.
-          </p>
+        <div>
+          <p className="text-sm font-black uppercase tracking-wide text-black">Phone no.</p>
           <a
             href="tel:+94123456789"
-            className="mt-1.5 block type-body text-zinc-600 hover:text-zinc-900 transition-colors"
+            className="mt-2 block text-base font-normal text-black hover:opacity-80 transition-opacity"
           >
             (123) 4567890
           </a>
@@ -171,31 +173,18 @@ function ContactBlock({ className = "" }: { className?: string }) {
 
 function ContactForm({ className = "" }: { className?: string }) {
   return (
-    <form
-      className={`space-y-3 ${className}`}
-      onSubmit={(e) => e.preventDefault()}
-    >
-      <input
-        type="text"
-        name="name"
-        placeholder="Name"
-        className="w-full rounded-lg border-0 bg-white px-4 py-3 type-body text-zinc-800 shadow-sm placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-300"
-      />
-      <input
-        type="email"
-        name="email"
-        placeholder="Email"
-        className="w-full rounded-lg border-0 bg-white px-4 py-3 type-body text-zinc-800 shadow-sm placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-300"
-      />
+    <form className={`space-y-3 ${className}`} onSubmit={(e) => e.preventDefault()}>
+      <input type="text" name="name" placeholder="Name" className={INPUT_CLASS} />
+      <input type="email" name="email" placeholder="Email" className={INPUT_CLASS} />
       <textarea
         name="message"
         placeholder="Message"
         rows={4}
-        className="w-full resize-none rounded-lg border-0 bg-white px-4 py-3 type-body text-zinc-800 shadow-sm placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-300"
+        className={`${INPUT_CLASS} resize-none`}
       />
       <button
         type="submit"
-        className="w-full rounded-lg bg-zinc-900 py-3.5 type-button-caps text-white transition hover:bg-zinc-800 active:scale-[0.99]"
+        className="w-full rounded-[10px] bg-black py-3.5 text-base font-bold uppercase tracking-wide text-white transition hover:bg-zinc-800 active:scale-[0.99]"
       >
         SUBMIT
       </button>
@@ -204,12 +193,11 @@ function ContactForm({ className = "" }: { className?: string }) {
 }
 
 function SocialIcons({ className = "" }: { className?: string }) {
-  const iconClass = "h-6 w-6 text-zinc-900";
-  const linkClass =
-    "flex h-8 w-8 items-center justify-center opacity-80 transition hover:opacity-100";
+  const iconClass = "h-7 w-7 text-black";
+  const linkClass = "flex h-9 w-9 items-center justify-center text-black transition hover:opacity-75";
 
   return (
-    <div className={`flex items-center justify-center gap-8 sm:gap-10 ${className}`}>
+    <div className={`flex items-center justify-center gap-10 ${className}`}>
       <a
         href="https://facebook.com"
         aria-label="Facebook"
@@ -261,23 +249,21 @@ function SocialIcons({ className = "" }: { className?: string }) {
 
 function FooterBottom({ className = "" }: { className?: string }) {
   return (
-    <div
-      className={`flex flex-col items-center gap-5 border-t border-zinc-300/60 pt-8 text-center ${className}`}
-    >
+    <div className={`flex flex-col items-center gap-6 pt-2 text-center ${className}`}>
       <SocialIcons />
-      <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-xs text-zinc-600">
+      <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-sm font-normal text-black">
         {LEGAL_LINKS.map((link, i) => (
           <span key={link.label} className="flex items-center gap-2">
-            {i > 0 && <span className="text-zinc-400">|</span>}
-            <Link href={link.href} className="hover:text-zinc-900 transition-colors">
+            {i > 0 && <span className="text-black">|</span>}
+            <Link href={link.href} className="hover:opacity-70 transition-opacity">
               {link.label}
             </Link>
           </span>
         ))}
       </div>
-      <p className="text-xs text-zinc-500">
+      <p className="text-sm text-zinc-700">
         @2024 All rights reserved.{" "}
-        <Link href="/privacy" className="underline text-zinc-700 hover:text-zinc-900">
+        <Link href="/privacy" className="underline text-black hover:opacity-70">
           Privacy Policy
         </Link>
       </p>
@@ -287,16 +273,17 @@ function FooterBottom({ className = "" }: { className?: string }) {
 
 export default function Footer() {
   return (
-    <footer className="mt-6 bg-[#F2F2F2]">
+    <footer className="mt-6 bg-[#E6E6E6]">
       <div className="mx-auto max-w-[1400px] px-4 pb-10 pt-8 sm:px-5 lg:px-8">
 
-        {/* ── Mobile (Figma) ─────────────────────────────────────────── */}
-        <div className="lg:hidden">
-          <FooterLogo />
+        {/* ── Mobile ─────────────────────────────────────────────────── */}
+        <div className="lg:hidden font-sans">
+          <FooterLogo className="mb-8" />
 
-          <div className="mt-8">
-            {ACCORDION_SECTIONS.map((section) => (
-              <AccordionSection key={section.label} {...section} />
+          {/* Full-bleed accordion dividers (edge to edge) */}
+          <div className="-mx-4 sm:-mx-5">
+            {ACCORDION_SECTIONS.map((section, i) => (
+              <AccordionSection key={section.label} {...section} isFirst={i === 0} />
             ))}
           </div>
 
@@ -306,7 +293,7 @@ export default function Footer() {
         </div>
 
         {/* ── Desktop / web ──────────────────────────────────────────── */}
-        <div className="hidden lg:block">
+        <div className="hidden font-sans lg:block">
           <div className="grid grid-cols-12 gap-10 pb-10">
             <div className="col-span-3">
               <FooterLogo />
@@ -319,15 +306,15 @@ export default function Footer() {
             ))}
 
             <div className="col-span-3">
-              <h4 className="type-label-caps text-zinc-900 mb-4">
+              <h4 className="text-sm font-black uppercase tracking-wide text-black mb-4">
                 Contact
               </h4>
               <ContactBlock />
             </div>
           </div>
 
-          <div className="border-t border-zinc-300/60 pt-10">
-            <h4 className="type-label-caps text-zinc-900 mb-4">
+          <div className="border-t border-zinc-500/50 pt-10">
+            <h4 className="text-sm font-black uppercase tracking-wide text-black mb-4">
               Get in touch
             </h4>
             <ContactForm className="max-w-md" />
