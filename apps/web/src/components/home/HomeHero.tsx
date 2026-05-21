@@ -18,13 +18,13 @@ function HeroButtons({
     <div className="flex items-center justify-center gap-3 mt-6">
       <Link
         href={contactHref}
-        className="inline-flex items-center justify-center rounded-full bg-zinc-900 px-8 py-3 text-sm font-semibold text-white hover:bg-zinc-700 transition-colors active:scale-[0.97]"
+        className="inline-flex items-center justify-center rounded-full bg-zinc-900 px-8 py-3 type-link text-white hover:bg-zinc-700 transition-colors active:scale-[0.97]"
       >
         Contact us
       </Link>
       <Link
         href={buyHref}
-        className={`inline-flex items-center justify-center rounded-full border-2 px-8 py-3 text-sm font-semibold transition-colors active:scale-[0.97] ${
+        className={`inline-flex items-center justify-center rounded-full border-2 px-8 py-3 type-link transition-colors active:scale-[0.97] ${
           buyVariant === "outline-light"
             ? "border-zinc-800/60 bg-white/30 backdrop-blur-sm text-zinc-900 hover:bg-zinc-900 hover:text-white"
             : "border-zinc-800 bg-transparent text-zinc-900 hover:bg-zinc-900 hover:text-white"
@@ -44,10 +44,10 @@ function PhoneHero() {
     >
       {/* Text */}
       <div className="relative z-10 flex flex-col items-center text-center px-6 pt-10 sm:pt-12">
-        <h2 className="text-[2rem] sm:text-[2.4rem] font-black text-zinc-900 leading-tight tracking-tight">
+        <h2 className="type-hero-title text-zinc-900">
           Phone
         </h2>
-        <p className="mt-2 text-sm sm:text-base text-zinc-500 leading-relaxed whitespace-nowrap">
+        <p className="type-hero-subtitle mt-2 text-zinc-500 whitespace-nowrap">
           Premium Phones. Best Prices in Sri Lanka
         </p>
         <HeroButtons contactHref="/contact" buyHref="/products?category=phones" />
@@ -97,11 +97,11 @@ function DroneHero() {
               className="object-contain"
             />
           </div>
-          <h2 className="text-[2rem] sm:text-[2.4rem] font-black text-zinc-900 leading-tight tracking-tight">
+          <h2 className="type-hero-title text-zinc-900">
             Drone
           </h2>
         </div>
-        <p className="mt-2 text-sm sm:text-base text-zinc-700 leading-relaxed max-w-[260px]">
+        <p className="type-hero-subtitle mt-2 text-zinc-700 max-w-[260px]">
           Best place to buy drone products
         </p>
         <HeroButtons
@@ -117,9 +117,11 @@ function DroneHero() {
 /** ─── Exported hero wrapper ────────────────────────────────────────────────── */
 export function HomeHero() {
   return (
-    <section className="sm:px-5 sm:pt-5 sm:pb-4 lg:px-8 max-w-[1400px] lg:mx-auto flex flex-col gap-0 sm:gap-4">
-      <PhoneHero />
-      <DroneHero />
+    <section className="sm:bg-gradient-to-b sm:from-white sm:to-sky-100">
+      <div className="flex flex-col gap-0 sm:gap-4 sm:px-5 sm:pt-5 sm:pb-6 lg:px-8 max-w-[1400px] lg:mx-auto">
+        <PhoneHero />
+        <DroneHero />
+      </div>
     </section>
   );
 }

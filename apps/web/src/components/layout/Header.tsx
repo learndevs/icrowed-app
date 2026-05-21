@@ -1,8 +1,9 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Heart, ShoppingCart, Search, User, Smartphone, LogOut, Package } from "lucide-react";
+import { Heart, ShoppingCart, Search, User, LogOut, Package } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { useEffect, useState } from "react";
@@ -52,10 +53,14 @@ export default function Header() {
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="relative flex items-center justify-between h-14 sm:h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 font-bold text-xl text-[var(--foreground)]">
-            <div className="w-8 h-8 rounded-lg bg-[var(--color-primary)] flex items-center justify-center">
-              <Smartphone className="w-4 h-4 text-white" />
-            </div>
+          <Link href="/" className="flex items-center gap-2 type-logo-wordmark text-xl text-[var(--foreground)]">
+            <Image
+              src="/icrowed-logo.svg"
+              alt="iCrowed logo"
+              width={28}
+              height={28}
+              className="shrink-0"
+            />
             <span>iCrowed</span>
           </Link>
 

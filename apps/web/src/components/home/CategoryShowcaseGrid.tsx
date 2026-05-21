@@ -32,7 +32,7 @@ export function categoryRowToShowcaseItem(cat: {
 }
 
 /**
- * Storefront category tiles — glass card, image well, category name only.
+ * Storefront category tiles — flat gray card, uppercase title, centered product image.
  */
 export function CategoryShowcaseGrid({ items }: Readonly<{ items: CategoryShowcaseItem[] }>) {
   if (items.length === 0) return null;
@@ -43,25 +43,21 @@ export function CategoryShowcaseGrid({ items }: Readonly<{ items: CategoryShowca
         <Link
           key={cat.slug}
           href={cat.href}
-          className="group relative overflow-hidden rounded-2xl sm:rounded-[1.5rem] border border-white/70 bg-white/55 backdrop-blur-xl shadow-[0_10px_26px_rgba(15,23,42,0.10)] transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_18px_40px_rgba(15,23,42,0.16)]"
+          className="group flex flex-col items-center rounded-[10px] bg-[#E6E6E6] p-6 sm:p-8 text-center transition-opacity hover:opacity-95"
         >
-          <div className="flex flex-col h-full p-3 sm:p-4 gap-3 sm:gap-4">
-            <div className="relative w-full min-h-[12rem] sm:min-h-[14rem] lg:min-h-[16rem] shrink-0 overflow-hidden rounded-xl sm:rounded-2xl bg-gray-100/80 backdrop-blur-md">
-              <Image
-                src={cat.imageSrc}
-                alt={cat.name}
-                fill
-                unoptimized={cat.imageSrc.startsWith("http")}
-                className="object-contain object-top p-2 sm:p-3 transition-transform duration-300 group-hover:scale-105"
-                sizes="(max-width: 768px) 50vw, (max-width: 1280px) 45vw, 30vw"
-              />
-            </div>
+          <p className="mb-5 sm:mb-7 w-full text-sm sm:text-base font-bold uppercase tracking-wide text-[#333333] leading-snug line-clamp-2">
+            {cat.name}
+          </p>
 
-            <div className="min-w-0 w-full shrink-0 text-center pb-0.5">
-              <p className="text-sm sm:text-base font-black text-gray-900 leading-snug line-clamp-2">
-                {cat.name}
-              </p>
-            </div>
+          <div className="relative w-full min-h-[9rem] sm:min-h-[11rem] lg:min-h-[12.5rem] flex-1">
+            <Image
+              src={cat.imageSrc}
+              alt={cat.name}
+              fill
+              unoptimized={cat.imageSrc.startsWith("http")}
+              className="object-contain object-center p-1 sm:p-2 transition-transform duration-300 group-hover:scale-[1.03]"
+              sizes="(max-width: 768px) 50vw, (max-width: 1280px) 45vw, 30vw"
+            />
           </div>
         </Link>
       ))}

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Roboto } from "next/font/google";
+import { Playfair_Display, Roboto } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "@/context/CartContext";
 import { WishlistProvider } from "@/context/WishlistContext";
@@ -8,6 +8,14 @@ const roboto = Roboto({
   subsets: ["latin"],
   weight: ["300", "400", "500", "700", "900"],
   variable: "--font-roboto",
+  display: "swap",
+});
+
+const playfair = Playfair_Display({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  style: ["normal", "italic"],
+  variable: "--font-playfair",
   display: "swap",
 });
 
@@ -26,8 +34,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`h-full ${roboto.variable}`}>
-      <body className="min-h-full flex flex-col antialiased">
+    <html lang="en" className={`h-full ${roboto.variable} ${playfair.variable}`}>
+      <body className="min-h-full flex flex-col font-sans antialiased">
         <CartProvider><WishlistProvider>{children}</WishlistProvider></CartProvider>
       </body>
     </html>
