@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   getAllCategories,
   createCategory,
-} from "@icrowed/database/queries";
+} from "@icrowd/database/queries";
 import { requireAdmin } from "@/lib/admin";
 
 function slugify(name: string) {
@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
     const all = searchParams.get("all") === "true";
     const cats = all
       ? await getAllCategories()
-      : await (await import("@icrowed/database/queries")).getCategories();
+      : await (await import("@icrowd/database/queries")).getCategories();
     return NextResponse.json(cats);
   } catch (err) {
     console.error("[GET /api/categories]", err);

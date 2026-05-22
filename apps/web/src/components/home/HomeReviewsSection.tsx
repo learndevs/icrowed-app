@@ -24,7 +24,7 @@ export const HOME_REVIEWS: HomeReview[] = [
     author: "Sarah Mitchell",
     rating: 5,
     quote:
-      "Fast delivery to Colombo and the product was exactly as described. Genuine warranty and friendly support when I had a question about setup. Will definitely order again from iCrowed.",
+      "Fast delivery to Colombo and the product was exactly as described. Genuine warranty and friendly support when I had a question about setup. Will definitely order again from iCrowd.",
   },
   {
     id: "3",
@@ -45,7 +45,7 @@ export const HOME_REVIEWS: HomeReview[] = [
     author: "Anjali Silva",
     rating: 5,
     quote:
-      "I compared prices across several shops and iCrowed came out on top. Product arrived in perfect condition and the team answered my WhatsApp questions quickly.",
+      "I compared prices across several shops and iCrowd came out on top. Product arrived in perfect condition and the team answered my WhatsApp questions quickly.",
   },
   {
     id: "6",

@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
-import { getStorefrontCategories } from "@icrowed/database/queries";
+import { getStorefrontCategories } from "@icrowd/database/queries";
 import { CategoryShowcaseGrid, categoryRowToShowcaseItem } from "@/components/home/CategoryShowcaseGrid";
 
-export const metadata: Metadata = { title: "Categories | iCrowed" };
+export const metadata: Metadata = { title: "Categories | iCrowd" };
 
 export const dynamic = "force-dynamic";
 

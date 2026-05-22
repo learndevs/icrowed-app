@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { getBrandBySlug, getBrands, getProductsByBrandSlug } from "@icrowed/database/queries";
+import { getBrandBySlug, getBrands, getProductsByBrandSlug } from "@icrowd/database/queries";
 import { ProductsClient } from "../../ProductsClient";
 import type { ProductCardData } from "@/components/products/ProductCard";
 
@@ -41,8 +41,8 @@ export const dynamic = "force-dynamic";
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const brand = await getBrandBySlug(slug).catch(() => null);
-  if (!brand) return { title: "Brand | iCrowed" };
-  return { title: `${brand.name} | iCrowed`, description: `Shop ${brand.name} products at iCrowed.` };
+  if (!brand) return { title: "Brand | iCrowd" };
+  return { title: `${brand.name} | iCrowd`, description: `Shop ${brand.name} products at iCrowd.` };
 }
 
 export default async function BrandProductsPage({ params }: Props) {

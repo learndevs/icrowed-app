@@ -1,7 +1,7 @@
 import {
   getOrCreateNotificationPrefs,
   parseRecipients,
-} from "@icrowed/database";
+} from "@icrowd/database";
 import { sendEmail } from "@/lib/email";
 
 export type NotifyEvent =

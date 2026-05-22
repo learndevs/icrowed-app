@@ -47,7 +47,7 @@ function LoginForm() {
       <CardContent className="space-y-5">
         <div className="text-center">
           <h1 className="text-xl font-bold">Welcome back</h1>
-          <p className="text-sm text-[var(--muted)] mt-1">Sign in to your iCrowed account</p>
+          <p className="text-sm text-[var(--muted)] mt-1">Sign in to your iCrowd account</p>
         </div>
 
         {error && (
@@ -118,7 +118,7 @@ export default function LoginPage() {
         <div className="w-8 h-8 rounded-lg bg-[var(--color-primary)] flex items-center justify-center">
           <Smartphone className="w-4 h-4 text-white" />
         </div>
-        iCrowed
+        iCrowd
       </Link>
       <Suspense>
         <LoginForm />

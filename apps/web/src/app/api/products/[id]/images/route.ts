@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { db } from "@icrowed/database";
-import { productImages } from "@icrowed/database";
+import { db } from "@icrowd/database";
+import { productImages } from "@icrowd/database";
 import { eq, count } from "drizzle-orm";
-import { getServerEnv } from "@icrowed/env";
+import { getServerEnv } from "@icrowd/env";
 import { requireAdmin } from "@/lib/admin";
 
 const BUCKET = "product-images";

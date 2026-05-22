@@ -45,7 +45,7 @@ const SAMPLE_VARS: Record<string, string> = {
   paymentMethod: "Credit / Debit Card (Stripe)",
   currentStock: "3",
   threshold: "10",
-  appUrl: "https://icrowed.lk",
+  appUrl: "https://icrowd.lk",
 };
 
 function renderTpl(tpl: string, vars: Record<string, string>) {

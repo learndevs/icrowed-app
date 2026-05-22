@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getActiveOffers } from "@icrowed/database/queries";
+import { getActiveOffers } from "@icrowd/database/queries";
 import { HomeOffersCarousel } from "./HomeOffersCarousel";
 import type { HomeOfferItem } from "./HomeOfferCard";
 

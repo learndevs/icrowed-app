@@ -13,7 +13,7 @@
 set -euo pipefail
 
 SSHD_CONFIG="/etc/ssh/sshd_config"
-D="${SSHD_CONFIG}.d/99-icrowed-port.conf"
+D="${SSHD_CONFIG}.d/99-icrowd-port.conf"
 
 current_port() {
   local p
@@ -88,7 +88,7 @@ echo ""
 echo "==> Adding SSH port ${NEW_PORT} (keeping ${OLD_PORT} until you finalize)"
 mkdir -p "$(dirname "$D")"
 cat > "$D" <<EOF
-# Added by icrowed configure-ssh-port.sh — drop-in overrides main config
+# Added by icrowd configure-ssh-port.sh — drop-in overrides main config
 Port ${OLD_PORT}
 Port ${NEW_PORT}
 EOF
@@ -117,7 +117,7 @@ echo "2. Update local scripts:"
 echo "     SSH_PORT=${NEW_PORT} bash scripts/upload-env.sh"
 echo ""
 echo "3. Optional ~/.ssh/config entry:"
-echo "     Host icrowed"
+echo "     Host icrowd"
 echo "       HostName YOUR_SERVER_IP"
 echo "       User root"
 echo "       Port ${NEW_PORT}"

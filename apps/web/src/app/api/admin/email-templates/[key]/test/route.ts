@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getEmailTemplateByKey } from "@icrowed/database";
+import { getEmailTemplateByKey } from "@icrowd/database";
 import { requireAdmin } from "@/lib/admin";
 import { sendEmail } from "@/lib/email";
 import { renderTemplate } from "@/lib/email-templates/loader";

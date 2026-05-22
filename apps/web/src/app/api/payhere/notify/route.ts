@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyPayHereNotify } from "@/lib/payhere";
-import { db, orders } from "@icrowed/database";
+import { db, orders } from "@icrowd/database";
 import { eq } from "drizzle-orm";
 import { sendEmail } from "@/lib/email";
 import { paymentConfirmedTemplate } from "@/lib/email-templates/paymentConfirmed";

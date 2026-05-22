@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
-import { getEmailTemplateByKey } from "@icrowed/database";
+import { getEmailTemplateByKey } from "@icrowd/database";
 import {
   TEMPLATE_LABELS,
   TEMPLATE_VARIABLES,

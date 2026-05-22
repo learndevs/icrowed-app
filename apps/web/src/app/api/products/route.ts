@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getProductsAdmin, createProduct, syncProductVariants } from "@icrowed/database/queries";
+import { getProductsAdmin, createProduct, syncProductVariants } from "@icrowd/database/queries";
 import { requireAdmin } from "@/lib/admin";
 
 function slugify(name: string) {

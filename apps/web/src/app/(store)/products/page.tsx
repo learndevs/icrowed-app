@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { ProductsClient } from "./ProductsClient";
 import type { ProductCardData } from "@/components/products/ProductCard";
-import { getBrands, getProducts } from "@icrowed/database/queries";
+import { getBrands, getProducts } from "@icrowd/database/queries";
 
-export const metadata: Metadata = { title: "All Products | iCrowed" };
+export const metadata: Metadata = { title: "All Products | iCrowd" };
 
 /** Always merge fresh catalog + brand list (sidebar brands are not only inferred from rows). */
 export const dynamic = "force-dynamic";

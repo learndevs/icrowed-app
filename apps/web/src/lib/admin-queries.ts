@@ -4,7 +4,7 @@ import {
   orderItems,
   products,
   profiles,
-} from "@icrowed/database";
+} from "@icrowd/database";
 import { and, count, desc, eq, gt, gte, lte, sql, sum } from "drizzle-orm";
 
 export type Range = { from: Date; to: Date };

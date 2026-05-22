@@ -747,7 +747,7 @@ export default function CheckoutPage() {
                       <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-xs">
                         {[
                           ["Bank", "Commercial Bank of Ceylon"],
-                          ["Account Name", "iCrowed (Pvt) Ltd"],
+                          ["Account Name", "iCrowd (Pvt) Ltd"],
                           ["Account Number", "8002-XXXXXXXX"],
                           ["Branch", "Colombo 03"],
                         ].map(([label, value]) => (

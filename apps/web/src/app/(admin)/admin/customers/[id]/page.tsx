@@ -4,7 +4,7 @@ import { Card, CardContent } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { ChevronLeft, Mail, Phone, MapPin, ShoppingBag } from "lucide-react";
 import { formatPrice, formatDate } from "@/lib/utils";
-import { db, profiles, orders, addresses, listAuditLogs } from "@icrowed/database";
+import { db, profiles, orders, addresses, listAuditLogs } from "@icrowd/database";
 import { eq, sql, desc } from "drizzle-orm";
 import { CustomerActions } from "./CustomerActions";
 

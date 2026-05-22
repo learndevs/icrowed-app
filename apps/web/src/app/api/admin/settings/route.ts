@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   getOrCreateStoreSettings,
   upsertStoreSettings,
-} from "@icrowed/database";
+} from "@icrowd/database";
 import { requireAdmin } from "@/lib/admin";
 import { logAudit } from "@/lib/audit";
 

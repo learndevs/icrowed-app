@@ -94,7 +94,7 @@ export function AdminSidebar({ fullName, email, initials }: Readonly<Props>) {
           <Smartphone className="w-4 h-4 text-white" />
         </div>
         <div>
-          <p className="font-bold text-sm text-gray-900 leading-none tracking-tight">iCrowed</p>
+          <p className="font-bold text-sm text-gray-900 leading-none tracking-tight">iCrowd</p>
           <p className="text-[10px] text-gray-400 mt-0.5 font-medium uppercase tracking-widest">Admin Console</p>
         </div>
       </div>

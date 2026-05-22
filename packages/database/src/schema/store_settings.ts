@@ -12,7 +12,7 @@ import {
 /** Single-row table: id = 1. Holds high-level store-wide settings. */
 export const storeSettings = pgTable("store_settings", {
   id: serial("id").primaryKey(),
-  storeName: varchar("store_name", { length: 255 }).notNull().default("iCrowed"),
+  storeName: varchar("store_name", { length: 255 }).notNull().default("iCrowd"),
   storeEmail: varchar("store_email", { length: 255 }),
   supportPhone: varchar("support_phone", { length: 30 }),
   currency: varchar("currency", { length: 8 }).notNull().default("LKR"),

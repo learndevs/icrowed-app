@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { db, orders } from "@icrowed/database";
+import { db, orders } from "@icrowd/database";
 import { eq } from "drizzle-orm";
 import { formatPrice, formatDate } from "@/lib/utils";
 import { Badge } from "@/components/ui/Badge";

@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowUpRight, Megaphone } from "lucide-react";
-import { getActiveOffers } from "@icrowed/database/queries";
+import { getActiveOffers } from "@icrowd/database/queries";
 import { StoreOfferCard } from "@/components/offers/StoreOfferCard";
 
-export const metadata: Metadata = { title: "Offers & Deals | iCrowed" };
+export const metadata: Metadata = { title: "Offers & Deals | iCrowd" };
 
 export default async function OffersPage() {
   const offers = await getActiveOffers().catch(() => []);

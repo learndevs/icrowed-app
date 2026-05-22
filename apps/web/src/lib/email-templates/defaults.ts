@@ -5,7 +5,7 @@ const BASE = (content: string) => `<!DOCTYPE html>
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-  <title>iCrowed</title>
+  <title>iCrowd</title>
 </head>
 <body style="margin:0;padding:0;background:#f4f4f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;padding:40px 0;">
@@ -13,7 +13,7 @@ const BASE = (content: string) => `<!DOCTYPE html>
       <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
         <tr>
           <td style="background:#111827;padding:28px 40px;border-radius:12px 12px 0 0;text-align:center;">
-            <span style="color:#fff;font-size:22px;font-weight:700;letter-spacing:-0.5px;">iCrowed</span>
+            <span style="color:#fff;font-size:22px;font-weight:700;letter-spacing:-0.5px;">iCrowd</span>
           </td>
         </tr>
         <tr>
@@ -23,7 +23,7 @@ const BASE = (content: string) => `<!DOCTYPE html>
         </tr>
         <tr>
           <td style="padding:24px 40px;text-align:center;">
-            <p style="margin:0;color:#9ca3af;font-size:13px;">© 2025 iCrowed. All rights reserved.</p>
+            <p style="margin:0;color:#9ca3af;font-size:13px;">© 2025 iCrowd. All rights reserved.</p>
             <p style="margin:8px 0 0;color:#9ca3af;font-size:13px;">Questions? Reply to this email or contact our support team.</p>
           </td>
         </tr>
@@ -142,20 +142,20 @@ export const TEMPLATE_DEFAULTS: Record<TemplateKey, TemplateDefault> = {
       <div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:16px 20px;">
         <p style="margin:0;color:#166534;font-size:14px;">Refunds typically appear within <strong>5–10 business days</strong> depending on your bank or card provider.</p>
       </div>
-      ${BTN("Visit iCrowed", "{{appUrl}}")}
+      ${BTN("Visit iCrowd", "{{appUrl}}")}
     `),
   },
 
   /* ── Welcome ────────────────────────────────────── */
   welcome: {
-    subject: "Welcome to iCrowed, {{customerName}}! 👋",
-    bodyText: "Hi {{customerName}}, welcome to iCrowed — Sri Lanka's premier tech store. Start shopping at {{appUrl}}",
+    subject: "Welcome to iCrowd, {{customerName}}! 👋",
+    bodyText: "Hi {{customerName}}, welcome to iCrowd — Sri Lanka's premier tech store. Start shopping at {{appUrl}}",
     bodyHtml: BASE(`
-      <h1 style="margin:0 0 6px;color:#111827;font-size:24px;font-weight:700;">Welcome to iCrowed! 👋</h1>
+      <h1 style="margin:0 0 6px;color:#111827;font-size:24px;font-weight:700;">Welcome to iCrowd! 👋</h1>
       <p style="margin:0;color:#6b7280;font-size:15px;">Hi {{customerName}}, we're thrilled to have you on board.</p>
       ${DIVIDER}
       <p style="margin:0 0 16px;color:#374151;font-size:15px;line-height:1.7;">
-        At iCrowed we offer the latest smartphones, accessories, and tech — delivered right to your door across Sri Lanka.
+        At iCrowd we offer the latest smartphones, accessories, and tech — delivered right to your door across Sri Lanka.
       </p>
       <table width="100%" cellpadding="0" cellspacing="0">
         <tr>

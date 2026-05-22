@@ -14,7 +14,7 @@ export type EmailPayload = {
 };
 
 export async function sendEmail({ to, subject, html }: EmailPayload) {
-  const from = process.env.EMAIL_FROM ?? "iCrowed <orders@icrowed.com>";
+  const from = process.env.EMAIL_FROM ?? "iCrowd <orders@icrowd.com>";
   const resend = getResend();
 
   const { error } = await resend.emails.send({ from, to, subject, html });

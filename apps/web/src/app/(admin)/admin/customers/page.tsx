@@ -5,7 +5,7 @@ import { Pagination } from "@/components/ui/DataTable";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Users } from "lucide-react";
 import { formatPrice, formatDate } from "@/lib/utils";
-import { db, profiles, orders } from "@icrowed/database";
+import { db, profiles, orders } from "@icrowd/database";
 import { and, desc, eq, ilike, or, sql, SQL } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";

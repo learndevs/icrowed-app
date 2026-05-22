@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db, products, productImages, brands, productVariants } from "@icrowed/database";
+import { db, products, productImages, brands, productVariants } from "@icrowd/database";
 import { and, eq, inArray } from "drizzle-orm";
 
 export async function GET(req: NextRequest) {

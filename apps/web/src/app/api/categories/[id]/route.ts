@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCategoryById, updateCategory, deleteCategory } from "@icrowed/database/queries";
+import { getCategoryById, updateCategory, deleteCategory } from "@icrowd/database/queries";
 import { requireAdmin } from "@/lib/admin";
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { db, getOrCreateStoreSettings, orders } from "@icrowed/database";
+import { db, getOrCreateStoreSettings, orders } from "@icrowd/database";
 import { eq } from "drizzle-orm";
 import { requireAdmin } from "@/lib/admin";
 
@@ -177,7 +177,7 @@ export async function GET(
   <main class="page">
     <header>
       <section class="store">
-        <h1>${escapeHtml(store.storeName || "iCrowed")}</h1>
+        <h1>${escapeHtml(store.storeName || "iCrowd")}</h1>
         <p class="muted">${addressLines.map(escapeHtml).join("<br>")}</p>
         ${store.storeEmail ? `<p class="muted">${escapeHtml(store.storeEmail)}</p>` : ""}
         ${store.supportPhone ? `<p class="muted">${escapeHtml(store.supportPhone)}</p>` : ""}

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db, orders } from "@icrowed/database";
+import { db, orders } from "@icrowd/database";
 import { and, desc, eq, gte, lte, SQL } from "drizzle-orm";
 import { requireAdmin } from "@/lib/admin";
 

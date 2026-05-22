@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { formatPrice, formatDate } from "@/lib/utils";
 import Link from "next/link";
-import { db, orders } from "@icrowed/database";
+import { db, orders } from "@icrowd/database";
 import { eq, desc } from "drizzle-orm";
 import { Download } from "lucide-react";
 

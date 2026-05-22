@@ -64,18 +64,18 @@ function FooterLogo({ className = "" }: { className?: string }) {
       className={`inline-flex items-center gap-3 ${className}`}
     >
       <Image
-        src="/icrowed-logo.svg"
-        alt="iCrowed"
+        src="/icrowd-logo.svg"
+        alt="iCrowd"
         width={48}
         height={48}
         className="h-11 w-11 shrink-0 sm:h-12 sm:w-12"
       />
       <div className="flex flex-col gap-1">
         <span className="text-[1.625rem] font-bold leading-none tracking-tight text-black sm:text-[1.75rem]">
-          iCrowed
+          iCrowd
         </span>
         <span className="text-[0.625rem] font-medium uppercase leading-tight tracking-[0.28em] text-black">
-          WWW.ICROWED.COM
+          WWW.ICROWD.COM
         </span>
       </div>
     </Link>
@@ -166,10 +166,10 @@ function ContactBlock({ className = "" }: { className?: string }) {
         <div>
           <p className={CONTACT_LABEL_CLASS}>Email</p>
           <a
-            href="mailto:icrowed@gmail.com"
+            href="mailto:icrowd@gmail.com"
             className="mt-2 block text-base font-medium text-black hover:opacity-80 transition-opacity"
           >
-            icrowed@gmail.com
+            icrowd@gmail.com
           </a>
         </div>
         <div>

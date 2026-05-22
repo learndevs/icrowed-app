@@ -55,13 +55,13 @@ export default function Header() {
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 type-logo-wordmark text-xl text-[var(--foreground)]">
             <Image
-              src="/icrowed-logo.svg"
-              alt="iCrowed logo"
+              src="/icrowd-logo.svg"
+              alt="iCrowd logo"
               width={28}
               height={28}
               className="shrink-0"
             />
-            <span>iCrowed</span>
+            <span>iCrowd</span>
           </Link>
 
           {/* Desktop nav */}

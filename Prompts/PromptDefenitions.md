@@ -51,4 +51,4 @@ Operater
 
 If suggetions for the functionalities for this kind of web site add those things also add that
 
-npm run db:seed -w @icrowed/database
+npm run db:seed -w @icrowd/database

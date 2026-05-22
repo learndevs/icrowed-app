@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getStorefrontCategories } from "@icrowed/database/queries";
+import { getStorefrontCategories } from "@icrowd/database/queries";
 import { CategoryShowcaseGrid, categoryRowToShowcaseItem } from "./CategoryShowcaseGrid";
 
 /** Home: storefront categories from DB — image + name. */

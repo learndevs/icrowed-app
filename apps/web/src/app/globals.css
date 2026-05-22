@@ -35,7 +35,7 @@
   --color-error:   #dc2626;
   --color-info:    #0891b2;
 
-  /* Typography — Figma iCrowed (Roboto + Playfair accent) */
+  /* Typography — Figma iCrowd (Roboto + Playfair accent) */
   --app-font-family: var(--font-roboto), system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
   --app-font-display: var(--font-playfair), "Times New Roman", Georgia, serif;
 }

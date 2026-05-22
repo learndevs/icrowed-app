@@ -1,4 +1,4 @@
-import { getEmailTemplateByKey } from "@icrowed/database";
+import { getEmailTemplateByKey } from "@icrowd/database";
 
 export type TemplateKey =
   | "order_confirmation"

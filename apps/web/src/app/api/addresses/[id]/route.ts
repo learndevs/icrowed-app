@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { db, addresses } from "@icrowed/database";
+import { db, addresses } from "@icrowd/database";
 import { eq, and } from "drizzle-orm";
 
 async function getAuthUser() {

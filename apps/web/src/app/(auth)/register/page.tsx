@@ -77,7 +77,7 @@ function RegisterForm() {
       <CardContent className="space-y-5">
         <div className="text-center">
           <h1 className="text-xl font-bold">Create account</h1>
-          <p className="text-sm text-[var(--muted)] mt-1">Join iCrowed to start shopping</p>
+          <p className="text-sm text-[var(--muted)] mt-1">Join iCrowd to start shopping</p>
         </div>
 
         {error && (
@@ -173,7 +173,7 @@ export default function RegisterPage() {
         <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
           <Smartphone className="w-4 h-4 text-white" />
         </div>
-        iCrowed
+        iCrowd
       </Link>
       <Suspense>
         <RegisterForm />

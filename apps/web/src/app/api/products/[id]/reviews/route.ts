@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getApprovedReviews } from "@icrowed/database/queries";
+import { getApprovedReviews } from "@icrowd/database/queries";
 
 export async function GET(
   _req: NextRequest,

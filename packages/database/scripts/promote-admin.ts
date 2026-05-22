@@ -1,9 +1,9 @@
 /**
  * Create (or promote) an admin user via direct Postgres connection.
  *
- *   npm run admin:promote -w @icrowed/database -- --email you@example.com [--password 'pw'] [--name 'Full Name']
+ *   npm run admin:promote -w @icrowd/database -- --email you@example.com [--password 'pw'] [--name 'Full Name']
  *
- * Uses DATABASE_URL from icrowed-app/.env.local. Works without the Supabase
+ * Uses DATABASE_URL from icrowd-app/.env.local. Works without the Supabase
  * service_role key. If the email already has an auth.users row, this only
  * upserts the profile with role='admin'. Otherwise it inserts a new auth.users
  * row (bcrypt password via pgcrypto's crypt()) plus the profile.

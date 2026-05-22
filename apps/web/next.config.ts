@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  transpilePackages: ["@icrowed/database", "@icrowed/env", "@icrowed/types"],
+  transpilePackages: ["@icrowd/database", "@icrowd/env", "@icrowd/types"],
   images: {
     remotePatterns: [
       {

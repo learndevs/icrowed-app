@@ -87,7 +87,7 @@ function SuccessContent() {
                 <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-xs text-amber-800 space-y-1.5">
                   <p className="font-semibold text-sm">Complete your bank transfer</p>
                   <p>Bank: <strong>Commercial Bank of Ceylon</strong></p>
-                  <p>Account Name: <strong>iCrowed (Pvt) Ltd</strong></p>
+                  <p>Account Name: <strong>iCrowd (Pvt) Ltd</strong></p>
                   <p>Account Number: <strong>8002-XXXXXXXX</strong></p>
                   <p>Branch: <strong>Colombo 03</strong></p>
                   <p className="mt-2">Use <strong>{orderNumber}</strong> as your payment reference. Your order will be confirmed within 24 hours.</p>

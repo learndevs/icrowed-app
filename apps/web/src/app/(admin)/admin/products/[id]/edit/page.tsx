@@ -27,7 +27,7 @@ import {
   VARIANT_OPTION_KEYS,
   VARIANT_OPTION_LABELS,
   normalizeSwatchHexInput,
-} from "@icrowed/database/variant-options";
+} from "@icrowd/database/variant-options";
 
 interface Category { id: string; name: string; }
 interface Brand    { id: string; name: string; }

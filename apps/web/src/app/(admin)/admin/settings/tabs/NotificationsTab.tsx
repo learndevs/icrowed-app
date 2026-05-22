@@ -51,7 +51,7 @@ export function NotificationsTab({ initial }: { initial: Initial }) {
             onChange={(e) =>
               setForm((f) => ({ ...f, recipientEmails: e.target.value }))
             }
-            placeholder="ops@icrowed.lk, owner@icrowed.lk"
+            placeholder="ops@icrowd.lk, owner@icrowd.lk"
           />
         </FormField>
 

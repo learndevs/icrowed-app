@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db, orders, orderItems, coupons } from "@icrowed/database";
+import { db, orders, orderItems, coupons } from "@icrowd/database";
 import { eq, sql } from "drizzle-orm";
 import { requireAdmin } from "@/lib/admin";
 import { generateOrderNumber } from "@/lib/utils";

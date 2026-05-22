@@ -4,7 +4,7 @@
  *   apps/web/.env.local, repo .env.local, packages/database/.env.local
  *
  *   npm run db:seed          (from packages/database)
- *   npm run db:seed -w @icrowed/database  (from repo root)
+ *   npm run db:seed -w @icrowd/database  (from repo root)
  *   npm run db:seed          (from repo root — see root package.json)
  *
  * Includes Apple brand, 10 Figma categories, iPhones + AirPods + images.

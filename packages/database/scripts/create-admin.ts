@@ -1,9 +1,9 @@
 /**
  * Create (or promote) an admin user.
  *
- *   npm run admin:create -w @icrowed/database -- --email you@example.com [--password 'pw'] [--name 'Full Name']
+ *   npm run admin:create -w @icrowd/database -- --email you@example.com [--password 'pw'] [--name 'Full Name']
  *
- * Loads SUPABASE creds from icrowed-app/.env.local (same as seed.ts).
+ * Loads SUPABASE creds from icrowd-app/.env.local (same as seed.ts).
  * Uses the Supabase Auth Admin REST API + PostgREST so no extra deps are needed.
  *
  * Requires SUPABASE_SERVICE_ROLE_KEY to be the real service_role JWT

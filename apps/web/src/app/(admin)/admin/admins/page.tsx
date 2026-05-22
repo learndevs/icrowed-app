@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { ShieldCheck } from "lucide-react";
 import { formatDate } from "@/lib/utils";
-import { db, profiles } from "@icrowed/database";
+import { db, profiles } from "@icrowd/database";
 import { inArray, desc } from "drizzle-orm";
 import { InviteAdminForm } from "./InviteAdminForm";
 

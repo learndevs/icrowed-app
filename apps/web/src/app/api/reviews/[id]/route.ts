@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { approveReview, deleteReview } from "@icrowed/database/queries";
+import { approveReview, deleteReview } from "@icrowd/database/queries";
 import { requireAdmin } from "@/lib/admin";
 
 export async function PATCH(

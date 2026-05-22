@@ -1797,7 +1797,7 @@
           "type": "varchar(255)",
           "primaryKey": false,
           "notNull": true,
-          "default": "'iCrowed'"
+          "default": "'iCrowd'"
         },
         "store_email": {
           "name": "store_email",

@@ -7,7 +7,7 @@ export type WelcomeData = {
 
 export function welcomeTemplate(data: WelcomeData): string {
   const content = `
-    <h1 style="margin:0 0 8px;color:#111827;font-size:22px;font-weight:700;">Welcome to iCrowed! 🎉</h1>
+    <h1 style="margin:0 0 8px;color:#111827;font-size:22px;font-weight:700;">Welcome to iCrowd! 🎉</h1>
     <p style="margin:0 0 24px;color:#6b7280;font-size:15px;">Hi ${data.customerName}, your account has been created and you're ready to shop.</p>
 
     ${divider()}

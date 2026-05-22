@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
-import { db, orders, orderStatusHistory } from "@icrowed/database";
+import { db, orders, orderStatusHistory } from "@icrowd/database";
 import { eq } from "drizzle-orm";
 import Stripe from "stripe";
 import { sendEmail } from "@/lib/email";

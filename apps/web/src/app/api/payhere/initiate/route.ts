@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
         cancel_url: `${appUrl}/checkout?cancelled=1`,
         notify_url: `${appUrl}/api/payhere/notify`,
         order_id: orderNumber,
-        items: `iCrowed Order ${orderNumber}`,
+        items: `iCrowd Order ${orderNumber}`,
         currency,
         amount,
         first_name: firstName,

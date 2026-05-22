@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db } from "@icrowed/database";
-import { products, categories, brands } from "@icrowed/database";
+import { db } from "@icrowd/database";
+import { products, categories, brands } from "@icrowd/database";
 import { eq } from "drizzle-orm";
-import { updateProduct, deleteProduct, listVariantsForProduct, syncProductVariants } from "@icrowed/database/queries";
+import { updateProduct, deleteProduct, listVariantsForProduct, syncProductVariants } from "@icrowd/database/queries";
 import { requireAdmin } from "@/lib/admin";
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {

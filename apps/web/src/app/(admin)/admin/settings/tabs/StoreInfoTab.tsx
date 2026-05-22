@@ -22,7 +22,7 @@ type Initial = {
 
 export function StoreInfoTab({ initial }: { initial: Initial }) {
   const [form, setForm] = useState({
-    storeName: initial.storeName ?? "iCrowed",
+    storeName: initial.storeName ?? "iCrowd",
     storeEmail: initial.storeEmail ?? "",
     supportPhone: initial.supportPhone ?? "",
     currency: initial.currency ?? "LKR",

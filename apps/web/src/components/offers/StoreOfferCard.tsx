@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowUpRight, Tag, Clock } from "lucide-react";
-import type { getActiveOffers } from "@icrowed/database/queries";
+import type { getActiveOffers } from "@icrowd/database/queries";
 import { cn } from "@/lib/utils";
 
 export type StoreOffer = Awaited<ReturnType<typeof getActiveOffers>>[number];

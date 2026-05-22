@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { db } from "@icrowed/database";
-import { profiles } from "@icrowed/database";
+import { db } from "@icrowd/database";
+import { profiles } from "@icrowd/database";
 import { eq } from "drizzle-orm";
 
 export type AdminContext = {

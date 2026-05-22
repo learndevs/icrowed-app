@@ -40,7 +40,7 @@ export async function GET(req: NextRequest) {
 
   const lines: string[] = [];
   lines.push(
-    `# iCrowed analytics export — ${range.from.toISOString()} → ${range.to.toISOString()}`
+    `# iCrowd analytics export — ${range.from.toISOString()} → ${range.to.toISOString()}`
   );
   lines.push("");
   lines.push("Section,Metric,Value");

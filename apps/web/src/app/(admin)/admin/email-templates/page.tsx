@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { Mail } from "lucide-react";
 import { formatDate } from "@/lib/utils";
-import { listEmailTemplates } from "@icrowed/database";
+import { listEmailTemplates } from "@icrowd/database";
 import { TEMPLATE_LABELS, type TemplateKey } from "@/lib/email-templates/loader";
 
 export const dynamic = "force-dynamic";

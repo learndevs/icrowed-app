@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { updateOffer, deleteOffer } from "@icrowed/database/queries";
+import { updateOffer, deleteOffer } from "@icrowd/database/queries";
 import { requireAdmin } from "@/lib/admin";
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {

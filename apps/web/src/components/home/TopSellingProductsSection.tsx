@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getTopSellingProducts } from "@icrowed/database/queries";
+import { getTopSellingProducts } from "@icrowd/database/queries";
 import {
   TopSellingProductCard,
   type TopSellingProductData,

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db, coupons } from "@icrowed/database";
+import { db, coupons } from "@icrowd/database";
 import { eq } from "drizzle-orm";
 
 export async function POST(req: NextRequest) {

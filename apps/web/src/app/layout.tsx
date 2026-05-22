@@ -28,8 +28,8 @@ const playfair = Playfair_Display({
 
 export const metadata: Metadata = {
   title: {
-    default: "iCrowed — Mobile Phones & Accessories in Sri Lanka",
-    template: "%s | iCrowed",
+    default: "iCrowd — Mobile Phones & Accessories in Sri Lanka",
+    template: "%s | iCrowd",
   },
   description:
     "Shop the latest smartphones, cases, chargers and accessories in Sri Lanka. Fast island-wide delivery, genuine products.",

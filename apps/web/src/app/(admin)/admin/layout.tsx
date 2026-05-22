@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { db, profiles } from "@icrowed/database";
+import { db, profiles } from "@icrowd/database";
 import { eq } from "drizzle-orm";
 import { AdminSidebar } from "./AdminSidebar";
 import { AdminHeader } from "./AdminHeader";

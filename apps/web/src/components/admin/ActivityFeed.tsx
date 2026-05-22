@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { formatDate } from "@/lib/utils";
-import { listAuditLogs } from "@icrowed/database";
+import { listAuditLogs } from "@icrowd/database";
 
 interface Props {
   entityType?: string;

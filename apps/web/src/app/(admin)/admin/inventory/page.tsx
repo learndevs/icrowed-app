@@ -2,7 +2,7 @@ import { Card, CardContent } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
 import { formatPrice } from "@/lib/utils";
 import Link from "next/link";
-import { db, products, categories } from "@icrowed/database";
+import { db, products, categories } from "@icrowd/database";
 import { eq, asc, and } from "drizzle-orm";
 import { Button } from "@/components/ui/Button";
 import { Pencil } from "lucide-react";

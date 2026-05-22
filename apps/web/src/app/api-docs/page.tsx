@@ -1,7 +1,7 @@
 import Script from "next/script";
 
 export const metadata = {
-  title: "API Docs | iCrowed",
+  title: "API Docs | iCrowd",
 };
 
 export default function ApiDocsPage() {

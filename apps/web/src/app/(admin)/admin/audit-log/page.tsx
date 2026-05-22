@@ -4,7 +4,7 @@ import { Pagination } from "@/components/ui/DataTable";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Activity } from "lucide-react";
 import { formatDate } from "@/lib/utils";
-import { listAuditLogs } from "@icrowed/database";
+import { listAuditLogs } from "@icrowd/database";
 import { AuditDiffButton } from "./AuditDiffDialog";
 
 export const dynamic = "force-dynamic";

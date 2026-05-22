@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getProducts } from "@icrowed/database/queries";
+import { getProducts } from "@icrowd/database/queries";
 
 export async function GET() {
   try {

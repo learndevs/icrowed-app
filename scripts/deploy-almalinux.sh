@@ -1,13 +1,13 @@
 #!/usr/bin/env bash
-# AlmaLinux / RHEL VPS setup for iCrowed Next.js app
+# AlmaLinux / RHEL VPS setup for iCrowd Next.js app
 # Run as root on the server: bash deploy-almalinux.sh
 
 set -euo pipefail
 
-APP_DIR="/var/www/icrowed-app"
-APP_USER="icrowed"
+APP_DIR="/var/www/icrowd-app"
+APP_USER="icrowd"
 NODE_MAJOR=20
-REPO_URL="https://github.com/learndevs/icrowed-app.git"
+REPO_URL="https://github.com/learndevs/icrowd-app.git"
 BRANCH="${BRANCH:-merge}"
 PORT="${PORT:-3000}"
 APP_URL="${APP_URL:-http://216.10.251.167}"
@@ -53,9 +53,9 @@ else
   echo "NEXT_PUBLIC_APP_URL=${APP_URL}" >> "${ENV_FILE}"
 fi
 
-# Required by @icrowed/env at runtime — add placeholders if missing
+# Required by @icrowd/env at runtime — add placeholders if missing
 grep -q '^RESEND_API_KEY=' "${ENV_FILE}" || echo 'RESEND_API_KEY=re_placeholder_replace_me' >> "${ENV_FILE}"
-grep -q '^EMAIL_FROM=' "${ENV_FILE}" || echo 'EMAIL_FROM=orders@icrowed.com' >> "${ENV_FILE}"
+grep -q '^EMAIL_FROM=' "${ENV_FILE}" || echo 'EMAIL_FROM=orders@icrowd.com' >> "${ENV_FILE}"
 grep -q '^STRIPE_SECRET_KEY=' "${ENV_FILE}" || echo 'STRIPE_SECRET_KEY=sk_test_placeholder' >> "${ENV_FILE}"
 grep -q '^STRIPE_WEBHOOK_SECRET=' "${ENV_FILE}" || echo 'STRIPE_WEBHOOK_SECRET=whsec_placeholder' >> "${ENV_FILE}"
 
@@ -65,15 +65,15 @@ sudo -u "${APP_USER}" npm ci
 sudo -u "${APP_USER}" npm run netlify:build
 
 echo "==> Starting app with PM2..."
-sudo -u "${APP_USER}" pm2 delete icrowed-web 2>/dev/null || true
-sudo -u "${APP_USER}" env PORT="${PORT}" pm2 start npm --name icrowed-web -- start --workspace=web
+sudo -u "${APP_USER}" pm2 delete icrowd-web 2>/dev/null || true
+sudo -u "${APP_USER}" env PORT="${PORT}" pm2 start npm --name icrowd-web -- start --workspace=web
 sudo -u "${APP_USER}" pm2 save
 
 echo "==> Enabling PM2 on boot..."
 env PATH="$PATH" pm2 startup systemd -u "${APP_USER}" --hp "${APP_DIR}" | tail -1 | bash || true
 
 echo "==> Configuring nginx reverse proxy..."
-cat > /etc/nginx/conf.d/icrowed.conf <<NGINX
+cat > /etc/nginx/conf.d/icrowd.conf <<NGINX
 server {
     listen 80 default_server;
     listen [::]:80 default_server;
@@ -107,10 +107,10 @@ echo "============================================"
 echo "Deploy complete."
 echo "  App URL: ${APP_URL}"
 echo "  PM2:     pm2 status -u ${APP_USER}"
-echo "  Logs:    sudo -u ${APP_USER} pm2 logs icrowed-web"
+echo "  Logs:    sudo -u ${APP_USER} pm2 logs icrowd-web"
 echo "  Env:     ${ENV_FILE}"
 echo ""
 echo "Edit ${ENV_FILE} with real Stripe/Resend keys, then:"
 echo "  cd ${APP_DIR} && sudo -u ${APP_USER} npm run netlify:build"
-echo "  sudo -u ${APP_USER} pm2 restart icrowed-web"
+echo "  sudo -u ${APP_USER} pm2 restart icrowd-web"
 echo "============================================"

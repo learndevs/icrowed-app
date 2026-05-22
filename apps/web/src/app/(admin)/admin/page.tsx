@@ -24,7 +24,7 @@ import {
   getRecentOrders,
   getTopProducts,
 } from "@/lib/admin-queries";
-import { db, products, listAuditLogs } from "@icrowed/database";
+import { db, products, listAuditLogs } from "@icrowd/database";
 import { eq, and, gt, lte, count } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";

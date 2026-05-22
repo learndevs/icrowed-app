@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { db, wishlists, products } from "@icrowed/database";
+import { db, wishlists, products } from "@icrowd/database";
 import { eq, inArray } from "drizzle-orm";
 
 export async function GET() {

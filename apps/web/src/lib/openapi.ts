@@ -860,10 +860,10 @@ export function getOpenApiSpec(origin = "http://localhost:3000") {
   return {
     openapi: "3.1.0",
     info: {
-      title: "iCrowed Backend API",
+      title: "iCrowd Backend API",
       version: "1.0.0",
       description:
-        "OpenAPI documentation for the iCrowed Next.js backend routes. Admin operations require an authenticated admin Supabase session.",
+        "OpenAPI documentation for the iCrowd Next.js backend routes. Admin operations require an authenticated admin Supabase session.",
     },
     servers: [{ url: origin }],
     tags: [

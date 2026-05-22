@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
-import { createReview, getAllReviews, getPendingReviews, hasUserPurchasedProduct } from "@icrowed/database/queries";
-import { clientEnv } from "@icrowed/env";
+import { createReview, getAllReviews, getPendingReviews, hasUserPurchasedProduct } from "@icrowd/database/queries";
+import { clientEnv } from "@icrowd/env";
 import { requireAdmin } from "@/lib/admin";
 import { notifyAdmins } from "@/lib/notify";
 

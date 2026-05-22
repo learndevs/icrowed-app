@@ -10,7 +10,7 @@ import {
 } from "react";
 import { createClient } from "@/lib/supabase/client";
 
-const STORAGE_KEY = "icrowed_wishlist";
+const STORAGE_KEY = "icrowd_wishlist";
 
 interface WishlistState {
   ids: Set<string>;

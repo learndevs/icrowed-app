@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { db, wishlists } from "@icrowed/database";
+import { db, wishlists } from "@icrowd/database";
 import { and, eq } from "drizzle-orm";
 
 export async function DELETE(

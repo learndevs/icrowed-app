@@ -1,5 +1,5 @@
 {
-  "name": "icrowed",
+  "name": "icrowd",
   "version": "0.1.0",
   "private": true,
   "packageManager": "npm@10.9.2",
@@ -13,11 +13,11 @@
     "build": "turbo build",
     "lint": "turbo lint",
     "type-check": "turbo type-check",
-    "db:generate": "turbo db:generate --filter=@icrowed/database",
-    "db:push": "turbo db:push --filter=@icrowed/database",
-    "db:studio": "turbo db:studio --filter=@icrowed/database",
-    "db:migrate": "turbo db:migrate --filter=@icrowed/database",
-    "db:seed": "npm run db:seed -w @icrowed/database"
+    "db:generate": "turbo db:generate --filter=@icrowd/database",
+    "db:push": "turbo db:push --filter=@icrowd/database",
+    "db:studio": "turbo db:studio --filter=@icrowd/database",
+    "db:migrate": "turbo db:migrate --filter=@icrowd/database",
+    "db:seed": "npm run db:seed -w @icrowd/database"
   },
   "devDependencies": {
     "@netlify/plugin-nextjs": "^5.15.10",

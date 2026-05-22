@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
         allowed_countries: ["LK"],
       },
       metadata: {
-        source: "icrowed-store",
+        source: "icrowd-store",
         ...(orderNumber ? { orderNumber } : {}),
       },
     });

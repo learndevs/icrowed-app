@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { listEmailTemplates } from "@icrowed/database";
+import { listEmailTemplates } from "@icrowd/database";
 import { requireAdmin } from "@/lib/admin";
 
 export async function GET() {

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getOrCreateShippingRates, upsertShippingRates } from "@icrowed/database";
+import { getOrCreateShippingRates, upsertShippingRates } from "@icrowd/database";
 import { requireAdmin } from "@/lib/admin";
 import { logAudit } from "@/lib/audit";
 

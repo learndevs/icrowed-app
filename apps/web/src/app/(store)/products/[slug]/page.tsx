@@ -8,7 +8,7 @@ import {
 import { ProductDetailClient } from "./ProductDetailClient";
 import { ProductImages } from "./ProductImages";
 import { ProductReviews } from "./ProductReviews";
-import { getProductBySlug } from "@icrowed/database/queries";
+import { getProductBySlug } from "@icrowd/database/queries";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -75,7 +75,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const product = await getProduct(slug);
   if (!product) return {};
-  return { title: `${product.name} | iCrowed` };
+  return { title: `${product.name} | iCrowd` };
 }
 
 export default async function ProductDetailPage({ params }: Props) {

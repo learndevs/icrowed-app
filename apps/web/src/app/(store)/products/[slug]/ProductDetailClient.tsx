@@ -9,7 +9,7 @@ import {
   normalizeVariantOptions,
   type VariantOptionKey,
   VARIANT_OPTION_LABELS,
-} from "@icrowed/database/variant-options";
+} from "@icrowd/database/variant-options";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { useRouter } from "next/navigation";

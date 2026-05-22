@@ -4,7 +4,7 @@ import {
   getOrCreateStoreSettings,
   getOrCreateShippingRates,
   getOrCreateNotificationPrefs,
-} from "@icrowed/database";
+} from "@icrowd/database";
 import { StoreInfoTab } from "./tabs/StoreInfoTab";
 import { ShippingTab } from "./tabs/ShippingTab";
 import { TaxTab } from "./tabs/TaxTab";

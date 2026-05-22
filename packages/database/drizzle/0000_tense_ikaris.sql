@@ -252,7 +252,7 @@ CREATE TABLE "email_templates" (
 --> statement-breakpoint
 CREATE TABLE "store_settings" (
 	"id" serial PRIMARY KEY NOT NULL,
-	"store_name" varchar(255) DEFAULT 'iCrowed' NOT NULL,
+	"store_name" varchar(255) DEFAULT 'iCrowd' NOT NULL,
 	"store_email" varchar(255),
 	"support_phone" varchar(30),
 	"currency" varchar(8) DEFAULT 'LKR' NOT NULL,

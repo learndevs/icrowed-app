@@ -1,5 +1,5 @@
 import { headers } from "next/headers";
-import { insertAuditLog } from "@icrowed/database";
+import { insertAuditLog } from "@icrowd/database";
 
 export type AuditAction =
   | "create"

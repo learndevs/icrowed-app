@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAllOffers, getActiveOffers, createOffer } from "@icrowed/database/queries";
+import { getAllOffers, getActiveOffers, createOffer } from "@icrowd/database/queries";
 import { requireAdmin } from "@/lib/admin";
 
 export async function GET(req: NextRequest) {

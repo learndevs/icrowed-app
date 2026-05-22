@@ -91,7 +91,7 @@ export default async function AccountPage() {
               <ArrowRight className="w-4 h-4 text-gray-300 group-hover:text-lime-600 group-hover:translate-x-0.5 transition-all shrink-0" />
             </Link>
 
-            {/* iCrowed promo card */}
+            {/* iCrowd promo card */}
             <div className="bento-card p-5 bg-gradient-to-br from-indigo-600 to-purple-700 text-white">
               <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center mb-3">
                 <Smartphone className="w-5 h-5 text-white" />
