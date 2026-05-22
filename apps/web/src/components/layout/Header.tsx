@@ -47,7 +47,7 @@ export default function Header() {
 
   return (
     <>
-    <header className="sticky top-0 z-50 border-b border-white/70 bg-white/40 backdrop-blur-2xl shadow-[0_10px_30px_rgba(15,23,42,0.08)]">
+    <header className="type-nav sticky top-0 z-50 border-b border-white/70 bg-white/40 backdrop-blur-2xl shadow-[0_10px_30px_rgba(15,23,42,0.08)]">
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-white/55 via-white/30 to-gray-100/20" />
       <div className="pointer-events-none absolute -top-16 right-10 h-36 w-36 rounded-full bg-white/70 blur-3xl" />
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">

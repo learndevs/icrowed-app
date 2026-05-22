@@ -16,7 +16,7 @@ const inter = Inter({
 const SECTION_HEADING_CLASS =
   "text-sm font-semibold uppercase tracking-wide text-black mb-4";
 const CONTACT_LABEL_CLASS =
-  "text-sm font-semibold uppercase tracking-wide text-black";
+  "text-sm font-medium uppercase tracking-wide text-black";
 
 const ACCORDION_SECTIONS = [
   {

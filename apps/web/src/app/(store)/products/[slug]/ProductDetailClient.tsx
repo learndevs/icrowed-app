@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Heart, ShoppingCart, Zap, AlertTriangle, PackageX } from "lucide-react";
+import { Heart, AlertTriangle, PackageX } from "lucide-react";
 import {
   activeVariantDimensions,
   colorSwatchHexByValue,
@@ -286,7 +286,7 @@ export function ProductDetailClient({ product }: Readonly<Props>) {
                           disabled={soldOut}
                           aria-label={`${VARIANT_OPTION_LABELS[dim]}: ${val}`}
                           className={cn(
-                            "flex flex-col items-center gap-1.5 min-w-[52px] transition-transform",
+                            "transition-transform",
                             soldOut ? "cursor-not-allowed opacity-40" : "hover:scale-[1.02] active:scale-[0.98]",
                           )}
                         >
@@ -299,16 +299,8 @@ export function ProductDetailClient({ product }: Readonly<Props>) {
                                 : "border-gray-300 hover:border-gray-500",
                             )}
                             style={swatchHex ? { backgroundColor: swatchHex } : undefined}
-                            title={swatchHex ? val : `${val} — set swatch hex in admin for a custom color`}
+                            title={val}
                           />
-                          <span
-                            className={cn(
-                              "text-[10px] font-semibold text-center leading-tight max-w-[4.5rem] truncate",
-                              soldOut ? "text-gray-400 line-through" : "text-gray-600",
-                            )}
-                          >
-                            {val}
-                          </span>
                         </button>
                       );
                     }
@@ -360,7 +352,6 @@ export function ProductDetailClient({ product }: Readonly<Props>) {
                 : "bg-gray-900 hover:bg-indigo-600 text-white active:scale-[0.97] shadow-sm hover:shadow-indigo-200"
           }`}
         >
-          <ShoppingCart className="w-4 h-4" />
           {outOfStock ? "Out of Stock" : added ? "Added!" : "Add to Cart"}
         </button>
 
@@ -370,7 +361,6 @@ export function ProductDetailClient({ product }: Readonly<Props>) {
           disabled={outOfStock}
           className="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl text-sm font-bold border-2 border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed active:scale-[0.97] transition-all duration-200"
         >
-          <Zap className="w-4 h-4" />
           Buy Now
         </button>
 

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
-  Shield, Truck, RefreshCw, Star,
+  Star,
   ChevronRight, SlidersHorizontal,
 } from "lucide-react";
 import { ProductDetailClient } from "./ProductDetailClient";
@@ -158,23 +158,6 @@ export default async function ProductDetailPage({ params }: Props) {
                 primaryImageUrl: product.images.find((i) => i.isPrimary)?.url ?? product.images[0]?.url ?? null,
               }}
             />
-
-            {/* Trust strip */}
-            <div className="grid grid-cols-3 gap-2 pt-3 border-t border-gray-100">
-              {[
-                { Icon: Truck,      label: "Free Delivery",     sub: "Over LKR 5,000" },
-                { Icon: Shield,     label: "Official Warranty", sub: "Manufacturer" },
-                { Icon: RefreshCw,  label: "7-day Returns",     sub: "Hassle-free" },
-              ].map(({ Icon, label, sub }) => (
-                <div key={label} className="flex flex-col items-center text-center gap-1 p-3 bg-gray-50 rounded-2xl">
-                  <div className="w-8 h-8 rounded-xl bg-white flex items-center justify-center shadow-sm">
-                    <Icon className="w-4 h-4 text-indigo-600" />
-                  </div>
-                  <span className="text-[11px] font-bold text-gray-800">{label}</span>
-                  <span className="text-[10px] text-gray-400">{sub}</span>
-                </div>
-              ))}
-            </div>
 
             {/* Description */}
             <p className="text-sm text-gray-500 leading-relaxed border-t border-gray-100 pt-4">
