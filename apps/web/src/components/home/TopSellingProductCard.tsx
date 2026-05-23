@@ -30,7 +30,7 @@ export function TopSellingProductCard({
   product,
 }: Readonly<{ product: TopSellingProductData }>) {
   const discount = discountPercent(product.price, product.comparePrice);
-  const sold = product.soldCount ?? 307;
+  const sold = product.soldCount;
   const isOOS = product.stock === 0;
 
   return (
@@ -94,16 +94,20 @@ export function TopSellingProductCard({
         </p>
 
         <div className="mt-1.5 flex items-center gap-1 md:mt-2 md:gap-1.5">
-          <div className="flex items-center gap-0.5" aria-hidden>
-            {Array.from({ length: 5 }).map((_, i) => (
-              <Star
-                key={i}
-                className="h-3 w-3 fill-[#F5B301] text-[#F5B301] md:h-3.5 md:w-3.5"
-                strokeWidth={0}
-              />
-            ))}
-          </div>
-          <span className="text-[10px] font-medium text-zinc-500 md:text-xs">{sold} sold</span>
+          {sold != null && sold > 0 && (
+            <>
+              <div className="flex items-center gap-0.5" aria-hidden>
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Star
+                    key={i}
+                    className="h-3 w-3 fill-[#F5B301] text-[#F5B301] md:h-3.5 md:w-3.5"
+                    strokeWidth={0}
+                  />
+                ))}
+              </div>
+              <span className="text-[10px] font-medium text-zinc-500 md:text-xs">{sold} sold</span>
+            </>
+          )}
         </div>
 
         <TopSellingAddToCartButton

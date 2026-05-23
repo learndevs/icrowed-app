@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { getBrandBySlug, getBrands, getProductsByBrandSlug, getReviewSummariesForProducts } from "@icrowd/database/queries";
+import { getBrandBySlug, getBrands, getCategories, getProductsByBrandSlug, getReviewSummariesForProducts } from "@icrowd/database/queries";
 import { ProductsClient } from "../../ProductsClient";
 import type { ProductCardData } from "@/components/products/ProductCard";
 
@@ -50,12 +50,14 @@ export default async function BrandProductsPage({ params }: Props) {
   const brand = await getBrandBySlug(slug).catch(() => null);
   if (!brand) notFound();
 
-  const [dbProducts, brandRows] = await Promise.all([
+  const [dbProducts, brandRows, categoryRows] = await Promise.all([
     getProductsByBrandSlug(slug, { limit: 200 }).catch(() => []),
     getBrands().catch(() => []),
+    getCategories().catch(() => []),
   ]);
 
   const brandFilterNames = brandRows.map((b) => b.name);
+  const categoryFilterOptions = categoryRows.map((c) => ({ slug: c.slug, name: c.name }));
   const brandById = new Map(brandRows.map((b) => [b.id, b.name]));
 
   const reviewSummaries = await getReviewSummariesForProducts(dbProducts.map((p) => p.id)).catch(
@@ -93,6 +95,7 @@ export default async function BrandProductsPage({ params }: Props) {
       <ProductsClient
         products={products}
         brandFilterNames={brandFilterNames}
+        categoryFilterOptions={categoryFilterOptions}
         initialBrand={brand.name}
         listTitle={brand.name}
       />

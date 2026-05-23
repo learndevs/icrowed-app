@@ -6,7 +6,25 @@ import {
   SlidersHorizontal, X, Star, Search, ChevronLeft,
   ChevronRight, Filter,
 } from "lucide-react";
-import { ProductCard, type ProductCardData } from "@/components/products/ProductCard";
+import {
+  TopSellingProductCard,
+  type TopSellingProductData,
+} from "@/components/home/TopSellingProductCard";
+import type { ProductCardData } from "@/components/products/ProductCard";
+
+export type CategoryFilterOption = { slug: string; name: string };
+
+function toTopSellingProduct(product: ProductCardData): TopSellingProductData {
+  return {
+    id: product.id,
+    name: product.name,
+    slug: product.slug,
+    price: product.price,
+    comparePrice: product.comparePrice,
+    imageUrl: product.imageUrl,
+    stock: product.stock,
+  };
+}
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 const PAGE_SIZE = 16;
@@ -48,6 +66,7 @@ export function ProductsClient({
   initialBrand,
   listTitle,
   brandFilterNames,
+  categoryFilterOptions = [],
 }: Readonly<{
   products: ProductCardData[];
   /** Pre-select this brand (display name, e.g. "Apple") when present on products */
@@ -56,6 +75,8 @@ export function ProductsClient({
   listTitle?: string;
   /** Active brands from DB — merged into the Brand filter so names always match the catalog */
   brandFilterNames?: readonly string[];
+  /** Active categories from DB for the sidebar filter */
+  categoryFilterOptions?: readonly CategoryFilterOption[];
 }>) {
   const searchParams = useSearchParams();
   const router       = useRouter();
@@ -164,6 +185,15 @@ export function ProductsClient({
     resetPage();
   }
 
+  function toggleCategory(slug: string) {
+    setCategorySlug((current) => (current === slug ? "" : slug));
+    resetPage();
+  }
+
+  const activeCategoryName = categoryFilterOptions.find(
+    (c) => c.slug.toLowerCase() === categorySlug,
+  )?.name;
+
   function clearFilters() {
     setFilters(DEFAULT_FILTERS);
     setSearch("");
@@ -175,7 +205,7 @@ export function ProductsClient({
   const chips: { label: string; onRemove: () => void }[] = [
     ...(categorySlug
       ? [{
-          label: `Category: ${categorySlug}`,
+          label: `Category: ${activeCategoryName ?? categorySlug}`,
           onRemove: () => { setCategorySlug(""); resetPage(); },
         }]
       : []),
@@ -208,6 +238,43 @@ export function ProductsClient({
   // ── Filter panel shared content ─────────────────────────────────────────────
   const filterPanel = (
     <div className="flex flex-col gap-6">
+
+      {/* Category */}
+      {categoryFilterOptions.length > 0 && (
+        <div>
+          <p className="text-[10px] font-extrabold text-gray-400 uppercase tracking-widest mb-3">Category</p>
+          <div className="flex flex-col gap-2">
+            {categoryFilterOptions.map((category) => {
+              const slug = category.slug.toLowerCase();
+              const active = categorySlug === slug;
+              return (
+                <label key={category.slug} className="flex items-center gap-2.5 cursor-pointer group">
+                  <div
+                    className={`w-4 h-4 rounded-full flex items-center justify-center border transition-colors ${
+                      active
+                        ? "bg-indigo-600 border-indigo-600"
+                        : "border-gray-300 group-hover:border-indigo-400"
+                    }`}
+                    onClick={() => toggleCategory(slug)}
+                  >
+                    {active && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                  </div>
+                  <input
+                    type="radio"
+                    className="sr-only"
+                    name="category-filter"
+                    checked={active}
+                    onChange={() => toggleCategory(slug)}
+                  />
+                  <span className={`text-sm transition-colors ${active ? "text-gray-900 font-semibold" : "text-gray-600 group-hover:text-gray-900"}`}>
+                    {category.name}
+                  </span>
+                </label>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Brand */}
       <div>
@@ -483,7 +550,9 @@ export function ProductsClient({
               <>
                 <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-3">
                   {paginated.map((product) => (
-                    <ProductCard key={product.id} product={product} />
+                    <div key={product.id} className="min-w-0">
+                      <TopSellingProductCard product={toTopSellingProduct(product)} />
+                    </div>
                   ))}
                 </div>
 

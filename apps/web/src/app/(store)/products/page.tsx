@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { ProductsClient } from "./ProductsClient";
 import type { ProductCardData } from "@/components/products/ProductCard";
-import { getBrands, getProducts, getReviewSummariesForProducts } from "@icrowd/database/queries";
+import { getBrands, getCategories, getProducts, getReviewSummariesForProducts } from "@icrowd/database/queries";
 
 export const metadata: Metadata = { title: "All Products | iCrowd" };
 
@@ -37,12 +37,14 @@ function primaryImageUrl(images: unknown): string | undefined {
 }
 
 export default async function ProductsPage() {
-  const [dbProducts, brandRows] = await Promise.all([
+  const [dbProducts, brandRows, categoryRows] = await Promise.all([
     getProducts({ limit: 500 }).catch(() => []),
     getBrands().catch(() => []),
+    getCategories().catch(() => []),
   ]);
 
   const brandFilterNames = brandRows.map((b) => b.name);
+  const categoryFilterOptions = categoryRows.map((c) => ({ slug: c.slug, name: c.name }));
   const brandById = new Map(brandRows.map((b) => [b.id, b.name]));
 
   const reviewSummaries = await getReviewSummariesForProducts(dbProducts.map((p) => p.id)).catch(
@@ -77,7 +79,11 @@ export default async function ProductsPage() {
 
   return (
     <Suspense fallback={<div className="bento-bg min-h-screen" />}>
-      <ProductsClient products={products} brandFilterNames={brandFilterNames} />
+      <ProductsClient
+        products={products}
+        brandFilterNames={brandFilterNames}
+        categoryFilterOptions={categoryFilterOptions}
+      />
     </Suspense>
   );
 }
