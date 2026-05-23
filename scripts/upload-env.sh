@@ -7,7 +7,7 @@ set -euo pipefail
 SERVER="${SERVER:-root@216.10.251.167}"
 SSH_PORT="${SSH_PORT:-22}"
 REMOTE_DIR="${REMOTE_DIR:-/var/www/icrowd-app/apps/web}"
-APP_URL="${APP_URL:-http://dertt.lk}"
+APP_URL="${APP_URL:-http://icrowd.lk}"
 SCP_OPTS=(-P "${SSH_PORT}")
 SRC="apps/web/.env.local"
 TMP="$(mktemp)"

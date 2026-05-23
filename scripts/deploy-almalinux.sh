@@ -10,7 +10,7 @@ NODE_MAJOR=20
 REPO_URL="https://github.com/learndevs/icrowd-app.git"
 BRANCH="${BRANCH:-merge}"
 PORT="${PORT:-3000}"
-DOMAIN="${DOMAIN:-dertt.lk}"
+DOMAIN="${DOMAIN:-icrowd.lk}"
 APP_URL="${APP_URL:-http://${DOMAIN}}"
 
 echo "==> Installing system packages..."

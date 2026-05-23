@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
-# Install nginx, configure reverse proxy for dertt.lk, and restart the Next.js app.
+# Install nginx, configure reverse proxy for icrowd.lk, and restart the Next.js app.
 # Run as root on the AlmaLinux VPS:
 #   curl -fsSL ... | bash
 # Or from a cloned repo:
-#   DOMAIN=dertt.lk APP_URL=http://dertt.lk bash scripts/setup-nginx-reverse-proxy.sh
+#   DOMAIN=icrowd.lk APP_URL=http://icrowd.lk bash scripts/setup-nginx-reverse-proxy.sh
 
 set -euo pipefail
 
 APP_DIR="${APP_DIR:-/var/www/icrowd-app}"
 APP_USER="${APP_USER:-icrowd}"
 PORT="${PORT:-3000}"
-DOMAIN="${DOMAIN:-dertt.lk}"
+DOMAIN="${DOMAIN:-icrowd.lk}"
 APP_URL="${APP_URL:-http://${DOMAIN}}"
 
 echo "==> Installing nginx and firewalld (if missing)..."
