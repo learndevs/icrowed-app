@@ -57,7 +57,7 @@ export default function CartPage() {
 
   if (items.length === 0) {
     return (
-      <div className="font-inter bento-bg min-h-screen flex items-center justify-center px-4 py-20">
+      <div className="font-inter checkout-flow-bg min-h-screen flex items-center justify-center px-4 py-20">
         <div className="text-center max-w-sm">
           <div className="w-24 h-24 rounded-xl bg-gray-900 flex items-center justify-center mx-auto mb-6">
             <ShoppingBag className="w-10 h-10 text-white" />
@@ -89,7 +89,7 @@ export default function CartPage() {
   const hasOOS = oosItems.length > 0;
 
   return (
-    <div className="font-inter bento-bg min-h-screen">
+    <div className="font-inter checkout-flow-bg min-h-screen">
       <div className="max-w-[1400px] mx-auto px-3 sm:px-5 lg:px-8 py-6">
 
         <div className="flex items-center gap-3 mb-6">

@@ -274,3 +274,11 @@ body {
   background: linear-gradient(135deg, #f0f1f5 0%, #e8eaf0 50%, #ededf2 100%);
   min-height: 100vh;
 }
+
+/* Cart → checkout → success */
+.checkout-flow-bg {
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(243, 244, 246, 0.9) 0%, transparent 55%),
+    linear-gradient(180deg, #ffffff 0%, #fafafa 50%, #f3f4f6 100%);
+  min-height: 100vh;
+}

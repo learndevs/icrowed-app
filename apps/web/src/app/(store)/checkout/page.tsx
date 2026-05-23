@@ -347,7 +347,7 @@ export default function CheckoutPage() {
     "border-gray-100 bg-gray-50/50 hover:border-gray-300";
 
   return (
-    <div className="min-h-screen bento-bg">
+    <div className="min-h-screen">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-10">
 
         {/* ── Page header ── */}
