@@ -6,7 +6,7 @@ set -euo pipefail
 
 SERVER="${SERVER:-root@216.10.251.167}"
 SSH_PORT="${SSH_PORT:-22}"
-REMOTE_DIR="${REMOTE_DIR:-/var/www/icrowd-app/apps/web}"
+REMOTE_DIR="${REMOTE_DIR:-/var/www/icrowed-app/apps/web}"
 APP_URL="${APP_URL:-http://icrowd.lk}"
 SCP_OPTS=(-P "${SSH_PORT}")
 SRC="apps/web/.env.local"
@@ -48,4 +48,4 @@ echo "Uploading env to ${SERVER}:${REMOTE_DIR}/.env (SSH port ${SSH_PORT})"
 scp "${SCP_OPTS[@]}" "$TMP" "${SERVER}:${REMOTE_DIR}/.env"
 rm -f "$TMP"
 echo "Done. On the server run:"
-echo "  cd /var/www/icrowd-app && npm run netlify:build && pm2 restart icrowd-web || pm2 start npm --name icrowd-web -- start --workspace=web"
+echo "  cd /var/www/icrowed-app && bash scripts/rebuild-and-restart.sh"

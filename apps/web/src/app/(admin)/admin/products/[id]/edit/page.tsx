@@ -23,6 +23,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { SpecificationsEditor } from "@/components/admin/SpecificationsEditor";
+import { markdownToSpecifications, specificationsToMarkdown } from "@/lib/specifications";
 import {
   VARIANT_OPTION_KEYS,
   VARIANT_OPTION_LABELS,
@@ -171,34 +173,6 @@ function SectionCard({
   );
 }
 
-function SpecRow({
-  spec,
-  onKeyChange,
-  onValueChange,
-  onRemove,
-}: {
-  spec: { key: string; value: string };
-  onKeyChange: (v: string) => void;
-  onValueChange: (v: string) => void;
-  onRemove: () => void;
-}) {
-  const ROW_INPUT =
-    "flex-1 h-10 px-3 rounded-lg border border-gray-200 text-sm bg-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-all";
-  return (
-    <div className="flex gap-2 group">
-      <input className={ROW_INPUT} placeholder="e.g. Display" value={spec.key} onChange={(e) => onKeyChange(e.target.value)} />
-      <input className={ROW_INPUT} placeholder="e.g. 6.8″ AMOLED 120Hz" value={spec.value} onChange={(e) => onValueChange(e.target.value)} />
-      <button
-        type="button"
-        onClick={onRemove}
-        className="w-10 h-10 shrink-0 flex items-center justify-center rounded-lg text-gray-300 hover:text-red-400 hover:bg-red-50 transition-colors"
-      >
-        <X className="w-3.5 h-3.5" />
-      </button>
-    </div>
-  );
-}
-
 /* ─── Page ──────────────────────────────────────── */
 
 export default function EditProductPage({ params }: { params: Promise<{ id: string }> }) {
@@ -225,7 +199,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
   const [isFeatured, setIsFeatured] = useState(false);
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
-  const [specs, setSpecs] = useState<{ key: string; value: string }[]>([]);
+  const [specificationsMarkdown, setSpecificationsMarkdown] = useState("");
   const [variantRows, setVariantRows] = useState<EditVariantRow[]>([]);
 
   const [images, setImages] = useState<ProductImage[]>([]);
@@ -272,10 +246,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
         setIsActive(product.isActive ?? true);
         setIsFeatured(product.isFeatured ?? false);
         setTags(product.tags ?? []);
-        const rawSpecs = product.specifications;
-        if (rawSpecs && typeof rawSpecs === "object") {
-          setSpecs(Object.entries(rawSpecs as Record<string, string>).map(([key, value]) => ({ key, value })));
-        }
+        setSpecificationsMarkdown(specificationsToMarkdown(product.specifications));
         setVariantRows(
           Array.isArray(product.variants) ? product.variants.map(mapApiVariantToRow) : [],
         );
@@ -283,10 +254,6 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
       .catch(() => setError("Failed to load product"))
       .finally(() => setLoadingProduct(false));
   }, [productId]);
-
-  function updateSpec(i: number, field: "key" | "value", val: string) {
-    setSpecs((prev) => { const next = [...prev]; next[i] = { ...next[i], [field]: val }; return next; });
-  }
 
   function addTag() {
     const t = tagInput.trim();
@@ -359,10 +326,6 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
     setSaving(true);
     setError(null);
     try {
-      const specsObj = specs
-        .filter((s) => s.key.trim())
-        .reduce<Record<string, string>>((acc, s) => { acc[s.key] = s.value; return acc; }, {});
-
       const res = await fetch(`/api/products/${productId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -373,7 +336,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
           price, comparePrice: comparePrice || null, cost: cost || null,
           stock: Number(stock), lowStockThreshold: Number(lowStockThreshold),
           isActive, isFeatured, tags,
-          specifications: Object.keys(specsObj).length ? specsObj : null,
+          specifications: markdownToSpecifications(specificationsMarkdown),
           variants: variantRowsToPayload(variantRows),
         }),
       });
@@ -653,37 +616,11 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
           </SectionCard>
 
           {/* Specifications */}
-          <SectionCard
-            icon={Cpu}
-            title="Specifications"
-            action={
-              <button
-                type="button"
-                onClick={() => setSpecs((prev) => [...prev, { key: "", value: "" }])}
-                className="flex items-center gap-1.5 text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition-colors"
-              >
-                <Plus className="w-3.5 h-3.5" /> Add Row
-              </button>
-            }
-          >
-            <div className="grid grid-cols-2 gap-2 mb-2 px-0.5">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Specification</span>
-              <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Value</span>
-            </div>
-            <div className="space-y-2">
-              {specs.map((spec, i) => (
-                <SpecRow
-                  key={i}
-                  spec={spec}
-                  onKeyChange={(v) => updateSpec(i, "key", v)}
-                  onValueChange={(v) => updateSpec(i, "value", v)}
-                  onRemove={() => setSpecs((prev) => prev.filter((_, j) => j !== i))}
-                />
-              ))}
-              {specs.length === 0 && (
-                <p className="text-center py-6 text-sm text-gray-400">No specs yet — click &ldquo;Add Row&rdquo; above.</p>
-              )}
-            </div>
+          <SectionCard icon={Cpu} title="Specifications">
+            <SpecificationsEditor
+              value={specificationsMarkdown}
+              onChange={setSpecificationsMarkdown}
+            />
           </SectionCard>
 
           {/* Shipping */}

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { getBrandBySlug, getBrands, getProductsByBrandSlug } from "@icrowd/database/queries";
+import { getBrandBySlug, getBrands, getProductsByBrandSlug, getReviewSummariesForProducts } from "@icrowd/database/queries";
 import { ProductsClient } from "../../ProductsClient";
 import type { ProductCardData } from "@/components/products/ProductCard";
 
@@ -58,6 +58,10 @@ export default async function BrandProductsPage({ params }: Props) {
   const brandFilterNames = brandRows.map((b) => b.name);
   const brandById = new Map(brandRows.map((b) => [b.id, b.name]));
 
+  const reviewSummaries = await getReviewSummariesForProducts(dbProducts.map((p) => p.id)).catch(
+    () => new Map<string, { rating: number; reviewCount: number }>(),
+  );
+
   const products: ProductCardData[] = dbProducts.map((p) => {
     const row = p as {
       brand?: { name?: string } | null;
@@ -66,6 +70,7 @@ export default async function BrandProductsPage({ params }: Props) {
     };
     const brandName =
       row.brand?.name ?? (row.brandId ? brandById.get(row.brandId) : undefined);
+    const reviewStats = reviewSummaries.get(p.id);
     return {
       id: p.id,
       name: p.name,
@@ -78,6 +83,8 @@ export default async function BrandProductsPage({ params }: Props) {
       badge: p.comparePrice ? "Sale" : undefined,
       brand: brandName,
       categorySlug: row.category?.slug,
+      rating: reviewStats?.rating ?? 0,
+      reviewCount: reviewStats?.reviewCount ?? 0,
     };
   });
 

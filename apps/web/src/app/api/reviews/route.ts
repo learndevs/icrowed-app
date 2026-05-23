@@ -22,30 +22,8 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const cookieStore = await cookies();
-    const supabase = createServerClient(
-      clientEnv.NEXT_PUBLIC_SUPABASE_URL,
-      clientEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-      {
-        cookies: {
-          getAll: () => cookieStore.getAll(),
-          setAll: (toSet) => {
-            for (const { name, value, options } of toSet) {
-              cookieStore.set(name, value, options);
-            }
-          },
-        },
-      }
-    );
-
-    const { data: { user } } = await supabase.auth.getUser();
-
-    if (!user) {
-      return NextResponse.json({ error: "You must be signed in to write a review" }, { status: 401 });
-    }
-
     const body = await req.json();
-    const { productId, rating, title, body: reviewBody } = body;
+    const { productId, rating, title, body: reviewBody, reviewerName } = body;
 
     if (!productId) {
       return NextResponse.json({ error: "productId is required" }, { status: 400 });
@@ -54,22 +32,55 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "rating must be between 1 and 5" }, { status: 400 });
     }
 
-    const isVerifiedPurchase = await hasUserPurchasedProduct(user.id, productId);
+    const name = typeof reviewerName === "string" ? reviewerName.trim() : "";
+    if (name.length < 2) {
+      return NextResponse.json({ error: "Name is required" }, { status: 400 });
+    }
+    if (name.length > 100) {
+      return NextResponse.json({ error: "Name must be 100 characters or less" }, { status: 400 });
+    }
+
+    let userId: string | null = null;
+    let isVerifiedPurchase = false;
+
+    const cookieStore = await cookies();
+    const supabase = createServerClient(
+      clientEnv.NEXT_PUBLIC_SUPABASE_URL,
+      clientEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+      {
+        cookies: {
+          getAll: () => cookieStore.getAll(),
+          setAll: (toSet) => {
+            for (const { name: cookieName, value, options } of toSet) {
+              cookieStore.set(cookieName, value, options);
+            }
+          },
+        },
+      },
+    );
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      userId = user.id;
+      isVerifiedPurchase = await hasUserPurchasedProduct(user.id, productId);
+    }
 
     const review = await createReview({
       productId,
-      userId: user.id,
+      userId,
+      reviewerName: name,
       rating: Number(rating),
       title: title?.trim() || null,
       body: reviewBody?.trim() || null,
       isVerifiedPurchase,
-      isApproved: false,
+      isApproved: true,
     });
 
     notifyAdmins("review_pending", {
       subject: `New review submitted (rating: ${rating})`,
       html: `<p>A new product review has been submitted and is awaiting approval.</p>
-        <p><strong>Rating:</strong> ${rating} / 5<br/>
+        <p><strong>Reviewer:</strong> ${name}<br/>
+        <strong>Rating:</strong> ${rating} / 5<br/>
         <strong>Title:</strong> ${title ?? "—"}</p>
         <p>${reviewBody ?? ""}</p>
         <p><a href="${process.env.NEXT_PUBLIC_APP_URL ?? ""}/admin/reviews">Moderate reviews</a></p>`,

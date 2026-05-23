@@ -162,7 +162,7 @@ export function ProductCard({ product }: Readonly<{ product: ProductCardData }>)
         {product.name}
       </p>
 
-      {product.rating != null && (
+      {(product.reviewCount ?? 0) > 0 && product.rating != null && (
         <div className="flex items-center gap-1 mb-2">
           <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
           <span className="text-[10px] font-semibold text-gray-600">{product.rating.toFixed(1)}</span>

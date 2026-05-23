@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getApprovedReviews } from "@icrowd/database/queries";
+import { computeReviewSummary, getApprovedReviews } from "@icrowd/database/queries";
 
 export async function GET(
   _req: NextRequest,
@@ -8,7 +8,8 @@ export async function GET(
   const { id } = await params;
   try {
     const reviews = await getApprovedReviews(id);
-    return NextResponse.json(reviews);
+    const summary = computeReviewSummary(reviews);
+    return NextResponse.json({ reviews, summary });
   } catch (err) {
     console.error("[GET /api/products/[id]/reviews]", err);
     return NextResponse.json({ error: "Failed to fetch reviews" }, { status: 500 });

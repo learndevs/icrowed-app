@@ -2,17 +2,24 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
-  Star,
-  ChevronRight, SlidersHorizontal,
+  ChevronRight,
 } from "lucide-react";
 import { ProductDetailClient } from "./ProductDetailClient";
 import { ProductImages } from "./ProductImages";
 import { ProductReviews } from "./ProductReviews";
-import { getProductBySlug } from "@icrowd/database/queries";
+import {
+  ProductRatingSummary,
+  ProductReviewStatsProvider,
+} from "./ProductReviewStatsContext";
+import { ProductSpecifications } from "@/components/products/ProductSpecifications";
+import { specificationsToMarkdown, hasSpecifications } from "@/lib/specifications";
+import { getProductBySlug, getProductReviewSummary } from "@icrowd/database/queries";
 
 interface Props {
   params: Promise<{ slug: string }>;
 }
+
+export const dynamic = "force-dynamic";
 
 const CARD_GRADIENTS = [
   "from-indigo-500 to-blue-600",
@@ -30,21 +37,14 @@ function productGradient(id: string): string {
   return CARD_GRADIENTS[hash % CARD_GRADIENTS.length];
 }
 
-function mapSpecifications(
-  specs: Record<string, unknown> | null | undefined,
-): { group: string; specs: { label: string; value: string }[] }[] {
-  if (!specs || typeof specs !== "object") return [];
-  const entries = Object.entries(specs).map(([label, value]) => ({
-    label,
-    value: String(value),
-  }));
-  if (entries.length === 0) return [];
-  return [{ group: "Specifications", specs: entries }];
-}
-
 async function getProduct(slug: string) {
   const p = await getProductBySlug(slug).catch(() => null);
   if (!p) return null;
+
+  const { reviewCount, rating } = await getProductReviewSummary(p.id).catch(() => ({
+    reviewCount: 0,
+    rating: 0,
+  }));
 
   return {
     id: p.id,
@@ -53,9 +53,10 @@ async function getProduct(slug: string) {
     price: Number(p.price),
     stock: p.stock,
     description: p.description ?? p.shortDescription ?? "",
-    specifications: mapSpecifications(p.specifications as Record<string, unknown> | null),
-    rating: 0,
-    reviewCount: 0,
+    specificationsMarkdown: specificationsToMarkdown(p.specifications),
+    hasSpecifications: hasSpecifications(p.specifications),
+    rating,
+    reviewCount,
     gradient: productGradient(p.id),
     images: (p.images as { id: string; url: string; altText: string | null; isPrimary: boolean; sortOrder: number }[]) ?? [],
     variants: ((p as any).variants ?? [])
@@ -85,6 +86,11 @@ export default async function ProductDetailPage({ params }: Props) {
 
   return (
     <div className="bento-bg min-h-screen">
+      <ProductReviewStatsProvider
+        productId={product.id}
+        initialRating={product.rating}
+        initialReviewCount={product.reviewCount}
+      >
       <div className="max-w-[1400px] mx-auto px-3 sm:px-5 lg:px-8 py-6">
 
         {/* Breadcrumb */}
@@ -133,19 +139,7 @@ export default async function ProductDetailPage({ params }: Props) {
                 {product.name}
               </h1>
 
-              {/* Rating */}
-              <div className="flex items-center gap-2 mt-2">
-                <div className="flex items-center gap-0.5">
-                  {Array.from({ length: 5 }).map((_, i) => (
-                    <Star
-                      key={i}
-                      className={`w-4 h-4 ${i < Math.round(product.rating) ? "fill-amber-400 text-amber-400" : "text-gray-200 fill-gray-200"}`}
-                    />
-                  ))}
-                </div>
-                <span className="text-sm font-semibold text-gray-700">{product.rating}</span>
-                <span className="text-sm text-gray-400">({product.reviewCount} reviews)</span>
-              </div>
+              <ProductRatingSummary />
             </div>
 
             <ProductDetailClient
@@ -167,45 +161,15 @@ export default async function ProductDetailPage({ params }: Props) {
         </div>
 
         {/* ── Specifications ──────────────────────────────────────────────── */}
-        {product.specifications.length > 0 && (
-          <div className="bento-card p-5 sm:p-8">
-            {/* Header */}
-            <div className="flex items-center gap-4 mb-8">
-              <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-indigo-500 to-indigo-600 flex items-center justify-center shadow-md shadow-indigo-200">
-                <SlidersHorizontal className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <h2 className="text-xl font-black text-gray-900">Specifications</h2>
-                <p className="text-xs text-gray-400 mt-0.5">Full technical details</p>
-              </div>
-            </div>
-
-            {product.specifications.map((group) => (
-              <div key={group.group}>
-                <dl className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {group.specs.map((spec) => (
-                    <div
-                      key={spec.label}
-                      className="group flex flex-col gap-2 p-4 rounded-2xl bg-gray-50/80 border border-gray-100 hover:border-indigo-200 hover:bg-indigo-50/40 hover:shadow-sm transition-all duration-200"
-                    >
-                      <dt className="text-[10px] font-extrabold tracking-widest text-gray-400 uppercase group-hover:text-indigo-500 transition-colors leading-none">
-                        {spec.label}
-                      </dt>
-                      <dd className="text-sm font-bold text-gray-900 leading-snug">
-                        {spec.value}
-                      </dd>
-                    </div>
-                  ))}
-                </dl>
-              </div>
-            ))}
-          </div>
+        {product.hasSpecifications && (
+          <ProductSpecifications markdown={product.specificationsMarkdown} />
         )}
 
         {/* ── Reviews ─────────────────────────────────────────────────────── */}
         <ProductReviews productId={product.id} />
 
       </div>
+      </ProductReviewStatsProvider>
     </div>
   );
 }

@@ -1,6 +1,15 @@
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, inArray } from "drizzle-orm";
 import { db } from "../index";
 import { reviews } from "../schema";
+
+export function computeReviewSummary(rows: { rating: number }[]) {
+  const reviewCount = rows.length;
+  const rating = reviewCount
+    ? Math.round((rows.reduce((sum, row) => sum + row.rating, 0) / reviewCount) * 10) / 10
+    : 0;
+
+  return { reviewCount, rating };
+}
 
 export async function getApprovedReviews(productId: string) {
   return db.query.reviews.findMany({
@@ -8,6 +17,43 @@ export async function getApprovedReviews(productId: string) {
     orderBy: [desc(reviews.createdAt)],
     with: { user: { columns: { id: true, fullName: true } } },
   });
+}
+
+export async function getProductReviewSummary(productId: string) {
+  const rows = await db.query.reviews.findMany({
+    where: and(eq(reviews.productId, productId), eq(reviews.isApproved, true)),
+    columns: { rating: true },
+  });
+
+  return computeReviewSummary(rows);
+}
+
+export async function getReviewSummariesForProducts(productIds: string[]) {
+  if (productIds.length === 0) {
+    return new Map<string, { rating: number; reviewCount: number }>();
+  }
+
+  const rows = await db
+    .select({
+      productId: reviews.productId,
+      rating: reviews.rating,
+    })
+    .from(reviews)
+    .where(and(inArray(reviews.productId, productIds), eq(reviews.isApproved, true)));
+
+  const grouped = new Map<string, { rating: number }[]>();
+  for (const row of rows) {
+    const list = grouped.get(row.productId) ?? [];
+    list.push({ rating: row.rating });
+    grouped.set(row.productId, list);
+  }
+
+  const summaries = new Map<string, { rating: number; reviewCount: number }>();
+  for (const productId of productIds) {
+    summaries.set(productId, computeReviewSummary(grouped.get(productId) ?? []));
+  }
+
+  return summaries;
 }
 
 export async function getAllReviews() {

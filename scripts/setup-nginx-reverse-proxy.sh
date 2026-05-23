@@ -7,7 +7,7 @@
 
 set -euo pipefail
 
-APP_DIR="${APP_DIR:-/var/www/icrowd-app}"
+APP_DIR="${APP_DIR:-/var/www/icrowed-app}"
 APP_USER="${APP_USER:-icrowd}"
 PORT="${PORT:-3000}"
 DOMAIN="${DOMAIN:-icrowd.lk}"
@@ -25,6 +25,14 @@ else
 fi
 
 echo "==> Writing nginx config for ${DOMAIN}..."
+mkdir -p /etc/nginx/conf.d
+
+# AlmaLinux ships a default_server block in nginx.conf — only one is allowed on port 80.
+if [[ -f /etc/nginx/nginx.conf ]]; then
+  sed -i 's/listen       80 default_server;/listen       80;/' /etc/nginx/nginx.conf
+  sed -i 's/listen       \[::\]:80 default_server;/listen       [::]:80;/' /etc/nginx/nginx.conf
+fi
+
 cat > /etc/nginx/conf.d/icrowd.conf <<NGINX
 server {
     listen 80 default_server;
@@ -67,18 +75,26 @@ if [[ -f "${ENV_FILE}" ]]; then
 fi
 
 if [[ -d "${APP_DIR}/.git" ]]; then
-  echo "==> Rebuilding app..."
+  echo "==> Installing workspace dependencies..."
   cd "${APP_DIR}"
-  sudo -u "${APP_USER}" npm run netlify:build
+  npm ci
+
+  echo "==> Rebuilding app..."
+  npm run netlify:build
 fi
 
 echo "==> Restarting app with PM2..."
-if sudo -u "${APP_USER}" pm2 describe icrowd-web >/dev/null 2>&1; then
-  sudo -u "${APP_USER}" env PORT="${PORT}" pm2 restart icrowd-web --update-env
-else
-  sudo -u "${APP_USER}" env PORT="${PORT}" pm2 start npm --name icrowd-web -- start --workspace=web
+PM2_NAME="icrowed-web"
+if pm2 describe icrowd-web >/dev/null 2>&1; then
+  PM2_NAME="icrowd-web"
 fi
-sudo -u "${APP_USER}" pm2 save
+
+if pm2 describe "${PM2_NAME}" >/dev/null 2>&1; then
+  env PORT="${PORT}" pm2 restart "${PM2_NAME}" --update-env
+else
+  env PORT="${PORT}" pm2 start npm --name "${PM2_NAME}" -- start --workspace=web
+fi
+pm2 save
 
 echo ""
 echo "============================================"
@@ -92,7 +108,7 @@ echo "  @   -> your server IP"
 echo "  www -> your server IP"
 echo ""
 echo "Useful commands:"
-echo "  sudo -u ${APP_USER} pm2 logs icrowd-web"
+echo "  pm2 logs ${PM2_NAME}"
 echo "  systemctl status nginx"
 echo "  curl -I http://127.0.0.1:${PORT}"
 echo "================================================"

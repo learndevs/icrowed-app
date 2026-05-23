@@ -1,22 +1,27 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
-import { Star, BadgeCheck, MessageSquare, LogIn, ChevronDown } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+import { useRouter } from "next/navigation";
+import { Star, BadgeCheck, MessageSquare, ChevronDown } from "lucide-react";
 import { formatDate } from "@/lib/utils";
+import { useProductReviewStats } from "./ProductReviewStatsContext";
 
 interface Review {
   id: string;
   rating: number;
   title: string | null;
   body: string | null;
+  reviewerName: string | null;
   isVerifiedPurchase: boolean;
   createdAt: string;
   user: { id: string; fullName: string | null } | null;
 }
 
 type SortMode = "recent" | "highest" | "verified";
+
+function displayName(review: Review) {
+  return review.reviewerName ?? review.user?.fullName ?? "Anonymous";
+}
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -112,35 +117,45 @@ function Avatar({ name }: { name: string | null }) {
   );
 }
 
+function computeStatsFromReviews(list: Review[]) {
+  const reviewCount = list.length;
+  const rating = reviewCount
+    ? Math.round((list.reduce((sum, review) => sum + review.rating, 0) / reviewCount) * 10) / 10
+    : 0;
+  return { reviewCount, rating };
+}
+
 // ─── Main component ───────────────────────────────────────────────────────────
 export function ProductReviews({ productId }: { productId: string }) {
-  const [reviews, setReviews]     = useState<Review[]>([]);
-  const [loading, setLoading]     = useState(true);
-  const [userId, setUserId]       = useState<string | null>(null);
-  const [authChecked, setAuthChecked] = useState(false);
-  const [showForm, setShowForm]   = useState(false);
-  const [rating, setRating]       = useState(0);
-  const [title, setTitle]         = useState("");
-  const [body, setBody]           = useState("");
+  const router = useRouter();
+  const { setStats } = useProductReviewStats();
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const [reviewerName, setReviewerName] = useState("");
+  const [rating, setRating] = useState(0);
+  const [title, setTitle] = useState("");
+  const [body, setBody] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
-  const [sortMode, setSortMode]   = useState<SortMode>("recent");
-  const [showAll, setShowAll]     = useState(false);
-
-  // Check auth
-  useEffect(() => {
-    createClient().auth.getUser().then(({ data }) => {
-      setUserId(data.user?.id ?? null);
-      setAuthChecked(true);
-    });
-  }, []);
+  const [sortMode, setSortMode] = useState<SortMode>("recent");
+  const [showAll, setShowAll] = useState(false);
 
   async function loadReviews() {
     setLoading(true);
     try {
       const res = await fetch(`/api/products/${productId}/reviews`);
-      if (res.ok) setReviews(await res.json());
+      if (!res.ok) return;
+
+      const data = await res.json();
+      const list: Review[] = Array.isArray(data) ? data : (data.reviews ?? []);
+      setReviews(list);
+
+      const summary = Array.isArray(data)
+        ? computeStatsFromReviews(list)
+        : (data.summary ?? computeStatsFromReviews(list));
+      setStats(summary);
     } finally {
       setLoading(false);
     }
@@ -150,22 +165,58 @@ export function ProductReviews({ productId }: { productId: string }) {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (rating === 0) { setFormError("Please select a rating"); return; }
+    if (reviewerName.trim().length < 2) {
+      setFormError("Please enter your name");
+      return;
+    }
+    if (rating === 0) {
+      setFormError("Please select a rating");
+      return;
+    }
     setSubmitting(true);
     setFormError(null);
     try {
       const res = await fetch("/api/reviews", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ productId, rating, title: title.trim() || null, body: body.trim() || null }),
+        body: JSON.stringify({
+          productId,
+          reviewerName: reviewerName.trim(),
+          rating,
+          title: title.trim() || null,
+          body: body.trim() || null,
+        }),
       });
       if (!res.ok) {
         const data = await res.json();
         throw new Error(data.error ?? "Failed to submit");
       }
+
+      const created = (await res.json()) as Review & { reviewerName: string | null };
+      const newReview: Review = {
+        id: created.id,
+        rating: created.rating,
+        title: created.title,
+        body: created.body,
+        reviewerName: created.reviewerName,
+        isVerifiedPurchase: created.isVerifiedPurchase ?? false,
+        createdAt: created.createdAt,
+        user: null,
+      };
+
+      setReviews((prev) => {
+        const next = [newReview, ...prev.filter((review) => review.id !== newReview.id)];
+        setStats(computeStatsFromReviews(next));
+        return next;
+      });
       setSubmitted(true);
       setShowForm(false);
-      setRating(0); setTitle(""); setBody("");
+      setReviewerName("");
+      setRating(0);
+      setTitle("");
+      setBody("");
+      router.refresh();
+      await loadReviews();
     } catch (err: unknown) {
       setFormError(err instanceof Error ? err.message : "Failed to submit");
     } finally {
@@ -173,65 +224,45 @@ export function ProductReviews({ productId }: { productId: string }) {
     }
   }
 
-  // ── Derived data ─────────────────────────────────────────────────────────────
   const avgRating = reviews.length
     ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length
     : 0;
 
-  const hasUserReviewed = userId
-    ? reviews.some((r) => r.user?.id === userId)
-    : false;
-
   const sorted = [...reviews].sort((a, b) => {
-    if (sortMode === "highest")  return b.rating - a.rating;
+    if (sortMode === "highest") return b.rating - a.rating;
     if (sortMode === "verified") return Number(b.isVerifiedPurchase) - Number(a.isVerifiedPurchase);
     return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
   });
 
   const SHOW_COUNT = 5;
-  const displayed  = showAll ? sorted : sorted.slice(0, SHOW_COUNT);
+  const displayed = showAll ? sorted : sorted.slice(0, SHOW_COUNT);
 
-  // ── Render ───────────────────────────────────────────────────────────────────
   return (
     <div className="bento-card p-5 sm:p-7 mt-4">
-
-      {/* Header */}
       <div className="flex items-start justify-between flex-wrap gap-3 mb-6">
         <div>
           <h2 className="text-xl font-black text-gray-900">Customer Reviews</h2>
-          <p className="text-xs text-gray-400 mt-0.5">Reviews are moderated before appearing</p>
+          <p className="text-xs text-gray-400 mt-0.5">Reviews are linked to this product</p>
         </div>
 
-        {/* Write review button / auth gate */}
-        {authChecked && !submitted && !hasUserReviewed && (
-          userId ? (
-            <button
-              onClick={() => setShowForm(!showForm)}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border transition-all ${
-                showForm
-                  ? "bg-gray-900 text-white border-gray-900"
-                  : "bento-card text-gray-700 hover:border-indigo-300"
-              }`}
-            >
-              <MessageSquare className="w-4 h-4" />
-              Write a Review
-            </button>
-          ) : (
-            <Link
-              href="/login"
-              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border bento-card text-gray-700 hover:border-indigo-300 transition-all"
-            >
-              <LogIn className="w-4 h-4" />
-              Sign in to Review
-            </Link>
-          )
+        {!submitted && (
+          <button
+            type="button"
+            onClick={() => setShowForm(!showForm)}
+            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border transition-all ${
+              showForm
+                ? "bg-gray-900 text-white border-gray-900"
+                : "bento-card text-gray-700 hover:border-indigo-300"
+            }`}
+          >
+            <MessageSquare className="w-4 h-4" />
+            Write a Review
+          </button>
         )}
       </div>
 
-      {/* Rating summary */}
       {reviews.length > 0 && (
         <div className="flex flex-col sm:flex-row gap-6 p-5 bg-gray-50 rounded-2xl mb-6">
-          {/* Big number */}
           <div className="flex flex-col items-center justify-center gap-1 sm:w-32 shrink-0">
             <p className="text-5xl font-black text-gray-900">{avgRating.toFixed(1)}</p>
             <StarDisplay rating={Math.round(avgRating)} size="md" />
@@ -239,38 +270,43 @@ export function ProductReviews({ productId }: { productId: string }) {
               {reviews.length} {reviews.length === 1 ? "review" : "reviews"}
             </p>
           </div>
-          {/* Breakdown bars */}
           <div className="flex-1">
             <RatingBreakdown reviews={reviews} />
           </div>
         </div>
       )}
 
-      {/* Submitted success */}
       {submitted && (
         <div className="mb-5 flex items-start gap-3 px-4 py-3 rounded-xl bg-emerald-50 border border-emerald-200">
           <BadgeCheck className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
           <div>
             <p className="text-sm font-semibold text-emerald-800">Thanks for your review!</p>
-            <p className="text-xs text-emerald-600 mt-0.5">It will appear here after moderation.</p>
+            <p className="text-xs text-emerald-600 mt-0.5">Your review is now shown below.</p>
           </div>
         </div>
       )}
 
-      {/* Already reviewed */}
-      {hasUserReviewed && !submitted && (
-        <div className="mb-5 px-4 py-3 rounded-xl bg-blue-50 border border-blue-200 text-sm text-blue-700">
-          You&apos;ve already submitted a review for this product.
-        </div>
-      )}
-
-      {/* Review form */}
-      {showForm && userId && (
+      {showForm && !submitted && (
         <form
           onSubmit={handleSubmit}
           className="mb-6 p-5 border border-gray-200 rounded-2xl bg-gray-50 space-y-4"
         >
           <h3 className="font-bold text-gray-900">Your Review</h3>
+
+          <div>
+            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5 block">
+              Your Name *
+            </label>
+            <input
+              type="text"
+              value={reviewerName}
+              onChange={(e) => setReviewerName(e.target.value)}
+              placeholder="Enter your name"
+              maxLength={100}
+              required
+              className="w-full h-10 px-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400 transition-shadow"
+            />
+          </div>
 
           <div>
             <label className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2 block">
@@ -333,19 +369,19 @@ export function ProductReviews({ productId }: { productId: string }) {
         </form>
       )}
 
-      {/* Sort controls */}
       {reviews.length > 1 && (
         <div className="flex items-center gap-2 mb-4 flex-wrap">
           <span className="text-xs font-semibold text-gray-400">Sort:</span>
           {(["recent", "highest", "verified"] as SortMode[]).map((m) => {
             const labels: Record<SortMode, string> = {
-              recent:   "Most Recent",
-              highest:  "Highest Rated",
+              recent: "Most Recent",
+              highest: "Highest Rated",
               verified: "Verified First",
             };
             return (
               <button
                 key={m}
+                type="button"
                 onClick={() => setSortMode(m)}
                 className={`px-3 py-1 rounded-full text-xs font-semibold transition-all ${
                   sortMode === m
@@ -360,7 +396,6 @@ export function ProductReviews({ productId }: { productId: string }) {
         </div>
       )}
 
-      {/* Review list */}
       {loading ? (
         <div className="space-y-4">
           {[1, 2, 3].map((i) => (
@@ -387,13 +422,13 @@ export function ProductReviews({ productId }: { productId: string }) {
           <div className="space-y-5">
             {displayed.map((review) => (
               <div key={review.id} className="flex gap-3 pb-5 border-b border-gray-100 last:border-0 last:pb-0">
-                <Avatar name={review.user?.fullName ?? null} />
+                <Avatar name={displayName(review)} />
 
                 <div className="flex-1 min-w-0">
                   <div className="flex items-start justify-between gap-2 mb-1">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-sm font-bold text-gray-900">
-                        {review.user?.fullName ?? "Anonymous"}
+                        {displayName(review)}
                       </span>
                       {review.isVerifiedPurchase && (
                         <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
@@ -420,6 +455,7 @@ export function ProductReviews({ productId }: { productId: string }) {
 
           {sorted.length > SHOW_COUNT && (
             <button
+              type="button"
               onClick={() => setShowAll((v) => !v)}
               className="mt-4 w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-600 hover:bg-gray-50 transition-colors"
             >

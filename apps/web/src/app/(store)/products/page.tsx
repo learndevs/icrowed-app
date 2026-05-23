@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { ProductsClient } from "./ProductsClient";
 import type { ProductCardData } from "@/components/products/ProductCard";
-import { getBrands, getProducts } from "@icrowd/database/queries";
+import { getBrands, getProducts, getReviewSummariesForProducts } from "@icrowd/database/queries";
 
 export const metadata: Metadata = { title: "All Products | iCrowd" };
 
@@ -45,6 +45,10 @@ export default async function ProductsPage() {
   const brandFilterNames = brandRows.map((b) => b.name);
   const brandById = new Map(brandRows.map((b) => [b.id, b.name]));
 
+  const reviewSummaries = await getReviewSummariesForProducts(dbProducts.map((p) => p.id)).catch(
+    () => new Map<string, { rating: number; reviewCount: number }>(),
+  );
+
   const products: ProductCardData[] = dbProducts.map((p) => {
     const row = p as {
       brand?: { name?: string } | null;
@@ -53,6 +57,7 @@ export default async function ProductsPage() {
     };
     const brandName =
       row.brand?.name ?? (row.brandId ? brandById.get(row.brandId) : undefined);
+    const reviewStats = reviewSummaries.get(p.id);
     return {
       id: p.id,
       name: p.name,
@@ -65,6 +70,8 @@ export default async function ProductsPage() {
       badge: p.comparePrice ? "Sale" : undefined,
       brand: brandName,
       categorySlug: row.category?.slug,
+      rating: reviewStats?.rating ?? 0,
+      reviewCount: reviewStats?.reviewCount ?? 0,
     };
   });
 

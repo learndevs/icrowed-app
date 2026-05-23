@@ -12,6 +12,7 @@ interface Review {
   rating: number;
   title: string | null;
   body: string | null;
+  reviewerName: string | null;
   isApproved: boolean;
   isVerifiedPurchase: boolean;
   createdAt: string;
@@ -148,7 +149,7 @@ export default function AdminReviewsPage() {
                       Product: <span className="font-medium text-[var(--foreground)]">{review.product?.name ?? "—"}</span>
                     </span>
                     <span>
-                      By: <span className="font-medium text-[var(--foreground)]">{review.user?.fullName ?? "Guest"}</span>
+                      By: <span className="font-medium text-[var(--foreground)]">{review.reviewerName ?? review.user?.fullName ?? "Guest"}</span>
                     </span>
                     <span>{formatDate(review.createdAt)}</span>
                   </div>

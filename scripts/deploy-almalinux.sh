@@ -4,7 +4,7 @@
 
 set -euo pipefail
 
-APP_DIR="/var/www/icrowd-app"
+APP_DIR="/var/www/icrowed-app"
 APP_USER="icrowd"
 NODE_MAJOR=20
 REPO_URL="https://github.com/learndevs/icrowd-app.git"
@@ -74,6 +74,13 @@ echo "==> Enabling PM2 on boot..."
 env PATH="$PATH" pm2 startup systemd -u "${APP_USER}" --hp "${APP_DIR}" | tail -1 | bash || true
 
 echo "==> Configuring nginx reverse proxy..."
+mkdir -p /etc/nginx/conf.d
+
+if [[ -f /etc/nginx/nginx.conf ]]; then
+  sed -i 's/listen       80 default_server;/listen       80;/' /etc/nginx/nginx.conf
+  sed -i 's/listen       \[::\]:80 default_server;/listen       [::]:80;/' /etc/nginx/nginx.conf
+fi
+
 cat > /etc/nginx/conf.d/icrowd.conf <<NGINX
 server {
     listen 80 default_server;

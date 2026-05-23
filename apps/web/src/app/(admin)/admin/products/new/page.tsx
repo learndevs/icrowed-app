@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { SpecificationsEditor } from "@/components/admin/SpecificationsEditor";
+import { markdownToSpecifications } from "@/lib/specifications";
 
 interface Category { id: string; name: string; }
 interface Brand { id: string; name: string; }
@@ -48,44 +50,6 @@ function SectionTitle({ children }: Readonly<{ children: React.ReactNode }>) {
   return <h2 className="text-base font-bold text-gray-900 mb-5">{children}</h2>;
 }
 
-/* ─── Spec row ────────────────────────────────────── */
-
-function SpecRow({
-  spec,
-  onKeyChange,
-  onValueChange,
-  onRemove,
-}: Readonly<{
-  spec: { key: string; value: string };
-  onKeyChange: (v: string) => void;
-  onValueChange: (v: string) => void;
-  onRemove: () => void;
-}>) {
-  return (
-    <div className="flex gap-2 group">
-      <input
-        className="flex-1 h-10 px-3 rounded-lg border border-gray-200 text-sm bg-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-all"
-        placeholder="e.g. Display"
-        value={spec.key}
-        onChange={(e) => onKeyChange(e.target.value)}
-      />
-      <input
-        className="flex-1 h-10 px-3 rounded-lg border border-gray-200 text-sm bg-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-all"
-        placeholder="e.g. 6.8″ AMOLED 120Hz"
-        value={spec.value}
-        onChange={(e) => onValueChange(e.target.value)}
-      />
-      <button
-        type="button"
-        onClick={onRemove}
-        className="w-10 h-10 shrink-0 flex items-center justify-center rounded-lg text-gray-300 hover:text-red-400 hover:bg-red-50 transition-colors"
-      >
-        <X className="w-3.5 h-3.5" />
-      </button>
-    </div>
-  );
-}
-
 /* ─── Page ────────────────────────────────────────── */
 
 export default function NewProductPage() {
@@ -111,15 +75,7 @@ export default function NewProductPage() {
   const [isFeatured, setIsFeatured] = useState(false);
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
-  const [specs, setSpecs] = useState<{ key: string; value: string }[]>([
-    { key: "Display", value: "" },
-    { key: "Processor", value: "" },
-    { key: "RAM", value: "" },
-    { key: "Storage", value: "" },
-    { key: "Battery", value: "" },
-    { key: "Camera", value: "" },
-    { key: "OS", value: "" },
-  ]);
+  const [specificationsMarkdown, setSpecificationsMarkdown] = useState("");
   const [saving, setSaving] = useState(false);
   const [savingDraft, setSavingDraft] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -151,23 +107,11 @@ export default function NewProductPage() {
     setTagInput("");
   }
 
-  function updateSpec(i: number, field: "key" | "value", val: string) {
-    setSpecs((prev) => {
-      const next = [...prev];
-      next[i] = { ...next[i], [field]: val };
-      return next;
-    });
-  }
-
   async function submit(draft: boolean) {
     if (!name || !price) { setError("Product name and price are required."); return; }
     if (draft) { setSavingDraft(true); } else { setSaving(true); }
     setError(null);
     try {
-      const specsObj = specs
-        .filter((s) => s.key.trim())
-        .reduce<Record<string, string>>((acc, s) => { acc[s.key] = s.value; return acc; }, {});
-
       const res = await fetch("/api/products", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -187,7 +131,7 @@ export default function NewProductPage() {
           isActive: draft ? false : isActive,
           isFeatured,
           tags,
-          specifications: Object.keys(specsObj).length ? specsObj : null,
+          specifications: markdownToSpecifications(specificationsMarkdown),
         }),
       });
       if (!res.ok) {
@@ -401,34 +345,11 @@ export default function NewProductPage() {
 
           {/* Specifications */}
           <Card>
-            <div className="flex items-center justify-between mb-5">
-              <h2 className="text-base font-bold text-gray-900">Specifications</h2>
-              <button
-                type="button"
-                onClick={() => setSpecs((prev) => [...prev, { key: "", value: "" }])}
-                className="flex items-center gap-1.5 text-xs font-semibold text-indigo-600 hover:text-indigo-800 transition-colors"
-              >
-                <Plus className="w-3.5 h-3.5" /> Add Row
-              </button>
-            </div>
-            <div className="grid grid-cols-2 gap-2 mb-2 px-0.5">
-              <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Specification</span>
-              <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">Value</span>
-            </div>
-            <div className="space-y-2">
-              {specs.map((spec, i) => (
-                <SpecRow
-                  key={i}
-                  spec={spec}
-                  onKeyChange={(v) => updateSpec(i, "key", v)}
-                  onValueChange={(v) => updateSpec(i, "value", v)}
-                  onRemove={() => setSpecs((prev) => prev.filter((_, j) => j !== i))}
-                />
-              ))}
-              {specs.length === 0 && (
-                <p className="text-center py-6 text-sm text-gray-400">No specs yet — click &ldquo;Add Row&rdquo; above.</p>
-              )}
-            </div>
+            <SectionTitle>Specifications</SectionTitle>
+            <SpecificationsEditor
+              value={specificationsMarkdown}
+              onChange={setSpecificationsMarkdown}
+            />
           </Card>
 
           {/* Weight */}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { Heart, AlertTriangle, PackageX } from "lucide-react";
+import { AlertTriangle, PackageX } from "lucide-react";
 import {
   activeVariantDimensions,
   colorSwatchHexByValue,
@@ -11,7 +11,6 @@ import {
   VARIANT_OPTION_LABELS,
 } from "@icrowd/database/variant-options";
 import { useCart } from "@/context/CartContext";
-import { useWishlist } from "@/context/WishlistContext";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 
@@ -151,7 +150,6 @@ function BaseStockIndicator({ stock }: Readonly<{ stock: number }>) {
 
 export function ProductDetailClient({ product }: Readonly<Props>) {
   const { addItem } = useCart();
-  const { isWishlisted, toggle: toggleWishlist } = useWishlist();
   const router = useRouter();
 
   const dims = useMemo(
@@ -362,19 +360,6 @@ export function ProductDetailClient({ product }: Readonly<Props>) {
           className="flex-1 flex items-center justify-center gap-2 py-3.5 rounded-2xl text-sm font-bold border-2 border-gray-900 text-gray-900 hover:bg-gray-900 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed active:scale-[0.97] transition-all duration-200"
         >
           Buy Now
-        </button>
-
-        <button
-          type="button"
-          onClick={() => toggleWishlist(product.id)}
-          className={`w-12 h-12 rounded-2xl flex items-center justify-center border-2 transition-all duration-200 active:scale-[0.97] ${
-            isWishlisted(product.id)
-              ? "border-rose-300 bg-rose-50 text-rose-500"
-              : "border-gray-200 bg-white text-gray-400 hover:border-rose-200 hover:text-rose-400"
-          }`}
-          aria-label={isWishlisted(product.id) ? "Remove from wishlist" : "Save to wishlist"}
-        >
-          <Heart className={`w-5 h-5 ${isWishlisted(product.id) ? "fill-rose-500" : ""}`} />
         </button>
       </div>
       {outOfStock && (

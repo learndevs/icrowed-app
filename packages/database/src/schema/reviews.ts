@@ -18,6 +18,7 @@ export const reviews = pgTable("reviews", {
     .notNull()
     .references(() => products.id, { onDelete: "cascade" }),
   userId: uuid("user_id").references(() => profiles.id),
+  reviewerName: varchar("reviewer_name", { length: 255 }),
   rating: integer("rating").notNull(), // 1-5
   title: varchar("title", { length: 255 }),
   body: text("body"),
