@@ -171,18 +171,6 @@ function TrackContent() {
         </CardContent>
       </Card>
 
-      {/* Supported couriers */}
-      <div className="mb-8">
-        <p className="text-xs font-semibold text-[var(--muted)] uppercase tracking-wider mb-3">
-          Supported Couriers
-        </p>
-        <div className="flex flex-wrap gap-2">
-          {COURIERS.map((c) => (
-            <Badge key={c.name} variant="default">{c.name}</Badge>
-          ))}
-        </div>
-      </div>
-
       {/* Not found */}
       {notFound && (
         <Card>

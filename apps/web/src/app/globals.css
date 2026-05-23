@@ -109,6 +109,10 @@
     letter-spacing: 0.06em;
   }
 
+  .font-inter {
+    font-family: var(--font-inter), system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+  }
+
   .type-logo-url {
     font-size: 0.625rem;
     font-weight: 600;

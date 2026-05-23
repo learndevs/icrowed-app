@@ -8,6 +8,18 @@ export {
   computeShippingLkr,
 } from "./queries/shippingRates";
 export {
+  getActiveDeliveryTypes,
+  getAllDeliveryTypes,
+  getDeliveryTypeById,
+  getCheckoutDeliveryOptions,
+  computeDeliveryFee,
+  computeDeliveryFeeForType,
+  createDeliveryType,
+  updateDeliveryType,
+  deleteDeliveryType,
+  type DeliveryTypeRow,
+} from "./queries/deliveryTypes";
+export {
   getOrCreateStoreSettings,
   upsertStoreSettings,
   type StoreSettingsRow,

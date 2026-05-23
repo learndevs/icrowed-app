@@ -58,6 +58,8 @@ export const orders = pgTable("orders", {
   paidAt: timestamp("paid_at"),
 
   // Delivery
+  deliveryTypeId: uuid("delivery_type_id"),
+  deliveryTypeName: varchar("delivery_type_name", { length: 120 }),
   courierName: varchar("courier_name", { length: 100 }),
   trackingNumber: varchar("tracking_number", { length: 100 }),
   estimatedDeliveryDate: timestamp("estimated_delivery_date"),

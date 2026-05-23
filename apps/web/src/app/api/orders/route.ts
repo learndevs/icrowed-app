@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db, orders, orderItems, coupons } from "@icrowd/database";
+import { db, orders, orderItems, coupons, computeDeliveryFeeForType } from "@icrowd/database";
 import { eq, sql } from "drizzle-orm";
 import { requireAdmin } from "@/lib/admin";
 import { generateOrderNumber } from "@/lib/utils";
@@ -46,18 +46,39 @@ export async function POST(req: NextRequest) {
       shippingProvince,
       items,
       paymentMethod,
+      deliveryTypeId,
       shippingCost = 0,
       discount = 0,
       couponCode,
       customerNote,
     } = body;
 
+    if (!deliveryTypeId) {
+      return NextResponse.json({ error: "deliveryTypeId is required" }, { status: 400 });
+    }
+
+    const email = String(customerEmail ?? "").trim();
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return NextResponse.json({ error: "A valid email address is required" }, { status: 400 });
+    }
+
     const subtotal = items.reduce(
       (sum: number, item: { unitPrice: number; quantity: number }) =>
         sum + item.unitPrice * item.quantity,
       0
     );
-    const total = subtotal + Number(shippingCost) - Number(discount);
+
+    const deliveryResult = await computeDeliveryFeeForType(deliveryTypeId, subtotal);
+    if (!deliveryResult) {
+      return NextResponse.json({ error: "Invalid delivery type" }, { status: 400 });
+    }
+
+    const { fee: validatedShippingCost, type: deliveryType } = deliveryResult;
+    if (Math.abs(Number(shippingCost) - validatedShippingCost) > 0.01) {
+      return NextResponse.json({ error: "Shipping cost mismatch" }, { status: 400 });
+    }
+
+    const total = subtotal + validatedShippingCost - Number(discount);
     const orderNumber = generateOrderNumber();
 
     let order: typeof orders.$inferSelect;
@@ -68,7 +89,7 @@ export async function POST(req: NextRequest) {
           orderNumber,
           userId: userId ?? null,
           customerName,
-          customerEmail: customerEmail ?? "",
+          customerEmail: email,
           customerPhone,
           shippingAddressLine1,
           shippingAddressLine2: shippingAddressLine2 ?? null,
@@ -76,11 +97,13 @@ export async function POST(req: NextRequest) {
           shippingDistrict,
           shippingProvince: shippingProvince ?? null,
           subtotal: String(subtotal),
-          shippingCost: String(shippingCost),
+          shippingCost: String(validatedShippingCost),
           discount: String(discount),
           couponCode: couponCode ?? null,
           total: String(total),
           paymentMethod,
+          deliveryTypeId: deliveryType.id,
+          deliveryTypeName: deliveryType.name,
           customerNote: customerNote ?? null,
         })
         .returning();
@@ -141,7 +164,7 @@ export async function POST(req: NextRequest) {
             unitPrice: i.unitPrice,
           })),
           subtotal,
-          shippingCost,
+          shippingCost: validatedShippingCost,
           discount,
           total,
           shippingAddress: [shippingAddressLine1, shippingAddressLine2, shippingCity, shippingDistrict, shippingProvince]

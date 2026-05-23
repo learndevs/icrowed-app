@@ -1325,6 +1325,40 @@ const COUPONS = [
   { id: "61000000-0000-4000-8000-000000000003", code: "EXPIRED20", type: "percent", value: 20, min_order_amount: 8000, max_uses: 50, used_count: 50, is_active: false, expires_at: "2025-12-31T23:59:59Z" },
 ];
 
+// ─── Shipping (checkout delivery types + free-shipping threshold) ───────────
+
+const DELIVERY_TYPES = [
+  {
+    id: "63000000-0000-4000-8000-000000000001",
+    name: "Standard Delivery",
+    slug: "standard",
+    description: "1–3 business days",
+    price_lkr: 350,
+    eligible_for_free_shipping: true,
+    sort_order: 0,
+    is_active: true,
+  },
+  {
+    id: "63000000-0000-4000-8000-000000000002",
+    name: "Express Delivery",
+    slug: "express",
+    description: "Same / next day",
+    price_lkr: 750,
+    eligible_for_free_shipping: false,
+    sort_order: 1,
+    is_active: true,
+  },
+];
+
+const SHOP_SHIPPING_RATES = [
+  {
+    id: 1,
+    standard_lkr: 350,
+    express_lkr: 750,
+    free_shipping_min_subtotal: 500000,
+  },
+];
+
 /** Bulk upsert by primary key (updates existing rows, e.g. new `category_id`). */
 async function mergeUpsertTable(table: string, rows: unknown[]): Promise<void> {
   if (rows.length === 0) return;
@@ -1407,6 +1441,18 @@ async function seed() {
     PRODUCTS.map((p) => ({ id: p.id, slug: p.slug })),
   );
   await mergeUpsertTable("products", PRODUCTS);
+  console.log("✓");
+
+  process.stdout.write("  → delivery_types (merge) … ");
+  await archiveConflictingSlugs(
+    "delivery_types",
+    DELIVERY_TYPES.map((d) => ({ id: d.id, slug: d.slug })),
+  );
+  await mergeUpsertTable("delivery_types", DELIVERY_TYPES);
+  console.log("✓");
+
+  process.stdout.write("  → shop_shipping_rates (merge) … ");
+  await mergeUpsertTable("shop_shipping_rates", SHOP_SHIPPING_RATES);
   console.log("✓");
 
   const steps: [string, unknown[]][] = [

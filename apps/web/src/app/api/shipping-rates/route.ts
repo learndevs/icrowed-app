@@ -30,24 +30,20 @@ export async function PUT(req: NextRequest) {
       freeShippingMinSubtotal?: number;
     };
 
-    if (
-      standardLkr === undefined ||
-      expressLkr === undefined ||
-      freeShippingMinSubtotal === undefined
-    ) {
+    if (freeShippingMinSubtotal === undefined) {
       return NextResponse.json(
-        { error: "standardLkr, expressLkr, and freeShippingMinSubtotal are required" },
+        { error: "freeShippingMinSubtotal is required" },
         { status: 400 }
       );
     }
 
-    if (standardLkr < 0 || expressLkr < 0 || freeShippingMinSubtotal < 0) {
+    if (freeShippingMinSubtotal < 0) {
       return NextResponse.json({ error: "Values must be non-negative" }, { status: 400 });
     }
 
     const row = await upsertShippingRates({
-      standardLkr: String(standardLkr),
-      expressLkr: String(expressLkr),
+      standardLkr: String(standardLkr ?? before.standardLkr),
+      expressLkr: String(expressLkr ?? before.expressLkr),
       freeShippingMinSubtotal: String(freeShippingMinSubtotal),
     });
 

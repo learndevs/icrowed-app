@@ -9,6 +9,14 @@ import { Button } from "@/components/ui/Button";
 import { ChevronLeft, Package, User, MapPin, CreditCard, Truck } from "lucide-react";
 import { OrderActions } from "./OrderActions";
 import { RefundButton } from "./RefundButton";
+import { BankSlipViewer } from "@/components/admin/BankSlipViewer";
+
+const PAYMENT_LABELS: Record<string, string> = {
+  stripe: "Card",
+  payhere: "PayHere",
+  bank_transfer: "Bank Transfer",
+  cash_on_delivery: "Cash on Delivery",
+};
 
 const STATUS_BADGE: Record<string, "default" | "primary" | "success" | "warning" | "error"> = {
   pending: "warning",
@@ -210,8 +218,8 @@ export default async function AdminOrderDetailPage({
               <div className="text-sm space-y-1.5">
                 <div className="flex justify-between">
                   <span className="text-[var(--muted)]">Method</span>
-                  <Badge variant={order.paymentMethod === "stripe" ? "primary" : "warning"}>
-                    {order.paymentMethod === "stripe" ? "Card" : "Bank Transfer"}
+                  <Badge variant={order.paymentMethod === "bank_transfer" ? "warning" : "primary"}>
+                    {PAYMENT_LABELS[order.paymentMethod] ?? order.paymentMethod}
                   </Badge>
                 </div>
                 <div className="flex justify-between">
@@ -225,10 +233,16 @@ export default async function AdminOrderDetailPage({
                     {order.stripePaymentIntentId}
                   </p>
                 )}
-                {order.bankTransferReference && (
+                {order.bankTransferReference && !order.bankTransferProofUrl && (
                   <p className="text-xs text-[var(--muted)]">
                     Ref: {order.bankTransferReference}
                   </p>
+                )}
+                {order.bankTransferProofUrl && (
+                  <BankSlipViewer
+                    proofUrl={order.bankTransferProofUrl}
+                    reference={order.bankTransferReference}
+                  />
                 )}
                 {order.paidAt && (
                   <p className="text-xs text-[var(--muted)]">

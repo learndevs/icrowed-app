@@ -10,6 +10,7 @@ export * from "./profiles";
 export * from "./offers";
 export * from "./reviews";
 export * from "./shippingRates";
+export * from "./deliveryTypes";
 export * from "./storeSettings";
 export * from "./notifications";
 export * from "./auditLogs";

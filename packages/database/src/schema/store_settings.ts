@@ -39,5 +39,8 @@ export const storeSettings = pgTable("store_settings", {
   // Policies  { refund, shipping, privacy, terms } as HTML strings
   policies: jsonb("policies"),
 
+  /** Bank deposit details shown at checkout { bankName, accountName, accountNumber, branch, instructions } */
+  bankDetails: jsonb("bank_details"),
+
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

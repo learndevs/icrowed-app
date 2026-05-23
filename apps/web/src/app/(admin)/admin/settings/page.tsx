@@ -4,13 +4,16 @@ import {
   getOrCreateStoreSettings,
   getOrCreateShippingRates,
   getOrCreateNotificationPrefs,
+  getAllDeliveryTypes,
 } from "@icrowd/database";
 import { StoreInfoTab } from "./tabs/StoreInfoTab";
 import { ShippingTab } from "./tabs/ShippingTab";
 import { TaxTab } from "./tabs/TaxTab";
 import { PoliciesTab } from "./tabs/PoliciesTab";
 import { NotificationsTab } from "./tabs/NotificationsTab";
+import { BankDetailsTab } from "./tabs/BankDetailsTab";
 import { PaymentTab } from "./tabs/PaymentTab";
+import { parseBankDetails } from "@/lib/bank-details";
 
 export const dynamic = "force-dynamic";
 
@@ -20,6 +23,7 @@ const TABS = [
   { key: "tax", label: "Tax" },
   { key: "policies", label: "Policies" },
   { key: "notifications", label: "Notifications" },
+  { key: "bank", label: "Bank Deposit" },
   { key: "payment", label: "Payment" },
 ];
 
@@ -31,10 +35,11 @@ export default async function AdminSettingsPage({
   const sp = await searchParams;
   const active = sp.tab && TABS.some((t) => t.key === sp.tab) ? sp.tab : "store";
 
-  const [store, shipping, notif] = await Promise.all([
+  const [store, shipping, notif, deliveryTypesList] = await Promise.all([
     getOrCreateStoreSettings(),
     getOrCreateShippingRates(),
     getOrCreateNotificationPrefs(),
+    getAllDeliveryTypes(),
   ]);
 
   return (
@@ -67,16 +72,27 @@ export default async function AdminSettingsPage({
         {active === "store" && <StoreInfoTab initial={store} />}
         {active === "shipping" && (
           <ShippingTab
-            initial={{
-              standardLkr: Number(shipping.standardLkr),
-              expressLkr: Number(shipping.expressLkr),
-              freeShippingMinSubtotal: Number(shipping.freeShippingMinSubtotal),
-            }}
+            initialFreeShippingMin={Number(shipping.freeShippingMinSubtotal)}
+            initialDeliveryTypes={deliveryTypesList
+              .filter((t) => t.isActive)
+              .map((t) => ({
+                id: t.id,
+                name: t.name,
+                slug: t.slug,
+                description: t.description ?? "",
+                priceLkr: Number(t.priceLkr),
+                eligibleForFreeShipping: t.eligibleForFreeShipping,
+                sortOrder: t.sortOrder,
+                isActive: t.isActive,
+              }))}
           />
         )}
         {active === "tax" && <TaxTab initial={store} />}
         {active === "policies" && <PoliciesTab initial={store} />}
         {active === "notifications" && <NotificationsTab initial={notif} />}
+        {active === "bank" && (
+          <BankDetailsTab initial={parseBankDetails(store.bankDetails)} />
+        )}
         {active === "payment" && <PaymentTab />}
       </div>
     </div>
