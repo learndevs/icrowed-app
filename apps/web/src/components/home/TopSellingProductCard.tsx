@@ -36,7 +36,7 @@ export function TopSellingProductCard({
   return (
     <Link
       href={`/products/${product.slug}`}
-      className="group flex h-full w-full min-w-0 max-w-full flex-col rounded-xl bg-[#F2F2F2] p-2 shadow-[0_4px_20px_rgba(15,23,42,0.07)] transition-shadow hover:shadow-[0_6px_24px_rgba(15,23,42,0.1)] md:rounded-2xl md:p-2.5"
+      className="group flex h-full w-full min-w-0 max-w-full flex-col rounded-xl bg-[#F2F2F2] p-2 shadow-[0_4px_24px_rgba(15,23,42,0.4)] transition-shadow hover:shadow-[0_8px_32px_rgba(15,23,42,0.28)] md:rounded-2xl md:p-2.5"
     >
       {/* White image well */}
       <div className="relative aspect-square overflow-hidden rounded-lg bg-white md:rounded-xl">

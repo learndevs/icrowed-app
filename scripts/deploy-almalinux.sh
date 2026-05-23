@@ -10,7 +10,8 @@ NODE_MAJOR=20
 REPO_URL="https://github.com/learndevs/icrowd-app.git"
 BRANCH="${BRANCH:-merge}"
 PORT="${PORT:-3000}"
-APP_URL="${APP_URL:-http://216.10.251.167}"
+DOMAIN="${DOMAIN:-dertt.lk}"
+APP_URL="${APP_URL:-http://${DOMAIN}}"
 
 echo "==> Installing system packages..."
 dnf install -y git curl nginx firewalld
@@ -77,7 +78,7 @@ cat > /etc/nginx/conf.d/icrowd.conf <<NGINX
 server {
     listen 80 default_server;
     listen [::]:80 default_server;
-    server_name _;
+    server_name ${DOMAIN} www.${DOMAIN} _;
 
     location / {
         proxy_pass http://127.0.0.1:${PORT};
