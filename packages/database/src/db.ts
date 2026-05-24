@@ -27,8 +27,24 @@ if (!connectionString) {
 const pool = new Pool({
   connectionString,
   ssl: sslForConnectionString(connectionString),
-  connectionTimeoutMillis: 15_000,
+  // Tight timeouts so a stalled DB never hangs a Node request thread for long.
+  connectionTimeoutMillis: 5_000,
+  // Supabase pooler aggressively closes idle TCP — recycle ours first to avoid
+  // EHOSTUNREACH / Connection terminated unexpectedly on the next query.
+  idleTimeoutMillis: 30_000,
+  // Detect dead TCP (NAT/load balancer drops) before the request observes it.
+  keepAlive: true,
+  keepAliveInitialDelayMillis: 10_000,
+  // Cap so we never blow Supabase's per-project connection limit. Set
+  // DATABASE_POOL_MAX explicitly when running multiple PM2 instances.
   max: Number(process.env.DATABASE_POOL_MAX ?? 10),
+  allowExitOnIdle: false,
+});
+
+// Surface pool errors instead of crashing the Node process — PM2 would otherwise
+// rapid-restart on every transient Supabase blip.
+pool.on("error", (err) => {
+  console.error("[pg.Pool] idle client error", err);
 });
 
 export const db = drizzle(pool, { schema });

@@ -6,8 +6,9 @@ import { getBrands, getCategories, getProducts, getReviewSummariesForProducts } 
 
 export const metadata: Metadata = { title: "All Products | iCrowd" };
 
-/** Always merge fresh catalog + brand list (sidebar brands are not only inferred from rows). */
-export const dynamic = "force-dynamic";
+// ISR — re-render the catalog every minute. Use revalidatePath("/products")
+// inside admin mutations if you need an immediate refresh.
+export const revalidate = 60;
 
 const CARD_GRADIENTS = [
   "from-blue-500 to-blue-600",

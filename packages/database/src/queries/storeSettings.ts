@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { eq } from "drizzle-orm";
 import { db } from "../db";
 import { storeSettings } from "../schema";
@@ -14,7 +15,7 @@ const DEFAULT_BANK_DETAILS = {
     "Use your order number as the payment reference. Your order will be confirmed within 24 hours after we verify your deposit.",
 };
 
-export async function getOrCreateStoreSettings(): Promise<StoreSettingsRow> {
+async function fetchOrCreateStoreSettings(): Promise<StoreSettingsRow> {
   const rows = await db.select().from(storeSettings).limit(1);
   if (rows.length === 0) {
     const [created] = await db
@@ -33,6 +34,10 @@ export async function getOrCreateStoreSettings(): Promise<StoreSettingsRow> {
   }
   return rows[0];
 }
+
+// Per-request memoization: layout, generateMetadata and the page body all share
+// a single DB hit instead of issuing 2–3 identical SELECTs per page render.
+export const getOrCreateStoreSettings = cache(fetchOrCreateStoreSettings);
 
 export async function upsertStoreSettings(data: StoreSettingsInput) {
   const existing = await db.select().from(storeSettings).limit(1);

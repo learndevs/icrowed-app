@@ -4,7 +4,7 @@ import { CategoryShowcaseGrid, categoryRowToShowcaseItem } from "@/components/ho
 
 export const metadata: Metadata = { title: "Categories | iCrowd" };
 
-export const dynamic = "force-dynamic";
+export const revalidate = 600;
 
 export default async function CategoriesPage() {
   const rows = await getStorefrontCategories().catch(() => []);

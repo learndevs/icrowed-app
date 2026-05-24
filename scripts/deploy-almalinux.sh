@@ -65,9 +65,17 @@ cd "${APP_DIR}"
 sudo -u "${APP_USER}" npm ci
 sudo -u "${APP_USER}" npm run netlify:build
 
-echo "==> Starting app with PM2..."
-sudo -u "${APP_USER}" pm2 delete icrowd-web 2>/dev/null || true
-sudo -u "${APP_USER}" env PORT="${PORT}" pm2 start npm --name icrowd-web -- start --workspace=web
+echo "==> Preparing PM2 log directory..."
+mkdir -p /var/log/icrowed
+chown -R "${APP_USER}:${APP_USER}" /var/log/icrowed
+
+echo "==> Starting app with PM2 (ecosystem.config.cjs runs node directly)..."
+# Clean up any legacy `pm2 start npm` process from older deploys — those can
+# leave a zombie node holding port ${PORT} and break the new start.
+for legacy in icrowd-web icrowed-web npm; do
+  sudo -u "${APP_USER}" pm2 delete "${legacy}" >/dev/null 2>&1 || true
+done
+sudo -u "${APP_USER}" env PORT="${PORT}" pm2 startOrReload "${APP_DIR}/ecosystem.config.cjs" --update-env
 sudo -u "${APP_USER}" pm2 save
 
 echo "==> Enabling PM2 on boot..."

@@ -4,8 +4,9 @@ import { TopSellingProductsSection } from "@/components/home/TopSellingProductsS
 import { HomeReviewsSection } from "@/components/home/HomeReviewsSection";
 import { HomeOffersSection } from "@/components/home/HomeOffersSection";
 
-/** Load top selling + offers from DB on every request (avoid empty build-time cache). */
-export const dynamic = "force-dynamic";
+// ISR — regenerate the home page at most once a minute. Bursts of traffic
+// share the same cached HTML instead of hammering Supabase per request.
+export const revalidate = 60;
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default async function HomePage() {

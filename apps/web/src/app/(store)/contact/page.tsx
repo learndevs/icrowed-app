@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import { getOrCreateStoreSettings } from "@icrowd/database";
 import { parseStoreContactInfo } from "@/lib/contact-page";
 import {
@@ -7,14 +6,9 @@ import {
   ContactSocialLinks,
 } from "@/components/contact/ContactDetails";
 
-const inter = Inter({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  display: "swap",
-  adjustFontFallback: false,
-});
-
-export const dynamic = "force-dynamic";
+// Store contact info changes rarely — revalidate hourly instead of hitting
+// the DB on every request.
+export const revalidate = 3600;
 
 const CONTACT_SUBTITLE =
   "Get in touch with us for reliable support and information";
@@ -33,10 +27,7 @@ export default async function ContactPage() {
   const info = parseStoreContactInfo(settings);
 
   return (
-    <div
-      className="bg-white min-h-[60vh]"
-      style={{ fontFamily: inter.style.fontFamily }}
-    >
+    <div className="bg-white min-h-[60vh] font-inter">
       {/* Hero */}
       <section className="mx-auto max-w-[1400px] px-4 pt-8 sm:px-5 lg:px-8 lg:pt-10">
         <div className="rounded-2xl border border-zinc-200 bg-[#F5F5F5] px-6 py-14 sm:px-10 lg:rounded-3xl lg:px-14 lg:py-20">

@@ -1,14 +1,20 @@
 #!/usr/bin/env bash
 # Reinstall monorepo deps, build, and restart PM2 on the VPS.
-# Run as root from repo root: bash scripts/rebuild-and-restart.sh
+# Run as the `icrowd` user (or root via sudo) from repo root:
+#   bash scripts/rebuild-and-restart.sh
 
 set -euo pipefail
 
 APP_DIR="${APP_DIR:-/var/www/icrowed-app}"
 PORT="${PORT:-3000}"
 PM2_NAME="${PM2_NAME:-icrowed-web}"
+ECOSYSTEM="${APP_DIR}/ecosystem.config.cjs"
 
 cd "${APP_DIR}"
+
+echo "==> Ensuring log dir exists..."
+sudo mkdir -p /var/log/icrowed
+sudo chown -R "$(id -un):$(id -gn)" /var/log/icrowed || true
 
 echo "==> Installing all workspace packages (required for @icrowd/* imports)..."
 npm ci
@@ -24,17 +30,27 @@ done
 echo "==> Building Next.js app..."
 npm run netlify:build
 
-echo "==> Restarting PM2 (${PM2_NAME})..."
-if pm2 describe "${PM2_NAME}" >/dev/null 2>&1; then
-  env PORT="${PORT}" pm2 restart "${PM2_NAME}" --update-env
-elif pm2 describe icrowd-web >/dev/null 2>&1; then
-  env PORT="${PORT}" pm2 restart icrowd-web --update-env
-else
-  env PORT="${PORT}" pm2 start npm --name "${PM2_NAME}" -- start --workspace=web
-fi
+# Delete any old PM2 process started via `npm start` (script name "npm") so the
+# new node-based process can claim the port cleanly.
+for legacy in icrowd-web icrowed-web npm; do
+  if pm2 describe "${legacy}" >/dev/null 2>&1; then
+    pm2 delete "${legacy}" >/dev/null 2>&1 || true
+  fi
+done
+
+echo "==> Starting PM2 from ${ECOSYSTEM}..."
+env PORT="${PORT}" pm2 startOrReload "${ECOSYSTEM}" --update-env
 pm2 save
+
+echo ""
+echo "==> Health check..."
+sleep 3
+curl -fsS "http://127.0.0.1:${PORT}/api/health" || {
+  echo "WARN: /api/health did not respond. Check 'pm2 logs ${PM2_NAME}'."
+}
 
 echo ""
 echo "Done. Check:"
 echo "  pm2 status"
+echo "  pm2 logs ${PM2_NAME}"
 echo "  curl -I http://127.0.0.1:${PORT}"
