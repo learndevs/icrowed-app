@@ -83,6 +83,14 @@ grep -q '^STRIPE_WEBHOOK_SECRET=' "${ENV_FILE}" || echo 'STRIPE_WEBHOOK_SECRET=w
 
 echo "==> Installing dependencies and building (this may take several minutes)..."
 cd "${APP_DIR}"
+
+# Drop any stale .next/lock from a previously OOM-killed `next build`.
+LOCKFILE="${APP_DIR}/apps/web/.next/lock"
+if [[ -e "${LOCKFILE}" ]] && ! pgrep -f 'next/dist/bin/next build' >/dev/null 2>&1; then
+  echo "==> Removing stale ${LOCKFILE}..."
+  rm -f "${LOCKFILE}"
+fi
+
 # Keep memory footprint low on 1–2 GB boxes.
 BUILD_ENV='NODE_OPTIONS=--max-old-space-size=1024 NPM_CONFIG_FUND=false NPM_CONFIG_AUDIT=false NPM_CONFIG_PROGRESS=false'
 sudo -u "${APP_USER}" env ${BUILD_ENV} npm ci --no-audit --no-fund --prefer-offline --maxsockets=4

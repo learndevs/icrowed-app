@@ -38,6 +38,22 @@ done
 sync || true
 sudo sh -c 'echo 1 > /proc/sys/vm/drop_caches' 2>/dev/null || true
 
+# Next.js 16 acquires .next/lock on `next build` and releases it on clean
+# exit. An OOM kill skips cleanup, leaving a stale lock that blocks every
+# future build with "Another next build process is already running."
+# We just stopped PM2 and aren't running a concurrent build, so any lock
+# here is by definition stale — but double-check no `next build` is alive.
+LOCKFILE="${APP_DIR}/apps/web/.next/lock"
+if [[ -e "${LOCKFILE}" ]]; then
+  if pgrep -f 'next/dist/bin/next build' >/dev/null 2>&1; then
+    echo "ERROR: .next/lock exists AND a 'next build' process is running."
+    echo "       Wait for it, or pkill -f 'next/dist/bin/next build' then retry."
+    exit 1
+  fi
+  echo "==> Removing stale ${LOCKFILE} (leftover from a previous OOM-killed build)..."
+  rm -f "${LOCKFILE}"
+fi
+
 echo "==> Installing all workspace packages (required for @icrowd/* imports)..."
 npm ci --no-audit --no-fund --prefer-offline --maxsockets=4
 
