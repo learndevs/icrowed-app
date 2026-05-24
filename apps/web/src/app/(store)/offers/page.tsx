@@ -3,8 +3,11 @@ import Link from "next/link";
 import { ArrowUpRight, Megaphone } from "lucide-react";
 import { getActiveOffers } from "@icrowd/database/queries";
 import { StoreOfferCard } from "@/components/offers/StoreOfferCard";
+import { STOREFRONT_REVALIDATE_SECONDS } from "@/lib/storefront-cache";
 
 export const metadata: Metadata = { title: "Offers & Deals | iCrowd" };
+
+export const revalidate = STOREFRONT_REVALIDATE_SECONDS;
 
 export default async function OffersPage() {
   const offers = await getActiveOffers().catch(() => []);

@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { getBrandBySlug, getBrands, getCategories, getProductsByBrandSlug, getReviewSummariesForProducts } from "@icrowd/database/queries";
 import { ProductsClient } from "../../ProductsClient";
 import type { ProductCardData } from "@/components/products/ProductCard";
+import { STOREFRONT_REVALIDATE_SECONDS } from "@/lib/storefront-cache";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -36,7 +37,7 @@ function primaryImageUrl(images: unknown): string | undefined {
   return sorted[0]?.url;
 }
 
-export const dynamic = "force-dynamic";
+export const revalidate = STOREFRONT_REVALIDATE_SECONDS;
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;

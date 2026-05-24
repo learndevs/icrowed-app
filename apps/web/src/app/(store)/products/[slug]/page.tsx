@@ -14,12 +14,13 @@ import {
 import { ProductSpecifications } from "@/components/products/ProductSpecifications";
 import { specificationsToMarkdown, hasSpecifications } from "@/lib/specifications";
 import { getProductBySlug, getProductReviewSummary } from "@icrowd/database/queries";
+import { STOREFRONT_REVALIDATE_SECONDS } from "@/lib/storefront-cache";
 
 interface Props {
   params: Promise<{ slug: string }>;
 }
 
-export const dynamic = "force-dynamic";
+export const revalidate = STOREFRONT_REVALIDATE_SECONDS;
 
 const CARD_GRADIENTS = [
   "from-indigo-500 to-blue-600",

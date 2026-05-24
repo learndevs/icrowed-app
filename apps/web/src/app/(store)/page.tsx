@@ -3,9 +3,10 @@ import { CategoryShowcaseCards } from "@/components/home/CategoryShowcaseCards";
 import { TopSellingProductsSection } from "@/components/home/TopSellingProductsSection";
 import { HomeReviewsSection } from "@/components/home/HomeReviewsSection";
 import { HomeOffersSection } from "@/components/home/HomeOffersSection";
+import { STOREFRONT_REVALIDATE_SECONDS } from "@/lib/storefront-cache";
 
-/** Load top selling + offers from DB on every request (avoid empty build-time cache). */
-export const dynamic = "force-dynamic";
+/** ISR: refresh home catalog sections every minute instead of every request. */
+export const revalidate = STOREFRONT_REVALIDATE_SECONDS;
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 export default async function HomePage() {
