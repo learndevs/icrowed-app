@@ -63,7 +63,7 @@ grep -q '^STRIPE_WEBHOOK_SECRET=' "${ENV_FILE}" || echo 'STRIPE_WEBHOOK_SECRET=w
 echo "==> Installing dependencies and building (this may take several minutes)..."
 cd "${APP_DIR}"
 sudo -u "${APP_USER}" npm ci
-sudo -u "${APP_USER}" npm run netlify:build
+sudo -u "${APP_USER}" npm run build --workspace=web
 
 echo "==> Starting app with PM2..."
 sudo -u "${APP_USER}" pm2 delete icrowd-web 2>/dev/null || true
@@ -119,6 +119,6 @@ echo "  Logs:    sudo -u ${APP_USER} pm2 logs icrowd-web"
 echo "  Env:     ${ENV_FILE}"
 echo ""
 echo "Edit ${ENV_FILE} with real Stripe/Resend keys, then:"
-echo "  cd ${APP_DIR} && sudo -u ${APP_USER} npm run netlify:build"
+echo "  cd ${APP_DIR} && sudo -u ${APP_USER} npm run build --workspace=web"
 echo "  sudo -u ${APP_USER} pm2 restart icrowd-web"
 echo "============================================"

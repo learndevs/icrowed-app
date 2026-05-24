@@ -80,7 +80,7 @@ if [[ -d "${APP_DIR}/.git" ]]; then
   npm ci
 
   echo "==> Rebuilding app..."
-  npm run netlify:build
+  npm run build --workspace=web
 fi
 
 echo "==> Restarting app with PM2..."

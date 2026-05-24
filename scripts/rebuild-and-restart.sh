@@ -22,7 +22,7 @@ for pkg in database env types; do
 done
 
 echo "==> Building Next.js app..."
-npm run netlify:build
+npm run build --workspace=web
 
 echo "==> Restarting PM2 (${PM2_NAME})..."
 if pm2 describe "${PM2_NAME}" >/dev/null 2>&1; then
