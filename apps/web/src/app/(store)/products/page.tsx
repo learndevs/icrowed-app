@@ -3,11 +3,10 @@ import { Suspense } from "react";
 import { ProductsClient } from "./ProductsClient";
 import type { ProductCardData } from "@/components/products/ProductCard";
 import { getBrands, getCategories, getProducts, getReviewSummariesForProducts } from "@icrowd/database/queries";
-import { STOREFRONT_REVALIDATE_SECONDS } from "@/lib/storefront-cache";
 
 export const metadata: Metadata = { title: "All Products | iCrowd" };
 
-export const revalidate = STOREFRONT_REVALIDATE_SECONDS;
+export const revalidate = 60;
 
 const CARD_GRADIENTS = [
   "from-indigo-500 to-blue-600",

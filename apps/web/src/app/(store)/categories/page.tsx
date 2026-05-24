@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
 import { getStorefrontCategories } from "@icrowd/database/queries";
 import { CategoryShowcaseGrid, categoryRowToShowcaseItem } from "@/components/home/CategoryShowcaseGrid";
-import { STOREFRONT_REVALIDATE_SECONDS } from "@/lib/storefront-cache";
 
 export const metadata: Metadata = { title: "Categories | iCrowd" };
 
-export const revalidate = STOREFRONT_REVALIDATE_SECONDS;
+export const revalidate = 60;
 
 export default async function CategoriesPage() {
   const rows = await getStorefrontCategories().catch(() => []);
