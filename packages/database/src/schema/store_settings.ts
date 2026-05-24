@@ -33,8 +33,11 @@ export const storeSettings = pgTable("store_settings", {
   logoUrl: text("logo_url"),
   faviconUrl: text("favicon_url"),
 
-  // Socials  { facebook, instagram, twitter, tiktok, youtube }
+  // Socials  { facebook, instagram, whatsapp, twitter, tiktok, youtube }
   socialLinks: jsonb("social_links"),
+
+  /** Contact page copy { heading, subtitle, phone2 } */
+  contactPage: jsonb("contact_page"),
 
   // Policies  { refund, shipping, privacy, terms } as HTML strings
   policies: jsonb("policies"),

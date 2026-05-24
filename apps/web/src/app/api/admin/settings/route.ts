@@ -36,6 +36,7 @@ export async function PUT(req: NextRequest) {
       "logoUrl",
       "faviconUrl",
       "socialLinks",
+      "contactPage",
       "policies",
       "bankDetails",
     ];

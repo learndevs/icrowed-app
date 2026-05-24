@@ -22,12 +22,12 @@ interface Props {
 export const dynamic = "force-dynamic";
 
 const CARD_GRADIENTS = [
-  "from-indigo-500 to-blue-600",
+  "from-blue-500 to-blue-600",
   "from-gray-700 to-gray-900",
   "from-teal-500 to-emerald-600",
   "from-rose-500 to-red-600",
   "from-orange-500 to-amber-600",
-  "from-violet-500 to-purple-600",
+  "from-sky-400 to-blue-600",
   "from-sky-500 to-cyan-600",
   "from-pink-500 to-rose-600",
 ] as const;

@@ -102,11 +102,11 @@ function Avatar({ name }: { name: string | null }) {
     ? name.split(" ").map((w) => w[0]).slice(0, 2).join("").toUpperCase()
     : "?";
   const colors = [
-    "bg-indigo-100 text-indigo-700",
+    "bg-blue-100 text-blue-700",
     "bg-emerald-100 text-emerald-700",
     "bg-amber-100 text-amber-700",
     "bg-rose-100 text-rose-700",
-    "bg-violet-100 text-violet-700",
+    "bg-cyan-100 text-cyan-700",
     "bg-sky-100 text-sky-700",
   ];
   const color = colors[(name?.charCodeAt(0) ?? 0) % colors.length];
@@ -252,7 +252,7 @@ export function ProductReviews({ productId }: { productId: string }) {
             className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold border transition-all ${
               showForm
                 ? "bg-gray-900 text-white border-gray-900"
-                : "bento-card text-gray-700 hover:border-indigo-300"
+                : "bento-card text-gray-700 hover:border-blue-300"
             }`}
           >
             <MessageSquare className="w-4 h-4" />
@@ -304,7 +304,7 @@ export function ProductReviews({ productId }: { productId: string }) {
               placeholder="Enter your name"
               maxLength={100}
               required
-              className="w-full h-10 px-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400 transition-shadow"
+              className="w-full h-10 px-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition-shadow"
             />
           </div>
 
@@ -325,7 +325,7 @@ export function ProductReviews({ productId }: { productId: string }) {
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Summarise your experience"
               maxLength={100}
-              className="w-full h-10 px-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400 transition-shadow"
+              className="w-full h-10 px-3 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition-shadow"
             />
           </div>
 
@@ -339,7 +339,7 @@ export function ProductReviews({ productId }: { productId: string }) {
               onChange={(e) => setBody(e.target.value)}
               placeholder="What did you like or dislike? How is build quality, battery life, camera?"
               maxLength={1000}
-              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-200 focus:border-indigo-400 resize-none transition-shadow"
+              className="w-full px-3 py-2.5 rounded-xl border border-gray-200 bg-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 resize-none transition-shadow"
             />
             <p className="text-right text-[10px] text-gray-400 mt-0.5">{body.length}/1000</p>
           </div>
@@ -354,7 +354,7 @@ export function ProductReviews({ productId }: { productId: string }) {
             <button
               type="submit"
               disabled={submitting}
-              className="px-5 py-2.5 bg-gray-900 text-white text-sm font-bold rounded-xl hover:bg-indigo-600 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              className="px-5 py-2.5 bg-gray-900 text-white text-sm font-bold rounded-xl hover:bg-blue-600 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {submitting ? "Submitting…" : "Submit Review"}
             </button>

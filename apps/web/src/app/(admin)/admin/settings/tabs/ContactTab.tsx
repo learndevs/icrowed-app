@@ -4,43 +4,40 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { Textarea } from "@/components/ui/Textarea";
 import { FormField } from "@/components/ui/FormField";
+import { parseContactPage } from "@/lib/contact-page";
 
 type Initial = {
-  storeName: string;
   storeEmail: string | null;
   supportPhone: string | null;
-  currency: string;
   addressLine1: string | null;
   addressLine2: string | null;
   city: string | null;
   country: string | null;
-  logoUrl: string | null;
-  faviconUrl: string | null;
   socialLinks: unknown;
+  contactPage: unknown;
 };
 
-export function StoreInfoTab({ initial }: { initial: Initial }) {
+export function ContactTab({ initial }: { initial: Initial }) {
+  const page = parseContactPage(initial.contactPage);
+  const social = (initial.socialLinks ?? {}) as Record<string, string>;
+
   const [form, setForm] = useState({
-    storeName: initial.storeName ?? "iCrowd",
+    heading: page.heading,
+    subtitle: page.subtitle,
     storeEmail: initial.storeEmail ?? "",
     supportPhone: initial.supportPhone ?? "",
-    currency: initial.currency ?? "LKR",
+    phone2: page.phone2,
     addressLine1: initial.addressLine1 ?? "",
     addressLine2: initial.addressLine2 ?? "",
     city: initial.city ?? "",
     country: initial.country ?? "Sri Lanka",
-    logoUrl: initial.logoUrl ?? "",
-    faviconUrl: initial.faviconUrl ?? "",
   });
-  const social = (initial.socialLinks ?? {}) as Record<string, string>;
   const [socials, setSocials] = useState({
     facebook: social.facebook ?? "",
     instagram: social.instagram ?? "",
     whatsapp: social.whatsapp ?? "",
-    twitter: social.twitter ?? "",
-    tiktok: social.tiktok ?? "",
-    youtube: social.youtube ?? "",
   });
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
@@ -56,7 +53,20 @@ export function StoreInfoTab({ initial }: { initial: Initial }) {
       const res = await fetch("/api/admin/settings", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...form, socialLinks: socials }),
+        body: JSON.stringify({
+          storeEmail: form.storeEmail,
+          supportPhone: form.supportPhone,
+          addressLine1: form.addressLine1,
+          addressLine2: form.addressLine2,
+          city: form.city,
+          country: form.country,
+          socialLinks: socials,
+          contactPage: {
+            heading: form.heading,
+            subtitle: form.subtitle,
+            phone2: form.phone2,
+          },
+        }),
       });
       if (!res.ok) throw new Error((await res.json())?.error ?? "Failed");
       setMsg("Saved.");
@@ -70,31 +80,25 @@ export function StoreInfoTab({ initial }: { initial: Initial }) {
   return (
     <Card>
       <CardContent className="space-y-4 pt-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <FormField label="Store name" required>
+        <p className="text-sm text-[var(--muted)]">
+          Configure the public Contact Us page. Changes appear on{" "}
+          <span className="font-medium text-[var(--foreground)]">/contact</span>{" "}
+          and in the site footer.
+        </p>
+
+        <div className="space-y-3">
+          <h3 className="font-semibold text-sm">Page content</h3>
+          <FormField label="Heading">
             <Input
-              value={form.storeName}
-              onChange={(e) => update("storeName", e.target.value)}
+              value={form.heading}
+              onChange={(e) => update("heading", e.target.value)}
             />
           </FormField>
-          <FormField label="Currency">
-            <Input
-              value={form.currency}
-              onChange={(e) => update("currency", e.target.value)}
-              maxLength={8}
-            />
-          </FormField>
-          <FormField label="Contact email">
-            <Input
-              type="email"
-              value={form.storeEmail}
-              onChange={(e) => update("storeEmail", e.target.value)}
-            />
-          </FormField>
-          <FormField label="Support phone">
-            <Input
-              value={form.supportPhone}
-              onChange={(e) => update("supportPhone", e.target.value)}
+          <FormField label="Subtitle">
+            <Textarea
+              value={form.subtitle}
+              onChange={(e) => update("subtitle", e.target.value)}
+              rows={3}
             />
           </FormField>
         </div>
@@ -130,40 +134,53 @@ export function StoreInfoTab({ initial }: { initial: Initial }) {
         </div>
 
         <div className="pt-4 border-t border-[var(--border)] space-y-3">
-          <h3 className="font-semibold text-sm">Branding</h3>
-          <FormField label="Logo URL" hint="https://…">
+          <h3 className="font-semibold text-sm">Contact numbers</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <FormField label="Primary phone">
+              <Input
+                value={form.supportPhone}
+                onChange={(e) => update("supportPhone", e.target.value)}
+                placeholder="+94 77 123 4567"
+              />
+            </FormField>
+            <FormField label="Secondary phone">
+              <Input
+                value={form.phone2}
+                onChange={(e) => update("phone2", e.target.value)}
+                placeholder="+94 11 234 5678"
+              />
+            </FormField>
+          </div>
+          <FormField label="Email">
             <Input
-              value={form.logoUrl}
-              onChange={(e) => update("logoUrl", e.target.value)}
-            />
-          </FormField>
-          <FormField label="Favicon URL">
-            <Input
-              value={form.faviconUrl}
-              onChange={(e) => update("faviconUrl", e.target.value)}
+              type="email"
+              value={form.storeEmail}
+              onChange={(e) => update("storeEmail", e.target.value)}
             />
           </FormField>
         </div>
 
         <div className="pt-4 border-t border-[var(--border)] space-y-3">
           <h3 className="font-semibold text-sm">Social links</h3>
-          {(["facebook", "instagram", "whatsapp", "twitter", "tiktok", "youtube"] as const).map(
-            (k) => (
-              <FormField key={k} label={k.charAt(0).toUpperCase() + k.slice(1)}>
-                <Input
-                  value={socials[k]}
-                  onChange={(e) =>
-                    setSocials((s) => ({ ...s, [k]: e.target.value }))
-                  }
-                />
-              </FormField>
-            )
-          )}
+          {(["facebook", "instagram", "whatsapp"] as const).map((k) => (
+            <FormField
+              key={k}
+              label={k.charAt(0).toUpperCase() + k.slice(1)}
+              hint={k === "whatsapp" ? "Phone number or wa.me link" : "https://…"}
+            >
+              <Input
+                value={socials[k]}
+                onChange={(e) =>
+                  setSocials((s) => ({ ...s, [k]: e.target.value }))
+                }
+              />
+            </FormField>
+          ))}
         </div>
 
         <div className="flex items-center gap-3 pt-4 border-t border-[var(--border)]">
           <Button onClick={save} loading={saving}>
-            Save store info
+            Save contact page
           </Button>
           {msg && <span className="text-xs text-[var(--muted)]">{msg}</span>}
         </div>

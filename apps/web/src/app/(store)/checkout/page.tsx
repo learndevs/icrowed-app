@@ -197,8 +197,7 @@ export default function CheckoutPage() {
       address.fullName.trim() &&
       address.phone.trim() &&
       isValidEmail(customerEmail) &&
-      address.addressLine1.trim() &&
-      address.district.trim()
+      address.addressLine1.trim()
     );
   }
 
@@ -228,7 +227,11 @@ export default function CheckoutPage() {
           shippingAddressLine1: address.addressLine1,
           shippingAddressLine2: address.addressLine2 || null,
           shippingCity: address.city,
-          shippingDistrict: address.district,
+          shippingDistrict:
+            address.district.trim() ||
+            address.city.trim() ||
+            address.province.trim() ||
+            "—",
           shippingProvince: address.province || null,
           shippingPostalCode: address.postalCode || null,
           paymentMethod,
@@ -562,7 +565,7 @@ export default function CheckoutPage() {
                                 )}
                               </div>
                               <p className="text-gray-400 text-xs mt-0.5 truncate">
-                                {a.addressLine1}, {a.city}, {a.district}
+                                {a.addressLine1}, {a.city}
                               </p>
                             </div>
                             {selectedSavedId === a.id && (
@@ -625,11 +628,11 @@ export default function CheckoutPage() {
                           required: true,
                         },
                         {
-                          label: "District",
-                          key: "district",
+                          label: "City",
+                          key: "city",
                           placeholder: "Colombo",
                           col: 1,
-                          required: true,
+                          required: false,
                         },
                         {
                           label: "Province",
@@ -908,8 +911,8 @@ export default function CheckoutPage() {
                       <p className="text-gray-500">{address.phone}</p>
                       <p className="text-gray-500">{address.addressLine1}</p>
                       <p className="text-gray-500">
-                        {address.district}
-                        {address.province ? `, ${address.province}` : ""}
+                        {[address.city, address.province].filter(Boolean).join(", ") ||
+                          address.addressLine1}
                       </p>
                     </div>
                     <button

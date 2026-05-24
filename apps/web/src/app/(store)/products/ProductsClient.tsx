@@ -252,8 +252,8 @@ export function ProductsClient({
                   <div
                     className={`w-4 h-4 rounded-full flex items-center justify-center border transition-colors ${
                       active
-                        ? "bg-indigo-600 border-indigo-600"
-                        : "border-gray-300 group-hover:border-indigo-400"
+                        ? "bg-blue-600 border-blue-600"
+                        : "border-gray-300 group-hover:border-blue-400"
                     }`}
                     onClick={() => toggleCategory(slug)}
                   >
@@ -285,8 +285,8 @@ export function ProductsClient({
               <div
                 className={`w-4 h-4 rounded flex items-center justify-center border transition-colors ${
                   filters.brands.includes(brand)
-                    ? "bg-indigo-600 border-indigo-600"
-                    : "border-gray-300 group-hover:border-indigo-400"
+                    ? "bg-blue-600 border-blue-600"
+                    : "border-gray-300 group-hover:border-blue-400"
                 }`}
                 onClick={() => toggleBrand(brand)}
               >
@@ -314,7 +314,7 @@ export function ProductsClient({
             placeholder="Min"
             value={filters.minPrice}
             onChange={(e) => { setFilters((f) => ({ ...f, minPrice: e.target.value })); resetPage(); }}
-            className="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+            className="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
           />
           <span className="text-gray-300 text-sm shrink-0">–</span>
           <input
@@ -322,7 +322,7 @@ export function ProductsClient({
             placeholder="Max"
             value={filters.maxPrice}
             onChange={(e) => { setFilters((f) => ({ ...f, maxPrice: e.target.value })); resetPage(); }}
-            className="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100"
+            className="w-full px-3 py-2 text-sm rounded-xl border border-gray-200 focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
           />
         </div>
         {/* Quick presets */}
@@ -343,8 +343,8 @@ export function ProductsClient({
                 }}
                 className={`px-2.5 py-1 rounded-full text-[11px] font-semibold border transition-all ${
                   active
-                    ? "bg-indigo-600 text-white border-indigo-600"
-                    : "bg-white text-gray-600 border-gray-200 hover:border-indigo-300 hover:text-indigo-600"
+                    ? "bg-blue-600 text-white border-blue-600"
+                    : "bg-white text-gray-600 border-gray-200 hover:border-blue-300 hover:text-blue-600"
                 }`}
               >
                 {p.label}
@@ -425,7 +425,7 @@ export function ProductsClient({
               <Filter className="w-4 h-4" />
               Filters
               {activeCount > 0 && (
-                <span className="w-5 h-5 bg-indigo-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                <span className="w-5 h-5 bg-blue-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
                   {activeCount}
                 </span>
               )}
@@ -440,7 +440,7 @@ export function ProductsClient({
               placeholder="Search by name or brand…"
               value={search}
               onChange={(e) => { setSearch(e.target.value); resetPage(); }}
-              className="w-full pl-11 pr-10 py-3 rounded-2xl border border-gray-200 bg-white text-sm shadow-sm focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 transition-shadow"
+              className="w-full pl-11 pr-10 py-3 rounded-2xl border border-gray-200 bg-white text-sm shadow-sm focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 transition-shadow"
             />
             {search && (
               <button
@@ -459,12 +459,12 @@ export function ProductsClient({
               {chips.map((chip) => (
                 <span
                   key={chip.label}
-                  className="inline-flex items-center gap-1.5 bg-indigo-50 text-indigo-700 border border-indigo-200 text-xs font-semibold px-3 py-1 rounded-full"
+                  className="inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 border border-blue-200 text-xs font-semibold px-3 py-1 rounded-full"
                 >
                   {chip.label}
                   <button
                     onClick={chip.onRemove}
-                    className="w-3.5 h-3.5 rounded-full hover:bg-indigo-200 flex items-center justify-center transition-colors"
+                    className="w-3.5 h-3.5 rounded-full hover:bg-blue-200 flex items-center justify-center transition-colors"
                     aria-label={`Remove ${chip.label} filter`}
                   >
                     <X className="w-2.5 h-2.5" />
@@ -491,7 +491,7 @@ export function ProductsClient({
                   <p className="font-extrabold text-gray-900 text-sm">Filters</p>
                 </div>
                 {activeCount > 0 && (
-                  <span className="w-5 h-5 bg-indigo-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                  <span className="w-5 h-5 bg-blue-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
                     {activeCount}
                   </span>
                 )}
@@ -541,7 +541,7 @@ export function ProductsClient({
                 </p>
                 <button
                   onClick={clearFilters}
-                  className="mt-2 px-5 py-2 bg-gray-900 text-white text-sm font-semibold rounded-full hover:bg-indigo-600 transition-colors"
+                  className="mt-2 px-5 py-2 bg-gray-900 text-white text-sm font-semibold rounded-full hover:bg-blue-600 transition-colors"
                 >
                   Clear filters
                 </button>
@@ -622,7 +622,7 @@ export function ProductsClient({
                 <SlidersHorizontal className="w-4 h-4 text-gray-500" />
                 <p className="font-extrabold text-gray-900">Filters</p>
                 {activeCount > 0 && (
-                  <span className="w-5 h-5 bg-indigo-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+                  <span className="w-5 h-5 bg-blue-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
                     {activeCount}
                   </span>
                 )}
@@ -648,7 +648,7 @@ export function ProductsClient({
               )}
               <button
                 onClick={() => setDrawerOpen(false)}
-                className="flex-1 py-3 bg-gray-900 text-white font-bold rounded-2xl hover:bg-indigo-600 transition-colors text-sm"
+                className="flex-1 py-3 bg-gray-900 text-white font-bold rounded-2xl hover:bg-blue-600 transition-colors text-sm"
               >
                 Show {filtered.length} results
               </button>

@@ -6,6 +6,7 @@ import {
   getOrCreateNotificationPrefs,
   getAllDeliveryTypes,
 } from "@icrowd/database";
+import { ContactTab } from "./tabs/ContactTab";
 import { StoreInfoTab } from "./tabs/StoreInfoTab";
 import { ShippingTab } from "./tabs/ShippingTab";
 import { TaxTab } from "./tabs/TaxTab";
@@ -19,6 +20,7 @@ export const dynamic = "force-dynamic";
 
 const TABS = [
   { key: "store", label: "Store Info" },
+  { key: "contact", label: "Contact Page" },
   { key: "shipping", label: "Shipping" },
   { key: "tax", label: "Tax" },
   { key: "policies", label: "Policies" },
@@ -70,6 +72,7 @@ export default async function AdminSettingsPage({
 
       <div className="max-w-3xl">
         {active === "store" && <StoreInfoTab initial={store} />}
+        {active === "contact" && <ContactTab initial={store} />}
         {active === "shipping" && (
           <ShippingTab
             initialFreeShippingMin={Number(shipping.freeShippingMinSubtotal)}
