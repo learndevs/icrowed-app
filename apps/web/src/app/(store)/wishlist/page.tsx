@@ -92,7 +92,7 @@ export default function WishlistPage() {
             </p>
             <Link
               href="/products"
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-bold hover:bg-indigo-600 transition-colors"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gray-900 text-white text-sm font-bold hover:bg-sky-600 transition-colors"
             >
               Browse Products <ArrowRight className="w-4 h-4" />
             </Link>
@@ -150,7 +150,7 @@ export default function WishlistPage() {
 
                   {/* Name */}
                   <Link href={`/products/${product.slug}`}>
-                    <p className="text-xs font-bold text-gray-900 leading-snug line-clamp-2 mb-2 hover:text-indigo-600 transition-colors">
+                    <p className="text-xs font-bold text-gray-900 leading-snug line-clamp-2 mb-2 hover:text-sky-600 transition-colors">
                       {product.name}
                     </p>
                   </Link>
@@ -167,7 +167,7 @@ export default function WishlistPage() {
                       <button
                         onClick={() => handleAddToCart(product)}
                         disabled={product.stock === 0}
-                        className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-gray-900 hover:bg-indigo-600 disabled:bg-gray-200 text-white text-[11px] font-bold transition-colors"
+                        className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl bg-gray-900 hover:bg-sky-600 disabled:bg-gray-200 text-white text-[11px] font-bold transition-colors"
                       >
                         <ShoppingCart className="w-3 h-3" />
                         Add

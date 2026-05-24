@@ -7,13 +7,13 @@ import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 
 const GRADIENTS = [
-  "from-indigo-500 to-blue-600",
+  "from-sky-400 to-sky-600",
   "from-gray-700 to-gray-900",
   "from-teal-500 to-emerald-600",
   "from-rose-500 to-red-600",
   "from-orange-500 to-amber-600",
-  "from-violet-500 to-purple-600",
-  "from-sky-500 to-cyan-600",
+  "from-cyan-400 to-sky-600",
+  "from-sky-500 to-cyan-500",
   "from-pink-500 to-rose-600",
 ];
 
@@ -33,7 +33,7 @@ export interface ProductCardData {
   stock: number;
   isNew?: boolean;
   badge?: string;
-  /** tailwind gradient e.g. "from-indigo-500 to-blue-600" */
+  /** tailwind gradient e.g. "from-sky-500 to-blue-600" */
   color?: string;
   brand?: string;
   /** Product category slug for `?category=` filtering */
@@ -191,7 +191,7 @@ export function ProductCard({ product }: Readonly<{ product: ProductCardData }>)
         ) : (
           <button
             onClick={handleAddToCart}
-            className="w-8 h-8 rounded-full bg-gray-900 hover:bg-indigo-600 flex items-center justify-center transition-colors shrink-0 active:scale-90"
+            className="w-8 h-8 rounded-full bg-gray-900 hover:bg-sky-600 flex items-center justify-center transition-colors shrink-0 active:scale-90"
             aria-label="Add to cart"
           >
             <ShoppingCart className="w-3.5 h-3.5 text-white" />

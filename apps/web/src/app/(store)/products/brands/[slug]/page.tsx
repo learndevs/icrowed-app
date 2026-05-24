@@ -11,13 +11,13 @@ interface Props {
 }
 
 const CARD_GRADIENTS = [
-  "from-indigo-500 to-blue-600",
+  "from-sky-400 to-sky-600",
   "from-gray-700 to-gray-900",
   "from-teal-500 to-emerald-600",
   "from-rose-500 to-red-600",
   "from-orange-500 to-amber-600",
-  "from-violet-500 to-purple-600",
-  "from-sky-500 to-cyan-600",
+  "from-cyan-400 to-sky-600",
+  "from-sky-500 to-cyan-500",
   "from-pink-500 to-rose-600",
 ] as const;
 

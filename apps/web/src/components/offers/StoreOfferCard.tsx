@@ -7,11 +7,11 @@ import { cn } from "@/lib/utils";
 export type StoreOffer = Awaited<ReturnType<typeof getActiveOffers>>[number];
 
 const OFFER_GRADIENTS = [
-  "from-purple-600 to-indigo-600",
+  "from-sky-500 to-sky-700",
   "from-rose-500 to-orange-500",
   "from-teal-500 to-cyan-500",
   "from-pink-500 to-rose-600",
-  "from-indigo-500 to-blue-600",
+  "from-sky-400 to-sky-600",
   "from-orange-500 to-amber-600",
 ] as const;
 

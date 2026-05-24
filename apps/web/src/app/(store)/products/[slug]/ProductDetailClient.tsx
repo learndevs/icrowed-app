@@ -347,7 +347,7 @@ export function ProductDetailClient({ product }: Readonly<Props>) {
               ? "bg-gray-100 text-gray-400 cursor-not-allowed"
               : added
                 ? "bg-emerald-500 text-white scale-[0.98]"
-                : "bg-gray-900 hover:bg-indigo-600 text-white active:scale-[0.97] shadow-sm hover:shadow-indigo-200"
+                : "bg-gray-900 hover:bg-sky-600 text-white active:scale-[0.97] shadow-sm hover:shadow-sky-200"
           }`}
         >
           {outOfStock ? "Out of Stock" : added ? "Added!" : "Add to Cart"}

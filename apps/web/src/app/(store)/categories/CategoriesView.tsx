@@ -60,19 +60,19 @@ export function CategoriesView({
       <div className="max-w-[1400px] mx-auto px-3 sm:px-5 lg:px-8 py-6 sm:py-10 space-y-12 sm:space-y-16">
 
         {/* Hero */}
-        <section className="relative overflow-hidden rounded-[28px] border border-black/[0.06] bg-gradient-to-br from-gray-900 via-indigo-950 to-violet-900 text-white shadow-xl animate-fade-in">
-          <div className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-indigo-500/30 blur-3xl" />
+        <section className="relative overflow-hidden rounded-[28px] border border-black/[0.06] bg-gradient-to-br from-gray-900 via-sky-950 to-sky-900 text-white shadow-xl animate-fade-in">
+          <div className="pointer-events-none absolute -right-20 -top-20 h-72 w-72 rounded-full bg-sky-500/30 blur-3xl" />
           <div className="pointer-events-none absolute -bottom-24 -left-16 h-80 w-80 rounded-full bg-fuchsia-500/20 blur-3xl" />
           <div className="relative px-6 py-12 sm:px-10 sm:py-16 lg:px-14 lg:py-20">
             <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8">
               <div className="max-w-2xl space-y-4">
-                <p className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[11px] font-bold uppercase tracking-widest text-indigo-100 ring-1 ring-white/20">
+                <p className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[11px] font-bold uppercase tracking-widest text-sky-100 ring-1 ring-white/20">
                   <Sparkles className="w-3.5 h-3.5" />
                   Shop the collection
                 </p>
                 <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black leading-tight tracking-tight">
                   Categories &amp; brands
-                  <span className="block text-indigo-200/90 text-2xl sm:text-3xl lg:text-4xl mt-1 font-extrabold">
+                  <span className="block text-sky-200/90 text-2xl sm:text-3xl lg:text-4xl mt-1 font-extrabold">
                     built for how you browse.
                   </span>
                 </h1>
@@ -84,7 +84,7 @@ export function CategoriesView({
                 <div className="flex flex-wrap gap-3 pt-2">
                   <Link
                     href="#shop-by-category"
-                    className="inline-flex items-center gap-2 rounded-2xl bg-white px-5 py-3 text-sm font-bold text-gray-900 shadow-lg shadow-black/20 transition hover:bg-indigo-50"
+                    className="inline-flex items-center gap-2 rounded-2xl bg-white px-5 py-3 text-sm font-bold text-gray-900 shadow-lg shadow-black/20 transition hover:bg-sky-50"
                   >
                     Browse categories
                     <ChevronRight className="w-4 h-4" />
@@ -97,7 +97,7 @@ export function CategoriesView({
                   </Link>
                   <Link
                     href="/products"
-                    className="inline-flex items-center gap-2 rounded-2xl px-5 py-3 text-sm font-semibold text-indigo-100 underline-offset-4 hover:underline"
+                    className="inline-flex items-center gap-2 rounded-2xl px-5 py-3 text-sm font-semibold text-sky-100 underline-offset-4 hover:underline"
                   >
                     View all products
                   </Link>
@@ -115,7 +115,7 @@ export function CategoriesView({
                     key={tile.label}
                     className="rounded-2xl bg-white/10 p-4 ring-1 ring-white/15 backdrop-blur-md"
                   >
-                    <p className="text-[10px] font-bold uppercase tracking-wider text-indigo-200/80">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-sky-200/80">
                       {tile.label}
                     </p>
                     <p className="mt-1 text-2xl font-black">{tile.value}</p>
@@ -137,7 +137,7 @@ export function CategoriesView({
             </div>
             <Link
               href="/products"
-              className="text-sm font-semibold text-indigo-600 hover:text-indigo-800 inline-flex items-center gap-1"
+              className="text-sm font-semibold text-sky-600 hover:text-sky-800 inline-flex items-center gap-1"
             >
               All products <ChevronRight className="w-4 h-4" />
             </Link>
@@ -222,7 +222,7 @@ export function CategoriesView({
                 <Link
                   key={brand.id}
                   href={productsHrefForBrand(brand.name)}
-                  className="group bento-card flex min-w-[140px] sm:min-w-0 flex-col items-center justify-center gap-3 p-5 text-center transition hover:border-indigo-200"
+                  className="group bento-card flex min-w-[140px] sm:min-w-0 flex-col items-center justify-center gap-3 p-5 text-center transition hover:border-sky-200"
                 >
                   <div className="relative h-14 w-14 rounded-2xl bg-gray-50 ring-1 ring-gray-100 overflow-hidden flex items-center justify-center">
                     {brand.logoUrl ? (
@@ -232,7 +232,7 @@ export function CategoriesView({
                         className="h-full w-full object-contain p-1.5"
                       />
                     ) : (
-                      <span className="text-lg font-black text-gray-400 group-hover:text-indigo-600 transition">
+                      <span className="text-lg font-black text-gray-400 group-hover:text-sky-600 transition">
                         {brand.name.slice(0, 2).toUpperCase()}
                       </span>
                     )}

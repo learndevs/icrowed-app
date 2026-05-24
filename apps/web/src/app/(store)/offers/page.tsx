@@ -77,7 +77,7 @@ export default async function OffersPage() {
           </div>
           <Link
             href="/products"
-            className="shrink-0 inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-5 py-2.5 rounded-full text-sm transition-colors"
+            className="shrink-0 inline-flex items-center gap-2 bg-sky-500 hover:bg-sky-600 text-white font-bold px-5 py-2.5 rounded-full text-sm transition-colors"
           >
             Shop All Products <ArrowUpRight className="w-4 h-4" />
           </Link>

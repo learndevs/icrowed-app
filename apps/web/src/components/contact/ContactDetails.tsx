@@ -8,6 +8,14 @@ function whatsappHref(value: string): string {
   return digits ? `https://wa.me/${digits}` : trimmed;
 }
 
+/** Human-readable WhatsApp line for contact details (phone number or link label). */
+export function formatWhatsappDisplay(value: string): string {
+  const trimmed = value.trim();
+  if (!trimmed) return "";
+  if (trimmed.startsWith("http")) return "Open WhatsApp chat";
+  return trimmed;
+}
+
 function telHref(phone: string): string {
   const digits = phone.replace(/\D/g, "");
   return digits ? `tel:+${digits}` : `tel:${phone}`;
@@ -24,7 +32,7 @@ export function ContactDetails({
   className?: string;
   labelClass?: string;
   valueClass?: string;
-  variant?: "default" | "footer";
+  variant?: "default" | "footer" | "contact-page";
 }) {
   const addressParts = [
     info.addressLine1,
@@ -38,6 +46,76 @@ export function ContactDetails({
       : "grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-8";
 
   const phoneLabel = variant === "footer" ? "Phone no." : "Phone";
+
+  if (variant === "contact-page") {
+    const cityLine = [info.city, info.country].filter(Boolean).join(", ");
+    return (
+      <div className={`mt-8 ${className}`}>
+        <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 sm:gap-x-12 sm:gap-y-10">
+          {addressParts.length > 0 && (
+            <div>
+              <p className={labelClass}>Address</p>
+              <div className={`${valueClass} space-y-0.5`}>
+                {info.addressLine1 && <p>{info.addressLine1}</p>}
+                {info.addressLine2 && <p>{info.addressLine2}</p>}
+                {cityLine && <p>{cityLine}</p>}
+              </div>
+            </div>
+          )}
+
+          {info.email && (
+            <div>
+              <p className={labelClass}>Email</p>
+              <a
+                href={`mailto:${info.email}`}
+                className={`${valueClass} block hover:opacity-70 transition-opacity`}
+              >
+                {info.email}
+              </a>
+            </div>
+          )}
+
+          {info.phone && (
+            <div className="sm:col-span-1">
+              <p className={labelClass}>{phoneLabel}</p>
+              <a
+                href={telHref(info.phone)}
+                className={`${valueClass} block hover:opacity-70 transition-opacity`}
+              >
+                {info.phone}
+              </a>
+            </div>
+          )}
+
+          {info.social.whatsapp && (
+            <div>
+              <p className={labelClass}>WhatsApp</p>
+              <a
+                href={whatsappHref(info.social.whatsapp)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`${valueClass} block hover:opacity-70 transition-opacity`}
+              >
+                {formatWhatsappDisplay(info.social.whatsapp)}
+              </a>
+            </div>
+          )}
+
+          {info.phone2 && (
+            <div>
+              <p className={labelClass}>Phone 2</p>
+              <a
+                href={telHref(info.phone2)}
+                className={`${valueClass} block hover:opacity-70 transition-opacity`}
+              >
+                {info.phone2}
+              </a>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   if (variant === "footer") {
     return (
@@ -169,7 +247,7 @@ export function ContactSocialLinks({
   info: StoreContactInfo;
   className?: string;
   iconClass?: string;
-  variant?: "default" | "plain" | "contact";
+  variant?: "default" | "plain" | "contact" | "outline";
 }) {
   const links = [
     {
@@ -209,9 +287,11 @@ export function ContactSocialLinks({
   const linkClass =
     variant === "plain"
       ? "flex h-9 w-9 items-center justify-center text-black transition hover:opacity-75"
-      : variant === "contact"
-        ? "inline-flex h-12 w-12 items-center justify-center rounded-full border-2 border-black bg-white text-black transition hover:border-sky-400 hover:bg-sky-400 hover:text-white"
-        : "inline-flex h-11 w-11 items-center justify-center rounded-full border border-zinc-300 bg-white text-zinc-900 transition hover:border-zinc-900 hover:bg-zinc-900 hover:text-white";
+      : variant === "outline"
+        ? "inline-flex h-11 w-11 items-center justify-center rounded-full border border-zinc-300 bg-white text-black shadow-sm transition hover:bg-zinc-50"
+        : variant === "contact"
+          ? "inline-flex h-12 w-12 items-center justify-center rounded-full border-2 border-black bg-white text-black transition hover:border-sky-400 hover:bg-sky-400 hover:text-white"
+          : "inline-flex h-11 w-11 items-center justify-center rounded-full border border-zinc-300 bg-white text-zinc-900 transition hover:border-zinc-900 hover:bg-zinc-900 hover:text-white";
 
   return (
     <div className={`flex flex-wrap items-center gap-4 ${className}`}>
