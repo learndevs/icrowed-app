@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getStorefrontContactInfoSafe } from "@/lib/contact-page";
+import { getStorefrontContactInfoSafe } from "@/lib/contact-page.server";
 import {
   ContactDetails,
   ContactSocialLinks,

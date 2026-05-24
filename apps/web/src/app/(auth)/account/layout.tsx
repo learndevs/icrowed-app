@@ -1,6 +1,6 @@
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
-import { getStorefrontContactInfoSafe } from "@/lib/contact-page";
+import { getStorefrontContactInfoSafe } from "@/lib/contact-page.server";
 import { ReactNode } from "react";
 
 export default async function AccountLayout({ children }: { children: ReactNode }) {
