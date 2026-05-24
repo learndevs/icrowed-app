@@ -16,6 +16,27 @@ APP_URL="${APP_URL:-http://${DOMAIN}}"
 echo "==> Installing system packages..."
 dnf install -y git curl nginx firewalld
 
+# Small VPSes ship with zero swap, so `npm ci` + `next build` OOMs (ENOMEM).
+# Provision a swap file early — idempotent on re-runs.
+echo "==> Ensuring swap is enabled (prevents ENOMEM during build)..."
+if [[ "$(awk '/SwapTotal/ {print $2}' /proc/meminfo)" -eq 0 ]]; then
+  SWAP_FILE=/swapfile
+  if [[ ! -f "${SWAP_FILE}" ]]; then
+    if ! fallocate -l 2G "${SWAP_FILE}" 2>/dev/null; then
+      dd if=/dev/zero of="${SWAP_FILE}" bs=1M count=2048 status=progress
+    fi
+  fi
+  chmod 600 "${SWAP_FILE}"
+  mkswap "${SWAP_FILE}"
+  swapon "${SWAP_FILE}"
+  if ! grep -q "^${SWAP_FILE} " /etc/fstab; then
+    echo "${SWAP_FILE} none swap sw 0 0" >> /etc/fstab
+  fi
+  sysctl -w vm.swappiness=10 >/dev/null || true
+  echo "vm.swappiness=10" >> /etc/sysctl.conf
+fi
+free -h || true
+
 echo "==> Installing Node.js ${NODE_MAJOR}..."
 if ! command -v node >/dev/null 2>&1 || [[ "$(node -v | cut -d. -f1 | tr -d v)" -lt "${NODE_MAJOR}" ]]; then
   curl -fsSL "https://rpm.nodesource.com/setup_${NODE_MAJOR}.x" | bash -
@@ -62,8 +83,10 @@ grep -q '^STRIPE_WEBHOOK_SECRET=' "${ENV_FILE}" || echo 'STRIPE_WEBHOOK_SECRET=w
 
 echo "==> Installing dependencies and building (this may take several minutes)..."
 cd "${APP_DIR}"
-sudo -u "${APP_USER}" npm ci
-sudo -u "${APP_USER}" npm run netlify:build
+# Keep memory footprint low on 1–2 GB boxes.
+BUILD_ENV='NODE_OPTIONS=--max-old-space-size=1024 NPM_CONFIG_FUND=false NPM_CONFIG_AUDIT=false NPM_CONFIG_PROGRESS=false'
+sudo -u "${APP_USER}" env ${BUILD_ENV} npm ci --no-audit --no-fund --prefer-offline --maxsockets=4
+sudo -u "${APP_USER}" env ${BUILD_ENV} npm run netlify:build
 
 echo "==> Preparing PM2 log directory..."
 mkdir -p /var/log/icrowed
