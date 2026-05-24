@@ -53,5 +53,14 @@ export function getServerEnv() {
   });
 }
 
+/** Supabase Storage admin ops (e.g. product images) — does not require Stripe/Resend. */
+export function getSupabaseServiceRoleKey(): string {
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
+  if (!key) {
+    throw new Error("SUPABASE_SERVICE_ROLE_KEY is not set in apps/web/.env.local");
+  }
+  return key;
+}
+
 export type ServerEnv = z.infer<typeof serverSchema>;
 export type ClientEnv = z.infer<typeof clientSchema>;

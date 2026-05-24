@@ -3,7 +3,7 @@ import { createClient } from "@supabase/supabase-js";
 import { db } from "@icrowd/database";
 import { productImages } from "@icrowd/database";
 import { eq, count } from "drizzle-orm";
-import { getServerEnv } from "@icrowd/env";
+import { getSupabaseServiceRoleKey } from "@icrowd/env";
 import { requireAdmin } from "@/lib/admin";
 
 const BUCKET = "product-images";
@@ -11,10 +11,9 @@ const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 
 function getSupabaseAdmin() {
-  const { SUPABASE_SERVICE_ROLE_KEY } = getServerEnv();
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    SUPABASE_SERVICE_ROLE_KEY
+    getSupabaseServiceRoleKey(),
   );
 }
 
@@ -100,6 +99,7 @@ export async function POST(
     return NextResponse.json(image, { status: 201 });
   } catch (err) {
     console.error("[POST /api/products/[id]/images]", err);
-    return NextResponse.json({ error: "Upload failed" }, { status: 500 });
+    const message = err instanceof Error ? err.message : "Upload failed";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

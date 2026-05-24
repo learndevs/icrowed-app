@@ -3,16 +3,15 @@ import { createClient } from "@supabase/supabase-js";
 import { db } from "@icrowd/database";
 import { productImages } from "@icrowd/database";
 import { eq, and } from "drizzle-orm";
-import { getServerEnv } from "@icrowd/env";
+import { getSupabaseServiceRoleKey } from "@icrowd/env";
 import { requireAdmin } from "@/lib/admin";
 
 const BUCKET = "product-images";
 
 function getSupabaseAdmin() {
-  const { SUPABASE_SERVICE_ROLE_KEY } = getServerEnv();
   return createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    SUPABASE_SERVICE_ROLE_KEY
+    getSupabaseServiceRoleKey(),
   );
 }
 
