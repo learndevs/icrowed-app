@@ -5,6 +5,11 @@ import Link from "next/link";
 import { Inter } from "next/font/google";
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
+import type { StoreContactInfo } from "@/lib/contact-page";
+import {
+  ContactDetails,
+  ContactSocialLinks,
+} from "@/components/contact/ContactDetails";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -153,36 +158,21 @@ function AccordionSection({
   );
 }
 
-function ContactBlock({ className = "" }: { className?: string }) {
+function ContactBlock({
+  info,
+  className = "",
+}: {
+  info: StoreContactInfo;
+  className?: string;
+}) {
   return (
-    <div className={className}>
-      <div className="grid grid-cols-2 gap-x-6 gap-y-6">
-        <div>
-          <p className={CONTACT_LABEL_CLASS}>Address</p>
-          <p className="mt-2 text-base font-medium text-black leading-relaxed">
-            123 Simply Quidem
-          </p>
-        </div>
-        <div>
-          <p className={CONTACT_LABEL_CLASS}>Email</p>
-          <a
-            href="mailto:icrowd@gmail.com"
-            className="mt-2 block text-base font-medium text-black hover:opacity-80 transition-opacity"
-          >
-            icrowd@gmail.com
-          </a>
-        </div>
-        <div>
-          <p className={CONTACT_LABEL_CLASS}>Phone no.</p>
-          <a
-            href="tel:+94123456789"
-            className="mt-2 block text-base font-medium text-black hover:opacity-80 transition-opacity"
-          >
-            (123) 4567890
-          </a>
-        </div>
-      </div>
-    </div>
+    <ContactDetails
+      info={info}
+      variant="footer"
+      className={className}
+      labelClass={CONTACT_LABEL_CLASS}
+      valueClass="mt-2 text-base font-medium text-black leading-relaxed"
+    />
   );
 }
 
@@ -207,65 +197,33 @@ function ContactForm({ className = "" }: { className?: string }) {
   );
 }
 
-function SocialIcons({ className = "" }: { className?: string }) {
-  const iconClass = "h-7 w-7 text-black";
-  const linkClass = "flex h-9 w-9 items-center justify-center text-black transition hover:opacity-75";
-
+function SocialIcons({
+  info,
+  className = "",
+}: {
+  info: StoreContactInfo;
+  className?: string;
+}) {
   return (
-    <div className={`flex items-center justify-center gap-10 ${className}`}>
-      <a
-        href="https://facebook.com"
-        aria-label="Facebook"
-        target="_blank"
-        rel="noopener noreferrer"
-        className={linkClass}
-      >
-        <svg className={iconClass} fill="currentColor" viewBox="0 0 24 24" aria-hidden>
-          <path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z" />
-        </svg>
-      </a>
-      <a
-        href="https://x.com"
-        aria-label="X"
-        target="_blank"
-        rel="noopener noreferrer"
-        className={linkClass}
-      >
-        <svg className={iconClass} fill="currentColor" viewBox="0 0 24 24" aria-hidden>
-          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
-        </svg>
-      </a>
-      <a
-        href="https://youtube.com"
-        aria-label="YouTube"
-        target="_blank"
-        rel="noopener noreferrer"
-        className={linkClass}
-      >
-        <svg className={iconClass} fill="currentColor" viewBox="0 0 24 24" aria-hidden>
-          <path d="M22.54 6.42a2.78 2.78 0 00-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46a2.78 2.78 0 00-1.95 1.96A29 29 0 001 12a29 29 0 00.46 5.58A2.78 2.78 0 003.41 19.6C5.12 20 12 20 12 20s6.88 0 8.59-.4a2.78 2.78 0 001.95-1.95A29 29 0 0023 12a29 29 0 00-.46-5.58zM9.75 15.02V8.98L15.5 12z" />
-        </svg>
-      </a>
-      <a
-        href="https://linkedin.com"
-        aria-label="LinkedIn"
-        target="_blank"
-        rel="noopener noreferrer"
-        className={linkClass}
-      >
-        <svg className={iconClass} fill="currentColor" viewBox="0 0 24 24" aria-hidden>
-          <path d="M16 8a6 6 0 016 6v7h-4v-7a2 2 0 00-2-2 2 2 0 00-2 2v7h-4v-7a6 6 0 016-6zM2 9h4v12H2z" />
-          <circle cx="4" cy="4" r="2" />
-        </svg>
-      </a>
-    </div>
+    <ContactSocialLinks
+      info={info}
+      className={`justify-center gap-10 ${className}`}
+      iconClass="h-7 w-7"
+      variant="plain"
+    />
   );
 }
 
-function FooterBottom({ className = "" }: { className?: string }) {
+function FooterBottom({
+  info,
+  className = "",
+}: {
+  info: StoreContactInfo;
+  className?: string;
+}) {
   return (
     <div className={`flex flex-col items-center gap-6 pt-2 text-center ${className}`}>
-      <SocialIcons />
+      <SocialIcons info={info} />
       <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-sm font-normal text-black">
         {LEGAL_LINKS.map((link, i) => (
           <span key={link.label} className="flex items-center gap-2">
@@ -286,7 +244,7 @@ function FooterBottom({ className = "" }: { className?: string }) {
   );
 }
 
-export default function Footer() {
+export default function Footer({ contactInfo }: { contactInfo: StoreContactInfo }) {
   return (
     <footer className="mt-6 bg-[#E6E6E6]" style={{ fontFamily: inter.style.fontFamily }}>
       <div className="mx-auto max-w-[1400px] px-4 pb-10 pt-8 sm:px-5 lg:px-8">
@@ -302,9 +260,9 @@ export default function Footer() {
             ))}
           </div>
 
-          <ContactBlock className="mt-8" />
+          <ContactBlock info={contactInfo} className="mt-8" />
           <ContactForm className="mt-8" />
-          <FooterBottom className="mt-8" />
+          <FooterBottom info={contactInfo} className="mt-8" />
         </div>
 
         {/* ── Desktop / web ──────────────────────────────────────────── */}
@@ -324,7 +282,7 @@ export default function Footer() {
               <h4 className={SECTION_HEADING_CLASS}>
                 Contact
               </h4>
-              <ContactBlock />
+              <ContactBlock info={contactInfo} />
             </div>
           </div>
 
@@ -335,7 +293,7 @@ export default function Footer() {
             <ContactForm className="max-w-md" />
           </div>
 
-          <FooterBottom className="mt-10" />
+          <FooterBottom info={contactInfo} className="mt-10" />
         </div>
       </div>
     </footer>

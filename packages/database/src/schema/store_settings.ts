@@ -42,5 +42,8 @@ export const storeSettings = pgTable("store_settings", {
   /** Bank deposit details shown at checkout { bankName, accountName, accountNumber, branch, instructions } */
   bankDetails: jsonb("bank_details"),
 
+  /** Contact page content { heading, subtitle, phone2 } */
+  contactPage: jsonb("contact_page"),
+
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });

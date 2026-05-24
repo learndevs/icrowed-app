@@ -38,6 +38,7 @@ export async function PUT(req: NextRequest) {
       "socialLinks",
       "policies",
       "bankDetails",
+      "contactPage",
     ];
     for (const k of allowed) {
       if (k in body) safe[k] = body[k];
