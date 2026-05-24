@@ -1,4 +1,5 @@
 import type { StoreSettingsRow } from "@icrowd/database";
+import { getOrCreateStoreSettings } from "@icrowd/database";
 
 export type ContactPageContent = {
   heading: string;
@@ -70,4 +71,47 @@ export function formatAddress(info: StoreContactInfo): string {
     [info.city, info.country].filter(Boolean).join(", "),
   ].filter(Boolean);
   return parts.join("\n");
+}
+
+export const FALLBACK_CONTACT_INFO: StoreContactInfo = {
+  heading: "Contact Us",
+  subtitle:
+    "We are here to help. Reach out via phone, email, or social media.",
+  addressLine1: "",
+  addressLine2: "",
+  city: "",
+  country: "",
+  email: "",
+  phone: "",
+  phone2: "",
+  social: { facebook: "", instagram: "", whatsapp: "" },
+};
+
+/**
+ * Build-safe fetch + parse of storefront contact info.
+ *
+ * Why this exists: the storefront layout/footer used to call
+ * `getOrCreateStoreSettings()` directly. During `next build`, Next.js 16
+ * prerenders every storefront page (including `"use client"` pages like
+ * `/track`) and runs the layout. If Supabase is briefly unreachable from the
+ * build host, the connection times out and the WHOLE BUILD ABORTS.
+ *
+ * Wrap the DB call so a transient connection failure degrades to default
+ * contact info instead of failing the build. At request time on a healthy
+ * server the real data is fetched as before.
+ */
+export async function getStorefrontContactInfoSafe(): Promise<StoreContactInfo> {
+  try {
+    const settings = await getOrCreateStoreSettings();
+    return parseStoreContactInfo(settings);
+  } catch (err) {
+    if (process.env.NODE_ENV !== "production") {
+      console.warn("[contact-page] getOrCreateStoreSettings failed, using fallback:", err);
+    } else {
+      console.warn(
+        "[contact-page] store settings unavailable, rendering with fallback contact info",
+      );
+    }
+    return FALLBACK_CONTACT_INFO;
+  }
 }

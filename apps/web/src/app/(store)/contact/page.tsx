@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import { getOrCreateStoreSettings } from "@icrowd/database";
-import { parseStoreContactInfo } from "@/lib/contact-page";
+import { getStorefrontContactInfoSafe } from "@/lib/contact-page";
 import {
   ContactDetails,
   ContactSocialLinks,
@@ -14,8 +13,7 @@ const CONTACT_SUBTITLE =
   "Get in touch with us for reliable support and information";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const settings = await getOrCreateStoreSettings();
-  const info = parseStoreContactInfo(settings);
+  const info = await getStorefrontContactInfoSafe();
   return {
     title: info.heading,
     description: CONTACT_SUBTITLE,
@@ -23,8 +21,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function ContactPage() {
-  const settings = await getOrCreateStoreSettings();
-  const info = parseStoreContactInfo(settings);
+  const info = await getStorefrontContactInfoSafe();
 
   return (
     <div className="bg-white min-h-[60vh] font-inter">

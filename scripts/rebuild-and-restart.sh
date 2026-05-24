@@ -65,6 +65,36 @@ for pkg in database env types; do
   fi
 done
 
+# Early DB connectivity probe — tells you BEFORE the long build that
+# Supabase is unreachable from this host (DNS, firewall, wrong URL).
+# Failure is non-fatal: the build now degrades gracefully, but you'll
+# want to know about it.
+if [[ -f "${APP_DIR}/apps/web/.env" ]] || [[ -f "${APP_DIR}/apps/web/.env.local" ]]; then
+  echo "==> Probing Supabase connectivity..."
+  set +e
+  node -e '
+    require("dotenv").config({ path: "apps/web/.env.local" });
+    require("dotenv").config({ path: "apps/web/.env" });
+    const url = process.env.DATABASE_URL;
+    if (!url) { console.log("(no DATABASE_URL set)"); process.exit(0); }
+    const { Client } = require("pg");
+    const c = new Client({
+      connectionString: url,
+      ssl: { rejectUnauthorized: false },
+      connectionTimeoutMillis: 5000,
+    });
+    c.connect()
+      .then(() => c.query("select 1"))
+      .then(() => { console.log("    OK"); c.end(); })
+      .catch((e) => {
+        console.log("    FAIL:", e.message);
+        console.log("    The build will continue with safe fallbacks, but the");
+        console.log("    running app will not be able to serve data until this is fixed.");
+      });
+  ' 2>/dev/null || echo "    (skipped — node/dotenv not installed yet)"
+  set -e
+fi
+
 echo "==> Building Next.js app (NODE_OPTIONS=${NODE_OPTIONS})..."
 npm run build:web
 
