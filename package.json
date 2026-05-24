@@ -8,9 +8,9 @@
     "packages/*"
   ],
   "scripts": {
-    "netlify:build": "npm install --workspace=web --no-save @tailwindcss/oxide-linux-x64-gnu lightningcss-linux-x64-gnu && npm rebuild lightningcss --workspace=web && npm run build --workspace=web",
     "dev": "turbo dev",
     "build": "turbo build",
+    "build:web": "npm run build --workspace=web",
     "lint": "turbo lint",
     "type-check": "turbo type-check",
     "db:generate": "turbo db:generate --filter=@icrowd/database",
@@ -20,7 +20,6 @@
     "db:seed": "npm run db:seed -w @icrowd/database"
   },
   "devDependencies": {
-    "@netlify/plugin-nextjs": "^5.15.10",
     "@types/node": "^20",
     "turbo": "^2.5.0",
     "typescript": "^5"

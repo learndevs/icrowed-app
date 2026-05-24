@@ -50,7 +50,7 @@ for pkg in database env types; do
 done
 
 echo "==> Building Next.js app (NODE_OPTIONS=${NODE_OPTIONS})..."
-npm run netlify:build
+npm run build:web
 
 # Delete any old PM2 process started via `npm start` so the new node-based
 # process can claim the port cleanly.
