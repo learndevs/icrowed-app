@@ -19,7 +19,7 @@ interface Props {
   params: Promise<{ slug: string }>;
 }
 
-export const revalidate = 300;
+export const dynamic = "force-dynamic";
 
 const CARD_GRADIENTS = [
   "from-blue-500 to-blue-600",

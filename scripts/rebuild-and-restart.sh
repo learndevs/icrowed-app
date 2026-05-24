@@ -95,6 +95,10 @@ if [[ -f "${APP_DIR}/apps/web/.env" ]] || [[ -f "${APP_DIR}/apps/web/.env.local"
   set -e
 fi
 
+echo "==> Clearing stale Next.js ISR cache + nginx proxy cache..."
+rm -rf apps/web/.next/cache
+sudo rm -rf /var/cache/nginx/icrowd/* 2>/dev/null || true
+
 echo "==> Building Next.js app (NODE_OPTIONS=${NODE_OPTIONS})..."
 npm run build:web
 

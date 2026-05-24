@@ -36,7 +36,7 @@ function primaryImageUrl(images: unknown): string | undefined {
   return sorted[0]?.url;
 }
 
-export const revalidate = 120;
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;

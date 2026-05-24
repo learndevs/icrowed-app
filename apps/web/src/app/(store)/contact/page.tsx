@@ -5,9 +5,7 @@ import {
   ContactSocialLinks,
 } from "@/components/contact/ContactDetails";
 
-// Store contact info changes rarely — revalidate hourly instead of hitting
-// the DB on every request.
-export const revalidate = 3600;
+export const dynamic = "force-dynamic";
 
 const CONTACT_SUBTITLE =
   "Get in touch with us for reliable support and information";

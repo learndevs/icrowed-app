@@ -6,6 +6,8 @@ import { StoreOfferCard } from "@/components/offers/StoreOfferCard";
 
 export const metadata: Metadata = { title: "Offers & Deals | iCrowd" };
 
+export const dynamic = "force-dynamic";
+
 export default async function OffersPage() {
   const offers = await getActiveOffers().catch(() => []);
 
