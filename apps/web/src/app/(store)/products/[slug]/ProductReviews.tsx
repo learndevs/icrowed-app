@@ -17,6 +17,8 @@ interface Review {
   user: { id: string; fullName: string | null } | null;
 }
 
+export type ProductReviewItem = Review;
+
 type SortMode = "recent" | "highest" | "verified";
 
 function displayName(review: Review) {
@@ -126,11 +128,17 @@ function computeStatsFromReviews(list: Review[]) {
 }
 
 // ─── Main component ───────────────────────────────────────────────────────────
-export function ProductReviews({ productId }: { productId: string }) {
+export function ProductReviews({
+  productId,
+  initialReviews,
+}: {
+  productId: string;
+  initialReviews?: ProductReviewItem[];
+}) {
   const router = useRouter();
   const { setStats } = useProductReviewStats();
-  const [reviews, setReviews] = useState<Review[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [reviews, setReviews] = useState<Review[]>(initialReviews ?? []);
+  const [loading, setLoading] = useState(initialReviews == null);
   const [showForm, setShowForm] = useState(false);
   const [reviewerName, setReviewerName] = useState("");
   const [rating, setRating] = useState(0);
@@ -161,7 +169,10 @@ export function ProductReviews({ productId }: { productId: string }) {
     }
   }
 
-  useEffect(() => { loadReviews(); }, [productId]);
+  useEffect(() => {
+    if (initialReviews != null) return;
+    loadReviews();
+  }, [productId, initialReviews]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

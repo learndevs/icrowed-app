@@ -1,19 +1,24 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { cache } from "react";
 import {
   ChevronRight,
 } from "lucide-react";
 import { ProductDetailClient } from "./ProductDetailClient";
 import { ProductImages } from "./ProductImages";
-import { ProductReviews } from "./ProductReviews";
+import { ProductReviews, type ProductReviewItem } from "./ProductReviews";
 import {
   ProductRatingSummary,
   ProductReviewStatsProvider,
 } from "./ProductReviewStatsContext";
 import { ProductSpecifications } from "@/components/products/ProductSpecifications";
 import { specificationsToMarkdown, hasSpecifications } from "@/lib/specifications";
-import { getProductBySlug, getProductReviewSummary } from "@icrowd/database/queries";
+import {
+  getProductBySlug,
+  getProductReviewSummary,
+  getApprovedReviews,
+} from "@icrowd/database/queries";
 import { queryStorefront } from "@/lib/storefront-query";
 
 interface Props {
@@ -38,13 +43,27 @@ function productGradient(id: string): string {
   return CARD_GRADIENTS[hash % CARD_GRADIENTS.length];
 }
 
-async function getProduct(slug: string) {
+/** Deduped per request — metadata + page share one DB round-trip. */
+const getProductPageData = cache(async (slug: string) => {
   const p = await queryStorefront("product", () => getProductBySlug(slug));
   if (!p) return null;
 
-  const { reviewCount, rating } = await getProductReviewSummary(p.id).catch(() => ({
-    reviewCount: 0,
-    rating: 0,
+  const [summary, reviewRows] = await Promise.all([
+    getProductReviewSummary(p.id).catch(() => ({ reviewCount: 0, rating: 0 })),
+    getApprovedReviews(p.id).catch(() => []),
+  ]);
+
+  const initialReviews: ProductReviewItem[] = reviewRows.map((review) => ({
+    id: review.id,
+    rating: review.rating,
+    title: review.title,
+    body: review.body,
+    reviewerName: review.reviewerName,
+    isVerifiedPurchase: review.isVerifiedPurchase,
+    createdAt: review.createdAt.toISOString(),
+    user: review.user
+      ? { id: review.user.id, fullName: review.user.fullName }
+      : null,
   }));
 
   return {
@@ -56,8 +75,8 @@ async function getProduct(slug: string) {
     description: p.description ?? p.shortDescription ?? "",
     specificationsMarkdown: specificationsToMarkdown(p.specifications),
     hasSpecifications: hasSpecifications(p.specifications),
-    rating,
-    reviewCount,
+    rating: summary.rating,
+    reviewCount: summary.reviewCount,
     gradient: productGradient(p.id),
     images: (p.images as { id: string; url: string; altText: string | null; isPrimary: boolean; sortOrder: number }[]) ?? [],
     variants: ((p as any).variants ?? [])
@@ -70,19 +89,20 @@ async function getProduct(slug: string) {
         sku: v.sku ?? null,
         options: v.options ?? null,
       })),
+    initialReviews,
   };
-}
+});
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const product = await getProduct(slug);
+  const product = await getProductPageData(slug);
   if (!product) return {};
   return { title: `${product.name} | iCrowd` };
 }
 
 export default async function ProductDetailPage({ params }: Props) {
   const { slug } = await params;
-  const product = await getProduct(slug);
+  const product = await getProductPageData(slug);
   if (!product) notFound();
 
   return (
@@ -167,7 +187,7 @@ export default async function ProductDetailPage({ params }: Props) {
         )}
 
         {/* ── Reviews ─────────────────────────────────────────────────────── */}
-        <ProductReviews productId={product.id} />
+        <ProductReviews productId={product.id} initialReviews={product.initialReviews} />
 
       </div>
       </ProductReviewStatsProvider>

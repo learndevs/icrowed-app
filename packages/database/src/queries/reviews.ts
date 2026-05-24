@@ -1,4 +1,4 @@
-import { eq, and, desc, inArray } from "drizzle-orm";
+import { eq, and, desc, inArray, count, sql } from "drizzle-orm";
 import { db } from "../index";
 import { reviews } from "../schema";
 
@@ -20,12 +20,18 @@ export async function getApprovedReviews(productId: string) {
 }
 
 export async function getProductReviewSummary(productId: string) {
-  const rows = await db.query.reviews.findMany({
-    where: and(eq(reviews.productId, productId), eq(reviews.isApproved, true)),
-    columns: { rating: true },
-  });
+  const [row] = await db
+    .select({
+      reviewCount: count(),
+      avgRating: sql<number>`coalesce(round(avg(${reviews.rating})::numeric, 1), 0)`,
+    })
+    .from(reviews)
+    .where(and(eq(reviews.productId, productId), eq(reviews.isApproved, true)));
 
-  return computeReviewSummary(rows);
+  return {
+    reviewCount: row?.reviewCount ?? 0,
+    rating: Number(row?.avgRating ?? 0),
+  };
 }
 
 export async function getReviewSummariesForProducts(productIds: string[]) {
@@ -36,21 +42,22 @@ export async function getReviewSummariesForProducts(productIds: string[]) {
   const rows = await db
     .select({
       productId: reviews.productId,
-      rating: reviews.rating,
+      reviewCount: count(),
+      avgRating: sql<number>`coalesce(round(avg(${reviews.rating})::numeric, 1), 0)`,
     })
     .from(reviews)
-    .where(and(inArray(reviews.productId, productIds), eq(reviews.isApproved, true)));
-
-  const grouped = new Map<string, { rating: number }[]>();
-  for (const row of rows) {
-    const list = grouped.get(row.productId) ?? [];
-    list.push({ rating: row.rating });
-    grouped.set(row.productId, list);
-  }
+    .where(and(inArray(reviews.productId, productIds), eq(reviews.isApproved, true)))
+    .groupBy(reviews.productId);
 
   const summaries = new Map<string, { rating: number; reviewCount: number }>();
   for (const productId of productIds) {
-    summaries.set(productId, computeReviewSummary(grouped.get(productId) ?? []));
+    summaries.set(productId, { reviewCount: 0, rating: 0 });
+  }
+  for (const row of rows) {
+    summaries.set(row.productId, {
+      reviewCount: row.reviewCount,
+      rating: Number(row.avgRating),
+    });
   }
 
   return summaries;
