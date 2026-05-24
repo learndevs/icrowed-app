@@ -37,31 +37,15 @@ export default async function ContactPage() {
       className="bg-white min-h-[60vh]"
       style={{ fontFamily: inter.style.fontFamily }}
     >
-      {/* Hero — electric white container */}
+      {/* Hero */}
       <section className="mx-auto max-w-[1400px] px-4 pt-8 sm:px-5 lg:px-8 lg:pt-10">
-        <div className="contact-hero-card relative overflow-hidden rounded-2xl border border-zinc-200 lg:rounded-3xl">
-          <div
-            className="contact-hero-grid pointer-events-none absolute inset-0"
-            aria-hidden
-          />
-          <div
-            className="contact-hero-traces pointer-events-none absolute -inset-8 opacity-70"
-            aria-hidden
-          />
-          <div className="contact-hero-beam-x contact-hero-beam-x-1 pointer-events-none" aria-hidden />
-          <div className="contact-hero-beam-x contact-hero-beam-x-2 pointer-events-none" aria-hidden />
-          <div className="contact-hero-beam-x contact-hero-beam-x-3 pointer-events-none" aria-hidden />
-          <div className="contact-hero-beam-y contact-hero-beam-y-1 pointer-events-none" aria-hidden />
-          <div className="contact-hero-beam-y contact-hero-beam-y-2 pointer-events-none" aria-hidden />
-
-          <div className="relative z-10 px-6 py-14 sm:px-10 lg:px-14 lg:py-20">
-            <h1 className="text-4xl font-bold uppercase tracking-tight text-zinc-900 sm:text-5xl">
-              {info.heading}
-            </h1>
-            <p className="mt-4 max-w-2xl text-lg text-zinc-600 leading-relaxed">
-              {CONTACT_SUBTITLE}
-            </p>
-          </div>
+        <div className="rounded-2xl border border-zinc-200 bg-[#F5F5F5] px-6 py-14 sm:px-10 lg:rounded-3xl lg:px-14 lg:py-20">
+          <h1 className="text-4xl font-bold uppercase tracking-tight text-zinc-900 sm:text-5xl">
+            {info.heading}
+          </h1>
+          <p className="mt-4 max-w-2xl text-lg text-zinc-600 leading-relaxed">
+            {CONTACT_SUBTITLE}
+          </p>
         </div>
       </section>
 
