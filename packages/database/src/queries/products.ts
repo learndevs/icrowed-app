@@ -1,6 +1,12 @@
 import { eq, ilike, and, desc, asc, sql, count, inArray } from "drizzle-orm";
 import { db } from "../db";
-import { products, productImages, productVariants, categories, brands } from "../schema";
+import {
+  products,
+  productVariants,
+  categories,
+  brands,
+  orderItems,
+} from "../schema";
 import { getBrandBySlug } from "./categories";
 
 export async function getProducts(opts?: {
@@ -152,11 +158,36 @@ export async function updateProduct(
   return product;
 }
 
+/** Permanently removes a product. Order line items keep their snapshots; FKs are cleared first. */
 export async function deleteProduct(id: string) {
-  const [product] = await db
-    .update(products)
-    .set({ isActive: false, updatedAt: new Date() })
-    .where(eq(products.id, id))
-    .returning();
-  return product;
+  return db.transaction(async (tx) => {
+    const [existing] = await tx
+      .select({ id: products.id })
+      .from(products)
+      .where(eq(products.id, id));
+    if (!existing) return null;
+
+    const variants = await tx
+      .select({ id: productVariants.id })
+      .from(productVariants)
+      .where(eq(productVariants.productId, id));
+    const variantIds = variants.map((v) => v.id);
+
+    await tx
+      .update(orderItems)
+      .set({ productId: null })
+      .where(eq(orderItems.productId, id));
+    if (variantIds.length > 0) {
+      await tx
+        .update(orderItems)
+        .set({ variantId: null })
+        .where(inArray(orderItems.variantId, variantIds));
+    }
+
+    const [product] = await tx
+      .delete(products)
+      .where(eq(products.id, id))
+      .returning();
+    return product;
+  });
 }

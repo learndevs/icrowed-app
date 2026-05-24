@@ -33,6 +33,7 @@ export default function AdminProductsPage() {
   const [loading, setLoading] = useState(true);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const fetchProducts = useCallback(async (s: string, cid: string, p: number) => {
     setLoading(true);
@@ -71,8 +72,14 @@ export default function AdminProductsPage() {
   async function handleDelete(id: string) {
     setDeletingId(id);
     setConfirmDeleteId(null);
+    setDeleteError(null);
     try {
-      await fetch(`/api/products/${id}`, { method: "DELETE" });
+      const res = await fetch(`/api/products/${id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setDeleteError(data.error ?? "Failed to delete product");
+        return;
+      }
       await fetchProducts(search, categoryId, page);
     } finally {
       setDeletingId(null);
@@ -89,6 +96,12 @@ export default function AdminProductsPage() {
           <Button><Plus className="w-4 h-4" /> Add Product</Button>
         </Link>
       </div>
+
+      {deleteError && (
+        <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+          {deleteError}
+        </p>
+      )}
 
       <div className="flex flex-wrap gap-3">
         <input
@@ -155,7 +168,7 @@ export default function AdminProductsPage() {
                         </Link>
                         {confirmDeleteId === p.id ? (
                           <div className="flex items-center gap-1.5 text-sm">
-                            <span className="text-red-600 font-medium">Delete?</span>
+                            <span className="text-red-600 font-medium">Delete permanently?</span>
                             <Button
                               size="sm"
                               variant="outline"

@@ -1,9 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@supabase/supabase-js";
 import { db } from "@icrowd/database";
-import { products, categories, brands } from "@icrowd/database";
+import { products, categories, brands, productImages } from "@icrowd/database";
 import { eq } from "drizzle-orm";
 import { updateProduct, deleteProduct, listVariantsForProduct, syncProductVariants } from "@icrowd/database/queries";
+import { getSupabaseServiceRoleKey } from "@icrowd/env";
 import { requireAdmin } from "@/lib/admin";
+
+const BUCKET = "product-images";
+
+function getSupabaseAdmin() {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    getSupabaseServiceRoleKey(),
+  );
+}
+
+function storagePathFromImageUrl(url: string): string | null {
+  const parts = url.split(`/storage/v1/object/public/${BUCKET}/`);
+  return parts.length === 2 ? parts[1] : null;
+}
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -127,6 +143,20 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
 
   try {
     const { id } = await params;
+
+    const images = await db
+      .select({ url: productImages.url })
+      .from(productImages)
+      .where(eq(productImages.productId, id));
+    const storagePaths = images
+      .map((img) => storagePathFromImageUrl(img.url))
+      .filter((path): path is string => path != null);
+    if (storagePaths.length > 0) {
+      const supabase = getSupabaseAdmin();
+      const { error } = await supabase.storage.from(BUCKET).remove(storagePaths);
+      if (error) console.warn("[supabase delete product images]", error.message);
+    }
+
     const product = await deleteProduct(id);
     if (!product) return NextResponse.json({ error: "Not found" }, { status: 404 });
     return NextResponse.json({ success: true });
