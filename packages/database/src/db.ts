@@ -27,7 +27,8 @@ if (!connectionString) {
 const pool = new Pool({
   connectionString,
   ssl: sslForConnectionString(connectionString),
-  connectionTimeoutMillis: 15_000,
+  connectionTimeoutMillis: Number(process.env.DATABASE_CONNECT_TIMEOUT_MS ?? 20_000),
+  idleTimeoutMillis: 30_000,
   max: Number(process.env.DATABASE_POOL_MAX ?? 10),
 });
 

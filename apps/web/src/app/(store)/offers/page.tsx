@@ -3,13 +3,14 @@ import Link from "next/link";
 import { ArrowUpRight, Megaphone } from "lucide-react";
 import { getActiveOffers } from "@icrowd/database/queries";
 import { StoreOfferCard } from "@/components/offers/StoreOfferCard";
+import { queryStorefront } from "@/lib/storefront-query";
 
 export const metadata: Metadata = { title: "Offers & Deals | iCrowd" };
 
 export const revalidate = 60;
 
 export default async function OffersPage() {
-  const offers = await getActiveOffers().catch(() => []);
+  const offers = await queryStorefront("offers-page", () => getActiveOffers());
 
   const featured = offers.filter((o) => o.isFeatured);
   const regular = offers.filter((o) => !o.isFeatured);

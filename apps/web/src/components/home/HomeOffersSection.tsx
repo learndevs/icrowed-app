@@ -2,6 +2,7 @@ import Link from "next/link";
 import { getActiveOffers } from "@icrowd/database/queries";
 import { HomeOffersCarousel } from "./HomeOffersCarousel";
 import type { HomeOfferItem } from "./HomeOfferCard";
+import { queryStorefront } from "@/lib/storefront-query";
 
 const HOME_OFFERS_LIMIT = 6;
 
@@ -18,7 +19,7 @@ function mapOffer(
 }
 
 export async function HomeOffersSection() {
-  const rows = await getActiveOffers().catch(() => []);
+  const rows = await queryStorefront("home-offers", () => getActiveOffers());
   const offers = rows.slice(0, HOME_OFFERS_LIMIT).map(mapOffer);
 
   if (offers.length === 0) return null;

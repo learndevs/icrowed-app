@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { getStorefrontCategories } from "@icrowd/database/queries";
 import { CategoryShowcaseGrid, categoryRowToShowcaseItem } from "./CategoryShowcaseGrid";
+import { queryStorefront } from "@/lib/storefront-query";
 
 /** Home: storefront categories from DB — image + name. */
 export async function CategoryShowcaseCards() {
-  const rows = await getStorefrontCategories().catch(() => []);
+  const rows = await queryStorefront("home-categories", () => getStorefrontCategories());
   const items = rows.map(categoryRowToShowcaseItem);
   if (items.length === 0) return null;
 

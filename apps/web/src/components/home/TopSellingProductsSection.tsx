@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getTopSellingProducts } from "@icrowd/database/queries";
+import { queryStorefront } from "@/lib/storefront-query";
 import {
   TopSellingProductCard,
   type TopSellingProductData,
@@ -38,12 +39,7 @@ function mapRow(
 }
 
 export async function TopSellingProductsSection() {
-  let rows: Awaited<ReturnType<typeof getTopSellingProducts>> = [];
-  try {
-    rows = await getTopSellingProducts();
-  } catch {
-    rows = [];
-  }
+  const rows = await queryStorefront("top-selling", () => getTopSellingProducts());
 
   const products = rows.map(mapRow);
   if (products.length === 0) return null;

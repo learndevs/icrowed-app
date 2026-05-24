@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { getBrandBySlug, getBrands, getCategories, getProductsByBrandSlug, getReviewSummariesForProducts } from "@icrowd/database/queries";
 import { ProductsClient } from "../../ProductsClient";
 import type { ProductCardData } from "@/components/products/ProductCard";
+import { queryStorefront } from "@/lib/storefront-query";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -40,20 +41,22 @@ export const revalidate = 60;
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const brand = await getBrandBySlug(slug).catch(() => null);
+  const brand = await queryStorefront("brand-meta", () => getBrandBySlug(slug)).catch(
+    () => null,
+  );
   if (!brand) return { title: "Brand | iCrowd" };
   return { title: `${brand.name} | iCrowd`, description: `Shop ${brand.name} products at iCrowd.` };
 }
 
 export default async function BrandProductsPage({ params }: Props) {
   const { slug } = await params;
-  const brand = await getBrandBySlug(slug).catch(() => null);
+  const brand = await queryStorefront("brand", () => getBrandBySlug(slug));
   if (!brand) notFound();
 
   const [dbProducts, brandRows, categoryRows] = await Promise.all([
-    getProductsByBrandSlug(slug, { limit: 200 }).catch(() => []),
-    getBrands().catch(() => []),
-    getCategories().catch(() => []),
+    queryStorefront("brand-products", () => getProductsByBrandSlug(slug, { limit: 200 })),
+    queryStorefront("brands", () => getBrands()),
+    queryStorefront("categories", () => getCategories()),
   ]);
 
   const brandFilterNames = brandRows.map((b) => b.name);

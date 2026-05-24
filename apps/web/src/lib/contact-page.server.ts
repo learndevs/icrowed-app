@@ -5,10 +5,13 @@ import {
   parseStoreContactInfo,
   type StoreContactInfo,
 } from "./contact-page";
+import { queryStorefront } from "./storefront-query";
 
 export async function getStorefrontContactInfoSafe(): Promise<StoreContactInfo> {
   try {
-    const settings = await getOrCreateStoreSettings();
+    const settings = await queryStorefront("store-settings", () =>
+      getOrCreateStoreSettings(),
+    );
     return parseStoreContactInfo(settings);
   } catch (err) {
     if (process.env.NODE_ENV !== "production") {

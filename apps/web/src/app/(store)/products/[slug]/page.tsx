@@ -14,6 +14,7 @@ import {
 import { ProductSpecifications } from "@/components/products/ProductSpecifications";
 import { specificationsToMarkdown, hasSpecifications } from "@/lib/specifications";
 import { getProductBySlug, getProductReviewSummary } from "@icrowd/database/queries";
+import { queryStorefront } from "@/lib/storefront-query";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -38,7 +39,7 @@ function productGradient(id: string): string {
 }
 
 async function getProduct(slug: string) {
-  const p = await getProductBySlug(slug).catch(() => null);
+  const p = await queryStorefront("product", () => getProductBySlug(slug));
   if (!p) return null;
 
   const { reviewCount, rating } = await getProductReviewSummary(p.id).catch(() => ({

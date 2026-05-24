@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { ProductsClient } from "./ProductsClient";
 import type { ProductCardData } from "@/components/products/ProductCard";
 import { getBrands, getCategories, getProducts, getReviewSummariesForProducts } from "@icrowd/database/queries";
+import { queryStorefront } from "@/lib/storefront-query";
 
 export const metadata: Metadata = { title: "All Products | iCrowd" };
 
@@ -37,9 +38,9 @@ function primaryImageUrl(images: unknown): string | undefined {
 
 export default async function ProductsPage() {
   const [dbProducts, brandRows, categoryRows] = await Promise.all([
-    getProducts({ limit: 500 }).catch(() => []),
-    getBrands().catch(() => []),
-    getCategories().catch(() => []),
+    queryStorefront("products-list", () => getProducts({ limit: 500 })),
+    queryStorefront("brands", () => getBrands()),
+    queryStorefront("categories", () => getCategories()),
   ]);
 
   const brandFilterNames = brandRows.map((b) => b.name);
