@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
-import { db } from "@icrowed/database";
-import { productImages } from "@icrowed/database";
+import { db } from "@icrowd/database";
+import { productImages } from "@icrowd/database";
 import { eq, count } from "drizzle-orm";
-import { getServerEnv } from "@icrowed/env";
+import { getServerEnv } from "@icrowd/env";
+import { requireAdmin } from "@/lib/admin";
 
 const BUCKET = "product-images";
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5 MB
@@ -39,6 +40,9 @@ export async function POST(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const auth = await requireAdmin();
+  if (auth instanceof NextResponse) return auth;
+
   try {
     const { id } = await params;
     const formData = await req.formData();

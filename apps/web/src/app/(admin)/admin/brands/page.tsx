@@ -1,10 +1,21 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/Button";
+import { Dialog } from "@/components/ui/Dialog";
+import { Switch } from "@/components/ui/Switch";
 import { Badge } from "@/components/ui/Badge";
-import { Card } from "@/components/ui/Card";
-import { Plus, Pencil, Trash2, X, Check } from "lucide-react";
+import {
+  Plus,
+  Pencil,
+  Trash2,
+  X,
+  AlertCircle,
+  Loader2,
+  Check,
+  Award,
+  Link2,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface Brand {
   id: string;
@@ -16,35 +27,138 @@ interface Brand {
 
 interface FormState {
   name: string;
-  slug: string;
   logoUrl: string;
   isActive: boolean;
 }
 
-const EMPTY_FORM: FormState = { name: "", slug: "", logoUrl: "", isActive: true };
+const EMPTY: FormState = { name: "", logoUrl: "", isActive: true };
 
-function slugify(name: string) {
-  return name
-    .toLowerCase()
-    .replace(/[\s_]+/g, "-")
-    .replace(/[^a-z0-9-]/g, "")
-    .replace(/^-+|-+$/g, "");
+/* ─── Shared input style (matches product pages) ── */
+const INPUT =
+  "w-full h-11 px-4 rounded-xl border border-gray-200 text-sm bg-white placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 transition-all";
+
+function FieldLabel({ children, required }: { children: React.ReactNode; required?: boolean }) {
+  return (
+    <label className="block text-sm font-semibold text-gray-700 mb-2">
+      {children}
+      {required && <span className="text-red-400 ml-0.5">*</span>}
+    </label>
+  );
 }
 
+/* ─── Brand Form ─────────────────────────────────── */
+function BrandForm({
+  form,
+  onChange,
+  saving,
+  onSubmit,
+  onCancel,
+  submitLabel,
+}: {
+  form: FormState;
+  onChange: (f: FormState) => void;
+  saving: boolean;
+  onSubmit: (e: React.FormEvent) => void;
+  onCancel: () => void;
+  submitLabel: string;
+}) {
+  return (
+    <form onSubmit={onSubmit} className="space-y-5">
+
+      {/* Brand Name */}
+      <div>
+        <FieldLabel required>Brand Name</FieldLabel>
+        <div className="relative">
+          <Award className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+          <input
+            required
+            autoFocus
+            className={cn(INPUT, "pl-10")}
+            placeholder="e.g. Samsung"
+            value={form.name}
+            onChange={(e) => onChange({ ...form, name: e.target.value })}
+          />
+        </div>
+      </div>
+
+      {/* Logo URL */}
+      <div>
+        <FieldLabel>Logo URL</FieldLabel>
+        <div className="relative">
+          <Link2 className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+          <input
+            className={cn(INPUT, "pl-10")}
+            placeholder="https://example.com/logo.png"
+            value={form.logoUrl}
+            onChange={(e) => onChange({ ...form, logoUrl: e.target.value })}
+          />
+        </div>
+
+        {/* Live logo preview */}
+        {form.logoUrl && (
+          <div className="mt-3 flex items-center gap-3 p-3 rounded-xl border border-gray-100 bg-gray-50">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={form.logoUrl}
+              alt="Logo preview"
+              className="h-10 w-auto max-w-24 object-contain"
+              onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+            />
+            <p className="text-xs text-gray-400">Logo preview</p>
+          </div>
+        )}
+        <p className="mt-1.5 text-xs text-gray-400">Paste a direct image URL. Leave blank if no logo.</p>
+      </div>
+
+      {/* Active toggle */}
+      <div className="flex items-center justify-between p-4 rounded-xl bg-gray-50 border border-gray-100">
+        <div>
+          <p className="text-sm font-semibold text-gray-700">Active</p>
+          <p className="text-xs text-gray-400 mt-0.5">Visible to customers on the storefront</p>
+        </div>
+        <Switch checked={form.isActive} onChange={(v) => onChange({ ...form, isActive: v })} />
+      </div>
+
+      {/* Actions */}
+      <div className="flex items-center justify-end gap-2.5 pt-1">
+        <button
+          type="button"
+          onClick={onCancel}
+          className="h-10 px-5 rounded-xl border border-gray-200 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          disabled={saving}
+          className="h-10 px-5 rounded-xl bg-indigo-600 text-sm font-semibold text-white hover:bg-indigo-700 disabled:opacity-50 transition-colors flex items-center gap-2 shadow-sm shadow-indigo-200"
+        >
+          {saving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+          {submitLabel}
+        </button>
+      </div>
+    </form>
+  );
+}
+
+/* ─── Page ──────────────────────────────────────── */
 export default function AdminBrandsPage() {
   const [brands, setBrands] = useState<Brand[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showAdd, setShowAdd] = useState(false);
-  const [addForm, setAddForm] = useState<FormState>(EMPTY_FORM);
-  const [addSaving, setAddSaving] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editForm, setEditForm] = useState<FormState>(EMPTY_FORM);
-  const [editSaving, setEditSaving] = useState(false);
-  const [deletingId, setDeletingId] = useState<string | null>(null);
-  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
-  async function loadBrands() {
+  const [showAdd, setShowAdd] = useState(false);
+  const [addForm, setAddForm] = useState<FormState>(EMPTY);
+  const [addSaving, setAddSaving] = useState(false);
+
+  const [editingBrand, setEditingBrand] = useState<Brand | null>(null);
+  const [editForm, setEditForm] = useState<FormState>(EMPTY);
+  const [editSaving, setEditSaving] = useState(false);
+
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  async function load() {
     setLoading(true);
     setError(null);
     try {
@@ -52,37 +166,32 @@ export default function AdminBrandsPage() {
       if (!res.ok) throw new Error("Failed to load");
       setBrands(await res.json());
     } catch {
-      setError("Failed to load brands");
+      setError("Failed to load brands.");
     } finally {
       setLoading(false);
     }
   }
 
-  useEffect(() => {
-    void loadBrands();
-  }, []);
+  useEffect(() => { load(); }, []);
 
   async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
     setAddSaving(true);
+    setError(null);
     try {
       const res = await fetch("/api/brands", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: addForm.name,
-          slug: addForm.slug.trim() || undefined,
-          logoUrl: addForm.logoUrl.trim() || null,
+          logoUrl: addForm.logoUrl || null,
           isActive: addForm.isActive,
         }),
       });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error ?? "Failed to create");
-      }
-      setAddForm(EMPTY_FORM);
+      if (!res.ok) throw new Error((await res.json()).error ?? "Failed to create");
+      setAddForm(EMPTY);
       setShowAdd(false);
-      await loadBrands();
+      await load();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Failed to create brand");
     } finally {
@@ -90,39 +199,26 @@ export default function AdminBrandsPage() {
     }
   }
 
-  function startEdit(b: Brand) {
-    setEditingId(b.id);
-    setEditForm({
-      name: b.name,
-      slug: b.slug,
-      logoUrl: b.logoUrl ?? "",
-      isActive: b.isActive,
-    });
-  }
-
   async function handleEdit(e: React.FormEvent) {
     e.preventDefault();
-    if (!editingId) return;
+    if (!editingBrand) return;
     setEditSaving(true);
+    setError(null);
     try {
-      const res = await fetch(`/api/brands/${editingId}`, {
+      const res = await fetch(`/api/brands/${editingBrand.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: editForm.name,
-          slug: editForm.slug.trim() || slugify(editForm.name),
-          logoUrl: editForm.logoUrl.trim() || null,
+          logoUrl: editForm.logoUrl || null,
           isActive: editForm.isActive,
         }),
       });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error ?? "Failed to update");
-      }
-      setEditingId(null);
-      await loadBrands();
+      if (!res.ok) throw new Error((await res.json()).error ?? "Failed to update");
+      setEditingBrand(null);
+      await load();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to update");
+      setError(err instanceof Error ? err.message : "Failed to update brand");
     } finally {
       setEditSaving(false);
     }
@@ -130,254 +226,203 @@ export default function AdminBrandsPage() {
 
   async function handleDelete(id: string) {
     setDeletingId(id);
-    setConfirmDeleteId(null);
+    setError(null);
     try {
       const res = await fetch(`/api/brands/${id}`, { method: "DELETE" });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error ?? "Failed to delete");
-      }
-      await loadBrands();
+      if (!res.ok) throw new Error((await res.json()).error ?? "Failed to delete");
+      setConfirmDeleteId(null);
+      await load();
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Failed to delete");
+      setError(err instanceof Error ? err.message : "Failed to delete brand");
     } finally {
       setDeletingId(null);
     }
   }
 
   return (
-    <div className="space-y-5">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+    <div className="space-y-6">
+
+      {/* Header */}
+      <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold">Brands</h2>
-          <p className="text-sm text-[var(--muted)]">
-            Brands are stored in the database and linked from each product. Storefront categories page
-            lists active brands automatically.
-          </p>
+          <h1 className="text-xl font-bold text-gray-900">Brands</h1>
+          <p className="text-sm text-gray-400 mt-0.5">{brands.length} brands total</p>
         </div>
-        <Button
-          onClick={() => {
-            setShowAdd(!showAdd);
-            setError(null);
-          }}
+        <button
+          onClick={() => { setAddForm(EMPTY); setShowAdd(true); setError(null); }}
+          className="h-10 px-4 rounded-xl bg-indigo-600 text-sm font-semibold text-white hover:bg-indigo-700 transition-colors flex items-center gap-2 shadow-sm shadow-indigo-200"
         >
           <Plus className="w-4 h-4" />
-          Add brand
-        </Button>
+          Add Brand
+        </button>
       </div>
 
+      {/* Error banner */}
       {error && (
-        <div className="flex items-center justify-between px-4 py-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
-          {error}
-          <button type="button" onClick={() => setError(null)} aria-label="Dismiss">
+        <div className="flex items-start gap-3 px-4 py-3.5 rounded-xl bg-red-50 border border-red-100 text-red-600 text-sm">
+          <AlertCircle className="w-4 h-4 mt-0.5 shrink-0" />
+          <span className="flex-1">{error}</span>
+          <button onClick={() => setError(null)} className="hover:text-red-800 shrink-0">
             <X className="w-4 h-4" />
           </button>
         </div>
       )}
 
-      {showAdd && (
-        <Card>
-          <form onSubmit={handleAdd} className="p-4 space-y-4">
-            <h3 className="font-semibold">New brand</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="text-sm font-medium mb-1 block">Name *</label>
-                <input
-                  required
-                  className="w-full h-10 px-3 rounded-lg border border-[var(--border)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-                  placeholder="Samsung"
-                  value={addForm.name}
-                  onChange={(e) => setAddForm({ ...addForm, name: e.target.value })}
-                />
-              </div>
-              <div>
-                <label className="text-sm font-medium mb-1 block">Slug (optional)</label>
-                <input
-                  className="w-full h-10 px-3 rounded-lg border border-[var(--border)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] font-mono text-xs"
-                  placeholder="samsung — auto from name if empty"
-                  value={addForm.slug}
-                  onChange={(e) => setAddForm({ ...addForm, slug: e.target.value })}
-                />
-              </div>
-              <div className="sm:col-span-2">
-                <label className="text-sm font-medium mb-1 block">Logo URL</label>
-                <input
-                  className="w-full h-10 px-3 rounded-lg border border-[var(--border)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-                  placeholder="https://…"
-                  value={addForm.logoUrl}
-                  onChange={(e) => setAddForm({ ...addForm, logoUrl: e.target.value })}
-                />
-              </div>
-              <div>
-                <label className="flex items-center gap-2 text-sm cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={addForm.isActive}
-                    onChange={(e) => setAddForm({ ...addForm, isActive: e.target.checked })}
-                  />
-                  Active
-                </label>
-              </div>
-            </div>
-            <div className="flex justify-end gap-3">
-              <Button type="button" variant="outline" onClick={() => setShowAdd(false)}>
-                Cancel
-              </Button>
-              <Button type="submit" disabled={addSaving}>
-                {addSaving ? "Saving…" : "Save brand"}
-              </Button>
-            </div>
-          </form>
-        </Card>
-      )}
-
-      <Card>
+      {/* Table */}
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
         {loading ? (
-          <div className="p-8 text-center text-[var(--muted)] text-sm">Loading brands…</div>
+          <div className="py-20 flex flex-col items-center gap-3 text-gray-400">
+            <Loader2 className="w-6 h-6 animate-spin" />
+            <p className="text-sm">Loading brands…</p>
+          </div>
         ) : brands.length === 0 ? (
-          <div className="p-8 text-center text-[var(--muted)] text-sm">No brands yet. Add one above.</div>
+          <div className="py-20 flex flex-col items-center gap-3 text-gray-400">
+            <div className="w-12 h-12 rounded-2xl bg-gray-100 flex items-center justify-center">
+              <Award className="w-6 h-6 text-gray-300" />
+            </div>
+            <p className="text-sm font-medium text-gray-500">No brands yet</p>
+            <p className="text-xs text-gray-400">Click &ldquo;Add Brand&rdquo; to create your first one.</p>
+          </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-[var(--surface)]">
-                <tr className="text-left text-xs text-[var(--muted)] border-b border-[var(--border)]">
-                  <th className="px-4 py-3 font-medium w-16">Logo</th>
-                  <th className="px-4 py-3 font-medium">Name</th>
-                  <th className="px-4 py-3 font-medium">Slug</th>
-                  <th className="px-4 py-3 font-medium">Status</th>
-                  <th className="px-4 py-3 font-medium">Actions</th>
+              <thead>
+                <tr className="border-b border-gray-100 bg-gray-50/60">
+                  <th className="px-5 py-3.5 text-left text-xs font-bold uppercase tracking-widest text-gray-400">Brand</th>
+                  <th className="px-5 py-3.5 text-left text-xs font-bold uppercase tracking-widest text-gray-400">Slug</th>
+                  <th className="px-5 py-3.5 text-left text-xs font-bold uppercase tracking-widest text-gray-400">Logo</th>
+                  <th className="px-5 py-3.5 text-left text-xs font-bold uppercase tracking-widest text-gray-400">Status</th>
+                  <th className="px-5 py-3.5 text-right text-xs font-bold uppercase tracking-widest text-gray-400">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-[var(--border)]">
-                {brands.map((b) =>
-                  editingId === b.id ? (
-                    <tr key={b.id} className="bg-[var(--surface)]">
-                      <td className="px-4 py-2" colSpan={5}>
-                        <form onSubmit={handleEdit}>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
-                            <div>
-                              <label className="text-xs font-medium mb-1 block">Name *</label>
-                              <input
-                                required
-                                className="w-full h-9 px-3 rounded-lg border border-[var(--border)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-                                value={editForm.name}
-                                onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
-                              />
-                            </div>
-                            <div>
-                              <label className="text-xs font-medium mb-1 block">Slug *</label>
-                              <input
-                                required
-                                className="w-full h-9 px-3 rounded-lg border border-[var(--border)] text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-                                value={editForm.slug}
-                                onChange={(e) => setEditForm({ ...editForm, slug: e.target.value })}
-                              />
-                            </div>
-                            <div className="sm:col-span-2 lg:col-span-1">
-                              <label className="text-xs font-medium mb-1 block">Logo URL</label>
-                              <input
-                                className="w-full h-9 px-3 rounded-lg border border-[var(--border)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-                                value={editForm.logoUrl}
-                                onChange={(e) => setEditForm({ ...editForm, logoUrl: e.target.value })}
-                              />
-                            </div>
-                            <div className="flex items-center gap-3 flex-wrap">
-                              <label className="flex items-center gap-1.5 text-sm cursor-pointer">
-                                <input
-                                  type="checkbox"
-                                  checked={editForm.isActive}
-                                  onChange={(e) =>
-                                    setEditForm({ ...editForm, isActive: e.target.checked })
-                                  }
-                                />
-                                Active
-                              </label>
-                              <Button type="submit" size="sm" disabled={editSaving}>
-                                <Check className="w-3 h-3" /> {editSaving ? "…" : "Save"}
-                              </Button>
-                              <Button
-                                type="button"
-                                size="sm"
-                                variant="outline"
-                                onClick={() => setEditingId(null)}
-                              >
-                                <X className="w-3 h-3" />
-                              </Button>
-                            </div>
-                          </div>
-                        </form>
-                      </td>
-                    </tr>
-                  ) : (
-                    <tr key={b.id} className="hover:bg-[var(--surface)]">
-                      <td className="px-4 py-3">
-                        <div className="h-10 w-10 rounded-lg bg-[var(--surface)] border border-[var(--border)] overflow-hidden flex items-center justify-center text-[10px] font-bold text-[var(--muted)]">
-                          {b.logoUrl ? (
-                            <img
-                              src={b.logoUrl}
-                              alt={b.name}
-                              className="h-full w-full object-contain p-0.5"
-                            />
-                          ) : (
-                            b.name.slice(0, 2).toUpperCase()
-                          )}
+              <tbody className="divide-y divide-gray-50">
+                {brands.map((brand) => (
+                  <tr key={brand.id} className="hover:bg-gray-50/60 transition-colors">
+                    <td className="px-5 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center shrink-0">
+                          <Award className="w-3.5 h-3.5 text-indigo-500" />
                         </div>
-                      </td>
-                      <td className="px-4 py-3 font-medium">{b.name}</td>
-                      <td className="px-4 py-3 font-mono text-xs text-[var(--muted)]">{b.slug}</td>
-                      <td className="px-4 py-3">
-                        <Badge variant={b.isActive ? "success" : "error"}>
-                          {b.isActive ? "Active" : "Inactive"}
-                        </Badge>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => {
-                              startEdit(b);
-                              setError(null);
-                            }}
-                          >
-                            <Pencil className="w-3 h-3" /> Edit
-                          </Button>
-                          {confirmDeleteId === b.id ? (
-                            <div className="flex items-center gap-1.5 text-sm">
-                              <span className="text-red-600 font-medium">Deactivate?</span>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="border-red-300 text-red-600 hover:bg-red-50"
-                                disabled={deletingId === b.id}
-                                onClick={() => handleDelete(b.id)}
-                              >
-                                {deletingId === b.id ? "…" : "Yes"}
-                              </Button>
-                              <Button size="sm" variant="outline" onClick={() => setConfirmDeleteId(null)}>
-                                No
-                              </Button>
-                            </div>
-                          ) : (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="border-red-200 text-red-600 hover:bg-red-50"
-                              onClick={() => setConfirmDeleteId(b.id)}
+                        <p className="font-semibold text-gray-900">{brand.name}</p>
+                      </div>
+                    </td>
+                    <td className="px-5 py-4">
+                      <span className="font-mono text-xs bg-gray-100 text-gray-500 px-2 py-1 rounded-lg">{brand.slug}</span>
+                    </td>
+                    <td className="px-5 py-4">
+                      {brand.logoUrl ? (
+                        <div className="w-16 h-10 rounded-lg border border-gray-100 bg-gray-50 flex items-center justify-center overflow-hidden p-1">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={brand.logoUrl}
+                            alt={brand.name}
+                            className="h-full w-auto max-w-full object-contain"
+                            onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                          />
+                        </div>
+                      ) : (
+                        <span className="text-xs text-gray-300 font-medium">No logo</span>
+                      )}
+                    </td>
+                    <td className="px-5 py-4">
+                      <Badge variant={brand.isActive ? "success" : "error"}>
+                        {brand.isActive ? "Active" : "Inactive"}
+                      </Badge>
+                    </td>
+                    <td className="px-5 py-4">
+                      <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => {
+                            setEditingBrand(brand);
+                            setEditForm({ name: brand.name, logoUrl: brand.logoUrl ?? "", isActive: brand.isActive });
+                            setError(null);
+                          }}
+                          className="h-8 px-3 rounded-lg border border-gray-200 text-xs font-medium text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-colors flex items-center gap-1.5"
+                        >
+                          <Pencil className="w-3 h-3" /> Edit
+                        </button>
+
+                        {confirmDeleteId === brand.id ? (
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-xs font-semibold text-red-500">Delete?</span>
+                            <button
+                              disabled={deletingId === brand.id}
+                              onClick={() => handleDelete(brand.id)}
+                              className="h-8 px-3 rounded-lg bg-red-500 text-white text-xs font-semibold hover:bg-red-600 disabled:opacity-50 transition-colors flex items-center gap-1"
                             >
-                              <Trash2 className="w-3 h-3" />
-                            </Button>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  )
-                )}
+                              {deletingId === brand.id ? <Loader2 className="w-3 h-3 animate-spin" /> : null}
+                              Yes
+                            </button>
+                            <button
+                              onClick={() => setConfirmDeleteId(null)}
+                              className="h-8 px-3 rounded-lg border border-gray-200 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors"
+                            >
+                              No
+                            </button>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => setConfirmDeleteId(brand.id)}
+                            className="h-8 w-8 rounded-lg border border-red-100 text-red-400 hover:bg-red-50 hover:border-red-200 hover:text-red-600 transition-colors flex items-center justify-center"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
         )}
-      </Card>
+      </div>
+
+      {/* ── Add Brand Modal ── */}
+      <Dialog open={showAdd} onClose={() => setShowAdd(false)} size="sm">
+        <div className="p-1">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center">
+              <Plus className="w-5 h-5 text-indigo-600" />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-gray-900">Add Brand</h2>
+              <p className="text-xs text-gray-400 mt-0.5">Create a new product brand</p>
+            </div>
+          </div>
+          <BrandForm
+            form={addForm}
+            onChange={setAddForm}
+            saving={addSaving}
+            onSubmit={handleAdd}
+            onCancel={() => setShowAdd(false)}
+            submitLabel="Create Brand"
+          />
+        </div>
+      </Dialog>
+
+      {/* ── Edit Brand Modal ── */}
+      <Dialog open={!!editingBrand} onClose={() => setEditingBrand(null)} size="sm">
+        <div className="p-1">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 rounded-xl bg-indigo-50 flex items-center justify-center">
+              <Pencil className="w-4 h-4 text-indigo-600" />
+            </div>
+            <div>
+              <h2 className="text-base font-bold text-gray-900">Edit Brand</h2>
+              <p className="text-xs text-gray-400 mt-0.5 truncate max-w-50">{editingBrand?.name}</p>
+            </div>
+          </div>
+          <BrandForm
+            form={editForm}
+            onChange={setEditForm}
+            saving={editSaving}
+            onSubmit={handleEdit}
+            onCancel={() => setEditingBrand(null)}
+            submitLabel="Save Changes"
+          />
+        </div>
+      </Dialog>
     </div>
   );
 }

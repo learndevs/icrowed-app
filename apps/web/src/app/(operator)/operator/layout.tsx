@@ -17,7 +17,7 @@ export default function OperatorLayout({ children }: { children: ReactNode }) {
             <Smartphone className="w-4 h-4 text-white" />
           </div>
           <div>
-            <p className="font-bold text-sm leading-none">iCrowed</p>
+            <p className="font-bold text-sm leading-none">iCrowd</p>
             <p className="text-[10px] text-[var(--muted)]">Operator Panel</p>
           </div>
         </div>

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getProductsAdmin, createProduct } from "@icrowed/database/queries";
-import { ilike } from "drizzle-orm";
+import { getProductsAdmin, createProduct, syncProductVariants } from "@icrowd/database/queries";
+import { requireAdmin } from "@/lib/admin";
 
 function slugify(name: string) {
   return name.toLowerCase().replace(/[\s_]+/g, "-").replace(/[^a-z0-9-]/g, "").replace(/^-+|-+$/g, "");
@@ -26,12 +26,16 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const auth = await requireAdmin();
+  if (auth instanceof NextResponse) return auth;
+
   try {
     const body = await req.json();
     const {
       name, description, shortDescription, categoryId, brandId,
       sku, price, comparePrice, cost, stock, lowStockThreshold,
       isFeatured, isActive, specifications, tags, weight,
+      variants: variantsBody,
     } = body;
 
     if (!name || !price) {
@@ -59,6 +63,32 @@ export async function POST(req: NextRequest) {
       tags: tags ?? [],
       weight: weight ? String(weight) : null,
     });
+
+    if (Array.isArray(variantsBody) && variantsBody.length > 0) {
+      const normalized = variantsBody.map(
+        (v: {
+          id?: string;
+          name?: string;
+          sku?: string | null;
+          price?: string | number | null;
+          stock?: number;
+          options?: Record<string, unknown> | null;
+          isActive?: boolean;
+        }) => ({
+          id: v.id,
+          name: String(v.name ?? "").trim() || "Configuration",
+          sku: v.sku ?? null,
+          price:
+            v.price === null || v.price === undefined || v.price === ""
+              ? null
+              : String(v.price),
+          stock: Number(v.stock ?? 0),
+          options: v.options ?? null,
+          isActive: v.isActive ?? true,
+        }),
+      );
+      await syncProductVariants(product.id, normalized);
+    }
 
     return NextResponse.json(product, { status: 201 });
   } catch (err: any) {

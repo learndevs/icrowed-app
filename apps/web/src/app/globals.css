@@ -34,6 +34,10 @@
   --color-warning: #d97706;
   --color-error:   #dc2626;
   --color-info:    #0891b2;
+
+  /* Typography — Figma iCrowd (Roboto + Playfair accent) */
+  --app-font-family: var(--font-roboto), system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+  --app-font-display: var(--font-playfair), "Times New Roman", Georgia, serif;
 }
 
 @theme inline {
@@ -44,8 +48,110 @@
   --color-muted:      var(--muted);
   --color-primary:    var(--color-primary);
   --color-accent:     var(--color-accent);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--app-font-family);
+  --font-serif: var(--app-font-display);
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+/* Figma-aligned type styles (storefront) */
+@layer utilities {
+  .type-hero-title {
+    font-size: clamp(2rem, 4vw, 2.4rem);
+    font-weight: 900;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+
+  .type-hero-subtitle {
+    font-size: 0.875rem;
+    font-weight: 400;
+    line-height: 1.5;
+  }
+
+  @media (min-width: 640px) {
+    .type-hero-subtitle {
+      font-size: 1rem;
+    }
+  }
+
+  .type-section-title {
+    font-size: clamp(1.5rem, 2.5vw, 1.75rem);
+    font-weight: 900;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+  }
+
+  .type-section-heading {
+    font-size: clamp(1.75rem, 3vw, 2.5rem);
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+  }
+
+  .type-label-caps {
+    font-size: 0.6875rem;
+    font-weight: 900;
+    line-height: 1.2;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .type-logo-wordmark {
+    font-size: 1.5rem;
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+
+  .type-nav {
+    font-family: var(--font-inter), system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .font-inter {
+    font-family: var(--font-inter), system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+  }
+
+  .type-logo-url {
+    font-size: 0.625rem;
+    font-weight: 600;
+    line-height: 1.2;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+  }
+
+  .type-body {
+    font-size: 0.875rem;
+    font-weight: 400;
+    line-height: 1.5;
+  }
+
+  .type-body-medium {
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.5;
+  }
+
+  .type-link {
+    font-size: 0.875rem;
+    font-weight: 600;
+    line-height: 1.4;
+  }
+
+  .type-accent-serif {
+    font-family: var(--app-font-display);
+    font-style: italic;
+    font-weight: 400;
+  }
+
+  .type-button-caps {
+    font-size: 0.875rem;
+    font-weight: 700;
+    line-height: 1.2;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
 }
 
 /* Global resets & base styles */
@@ -62,7 +168,7 @@ body {
   color: var(--foreground);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  font-family: var(--app-font-family);
 }
 
 /* Focus ring */
@@ -166,5 +272,13 @@ body {
    ================================================ */
 .bento-bg {
   background: linear-gradient(135deg, #f0f1f5 0%, #e8eaf0 50%, #ededf2 100%);
+  min-height: 100vh;
+}
+
+/* Cart → checkout → success */
+.checkout-flow-bg {
+  background:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(243, 244, 246, 0.9) 0%, transparent 55%),
+    linear-gradient(180deg, #ffffff 0%, #fafafa 50%, #f3f4f6 100%);
   min-height: 100vh;
 }

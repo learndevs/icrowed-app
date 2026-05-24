@@ -1,0 +1,15 @@
+[build]
+  base = "."
+  # Single command — avoids Netlify/config UI line-wrapping that truncated `lightningcss-linux-x64-gnu` to `lightningcss-linux-x64`.
+  command = "npm run netlify:build"
+  publish = "apps/web/.next"
+
+[build.environment]
+  NODE_VERSION = "20"
+  NPM_FLAGS = "--include=optional"
+
+[context.production]
+  command = "npm run netlify:build"
+
+[context.deploy-preview]
+  command = "npm run netlify:build"

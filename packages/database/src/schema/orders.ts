@@ -43,6 +43,7 @@ export const orders = pgTable("orders", {
   subtotal: decimal("subtotal", { precision: 10, scale: 2 }).notNull(),
   shippingCost: decimal("shipping_cost", { precision: 10, scale: 2 }).default("0").notNull(),
   discount: decimal("discount", { precision: 10, scale: 2 }).default("0").notNull(),
+  couponCode: varchar("coupon_code", { length: 50 }),
   total: decimal("total", { precision: 10, scale: 2 }).notNull(),
 
   // Payment
@@ -57,6 +58,8 @@ export const orders = pgTable("orders", {
   paidAt: timestamp("paid_at"),
 
   // Delivery
+  deliveryTypeId: uuid("delivery_type_id"),
+  deliveryTypeName: varchar("delivery_type_name", { length: 120 }),
   courierName: varchar("courier_name", { length: 100 }),
   trackingNumber: varchar("tracking_number", { length: 100 }),
   estimatedDeliveryDate: timestamp("estimated_delivery_date"),

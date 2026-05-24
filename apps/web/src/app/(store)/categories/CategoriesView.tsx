@@ -27,21 +27,8 @@ export type BrandCard = {
   logoUrl: string | null;
 };
 
-const GRADIENTS = [
-  "from-indigo-500 to-violet-600",
-  "from-sky-500 to-cyan-600",
-  "from-rose-500 to-orange-500",
-  "from-emerald-500 to-teal-600",
-  "from-amber-500 to-rose-600",
-  "from-fuchsia-500 to-purple-600",
-  "from-blue-600 to-indigo-700",
-  "from-slate-600 to-slate-900",
-] as const;
-
-function gradientFor(id: string) {
-  const n = id.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
-  return GRADIENTS[n % GRADIENTS.length];
-}
+const CATEGORY_GLASS_GRADIENT =
+  "bg-gradient-to-br from-white/95 via-gray-100/85 to-slate-200/70";
 
 function categoryIcon(slug: string) {
   const s = slug.toLowerCase();
@@ -162,42 +149,45 @@ export function CategoriesView({
               <span className="font-semibold text-gray-800">Admin → Categories</span>.
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
               {categories.map((cat, i) => {
                 const Icon = categoryIcon(cat.slug);
-                const g = gradientFor(cat.id);
                 return (
                   <Link
                     key={cat.id}
                     href={productsHrefForCategory(cat.name)}
-                    className="group bento-card flex flex-col overflow-hidden text-left animate-slide-up"
+                    className="group relative overflow-hidden rounded-2xl sm:rounded-3xl border border-white/70 bg-white/55 backdrop-blur-xl shadow-[0_10px_26px_rgba(15,23,42,0.10)] hover:shadow-[0_16px_34px_rgba(15,23,42,0.14)] transition-all duration-300 flex flex-col text-left animate-slide-up"
                     style={{ animationDelay: `${Math.min(i, 8) * 40}ms` }}
                   >
-                    <div className={`relative h-40 sm:h-44 bg-gradient-to-br ${g} overflow-hidden`}>
+                    <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-white/70 via-transparent to-gray-200/45" />
+                    <div
+                      className={`relative h-32 sm:h-44 lg:h-52 overflow-hidden ${CATEGORY_GLASS_GRADIENT}`}
+                    >
                       {cat.imageUrl ? (
                         <img
                           src={cat.imageUrl}
                           alt={cat.name}
-                          className="absolute inset-0 h-full w-full object-cover opacity-90 transition duration-500 group-hover:scale-105 group-hover:opacity-100"
+                          className="absolute inset-0 h-full w-full object-cover object-top transition duration-500 group-hover:scale-[1.03]"
                         />
                       ) : (
                         <div className="absolute inset-0 flex items-center justify-center">
-                          <Icon className="w-14 h-14 text-white/90 drop-shadow-lg" strokeWidth={1.25} />
+                          <Icon className="w-10 h-10 sm:w-12 sm:h-12 text-gray-600/90" strokeWidth={1.25} />
                         </div>
                       )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
-                      <div className="absolute bottom-3 left-4 right-4 flex items-end justify-between gap-2">
-                        <span className="text-lg font-black text-white drop-shadow-md line-clamp-2">
-                          {cat.name}
-                        </span>
-                        <span className="shrink-0 flex h-9 w-9 items-center justify-center rounded-full bg-white/20 text-white ring-1 ring-white/30 transition group-hover:bg-white group-hover:text-gray-900">
-                          <ChevronRight className="w-4 h-4" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-slate-200/45 via-transparent to-white/30" />
+                    </div>
+
+                    <div className="relative p-3 sm:p-5 flex-1 flex flex-col min-h-[120px] sm:min-h-[150px]">
+                      <div className="flex items-start justify-between gap-2">
+                        <p className="text-sm sm:text-lg font-black text-gray-900 line-clamp-2">{cat.name}</p>
+                        <span className="shrink-0 flex h-7 w-7 sm:h-9 sm:w-9 items-center justify-center rounded-full border border-white/85 bg-white/75 text-gray-700 transition group-hover:bg-white group-hover:text-gray-900">
+                          <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                         </span>
                       </div>
-                    </div>
-                    <div className="p-4 sm:p-5 flex-1 flex flex-col">
-                      <p className="text-xs font-mono text-gray-400 mb-1">/{cat.slug}</p>
-                      <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed">
+                      <p className="text-[10px] sm:text-xs font-mono text-gray-500/90 mt-1 mb-1.5">
+                        /{cat.slug}
+                      </p>
+                      <p className="text-xs sm:text-sm text-gray-600 line-clamp-3 leading-relaxed">
                         {cat.description?.trim() || `Browse ${cat.name} and related accessories.`}
                       </p>
                     </div>

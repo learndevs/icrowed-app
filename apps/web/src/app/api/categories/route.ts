@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   getAllCategories,
   createCategory,
-} from "@icrowed/database/queries";
+} from "@icrowd/database/queries";
+import { requireAdmin } from "@/lib/admin";
 
 function slugify(name: string) {
   return name.toLowerCase().replace(/[\s_]+/g, "-").replace(/[^a-z0-9-]/g, "").replace(/^-+|-+$/g, "");
@@ -14,7 +15,7 @@ export async function GET(req: NextRequest) {
     const all = searchParams.get("all") === "true";
     const cats = all
       ? await getAllCategories()
-      : await (await import("@icrowed/database/queries")).getCategories();
+      : await (await import("@icrowd/database/queries")).getCategories();
     return NextResponse.json(cats);
   } catch (err) {
     console.error("[GET /api/categories]", err);
@@ -23,9 +24,12 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const auth = await requireAdmin();
+  if (auth instanceof NextResponse) return auth;
+
   try {
     const body = await req.json();
-    const { name, description, imageUrl, parentId, isActive, sortOrder } = body;
+    const { name, description, highlight, imageUrl, parentId, isActive, sortOrder } = body;
 
     if (!name) {
       return NextResponse.json({ error: "name is required" }, { status: 400 });
@@ -35,6 +39,7 @@ export async function POST(req: NextRequest) {
       name,
       slug: slugify(name) || `category-${Date.now()}`,
       description: description ?? null,
+      highlight: highlight ?? null,
       imageUrl: imageUrl ?? null,
       parentId: parentId ?? null,
       isActive: isActive ?? true,

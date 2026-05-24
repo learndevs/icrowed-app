@@ -1,8 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import Image from "next/image";
-import { Smartphone } from "lucide-react";
+import { Smartphone, ChevronLeft, ChevronRight } from "lucide-react";
 
 interface ProductImage {
   id: string;
@@ -16,72 +16,121 @@ interface Props {
   images: ProductImage[];
   productName: string;
   gradient: string;
-  discount: number | null;
-  brand: string;
 }
 
-export function ProductImages({ images, productName, gradient, discount, brand }: Props) {
+export function ProductImages({ images, productName, gradient }: Readonly<Props>) {
   const sorted = [...images].sort((a, b) => a.sortOrder - b.sortOrder);
   const [selectedIdx, setSelectedIdx] = useState(0);
   const selected = sorted[selectedIdx];
+  const total = sorted.length;
+
+  const prev = useCallback(() => {
+    setSelectedIdx((i) => (i === 0 ? total - 1 : i - 1));
+  }, [total]);
+
+  const next = useCallback(() => {
+    setSelectedIdx((i) => (i === total - 1 ? 0 : i + 1));
+  }, [total]);
 
   return (
     <div className="flex flex-col gap-3">
-      {/* Main image */}
+      {/* Main image with carousel controls */}
       <div
-        className={`bento-card aspect-square relative bg-gradient-to-br ${gradient} flex items-center justify-center overflow-hidden`}
+        className={`bento-card relative bg-linear-to-br ${gradient} flex items-center justify-center overflow-hidden`}
+        style={{ aspectRatio: "1 / 1" }}
       >
         {selected?.url ? (
           <Image
             src={selected.url}
             alt={selected.altText ?? productName}
             fill
-            className="object-contain p-4"
-            sizes="(max-width: 1024px) 100vw, 50vw"
+            className="object-cover transition-opacity duration-300"
+            sizes="(max-width: 1024px) 90vw, 45vw"
             priority
           />
         ) : (
-          <Smartphone className="w-32 h-32 text-white/60" />
+          <Smartphone className="w-28 h-28 sm:w-36 sm:h-36 text-white/60" />
         )}
-        {discount && (
-          <span className="absolute top-4 left-4 bg-rose-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">
-            -{discount}% OFF
-          </span>
-        )}
-        <span className="absolute top-4 right-4 bg-white/20 backdrop-blur-sm text-white text-[10px] font-bold px-2.5 py-1 rounded-full border border-white/30">
-          {brand}
-        </span>
-      </div>
 
-      {/* Thumbnails */}
-      <div className="grid grid-cols-4 gap-2">
-        {sorted.length > 0
-          ? sorted.slice(0, 4).map((img, i) => (
+        {/* Carousel arrows — only when multiple images */}
+        {total > 1 && (
+          <>
+            <button
+              onClick={prev}
+              aria-label="Previous image"
+              className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/80 backdrop-blur-sm shadow-md flex items-center justify-center hover:bg-white hover:scale-110 active:scale-95 transition-all duration-150"
+            >
+              <ChevronLeft className="w-5 h-5 text-gray-800" />
+            </button>
+            <button
+              onClick={next}
+              aria-label="Next image"
+              className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white/80 backdrop-blur-sm shadow-md flex items-center justify-center hover:bg-white hover:scale-110 active:scale-95 transition-all duration-150"
+            >
+              <ChevronRight className="w-5 h-5 text-gray-800" />
+            </button>
+          </>
+        )}
+
+        {/* Dot indicators */}
+        {total > 1 && (
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5">
+            {sorted.map((img, i) => (
               <button
                 key={img.id}
                 onClick={() => setSelectedIdx(i)}
-                className={`bento-card aspect-square flex items-center justify-center overflow-hidden transition-opacity ${
-                  i === selectedIdx ? "ring-2 ring-gray-900 ring-offset-2" : "opacity-60 hover:opacity-100"
+                aria-label={`Go to image ${i + 1}`}
+                className={`rounded-full transition-all duration-200 ${
+                  i === selectedIdx
+                    ? "w-5 h-1.5 bg-white"
+                    : "w-1.5 h-1.5 bg-white/50 hover:bg-white/80"
                 }`}
-              >
-                <Image
-                  src={img.url}
-                  alt={img.altText ?? productName}
-                  width={80}
-                  height={80}
-                  className="object-contain w-full h-full p-1"
-                />
-              </button>
-            ))
-          : [0, 1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className={`bento-card aspect-square flex items-center justify-center ${i === 0 ? "ring-2 ring-gray-900 ring-offset-2" : "opacity-30"}`}
-              >
-                <Smartphone className="w-7 h-7 text-gray-400" />
-              </div>
+              />
             ))}
+          </div>
+        )}
       </div>
+
+      {/* Thumbnail strip — bottom */}
+      {total > 1 && (
+        <div className="flex gap-2 overflow-x-auto pb-0.5 scrollbar-hide">
+          {sorted.map((img, i) => (
+            <button
+              key={img.id}
+              onClick={() => setSelectedIdx(i)}
+              className={`shrink-0 w-16 h-16 sm:w-18 sm:h-18 rounded-xl border-2 flex items-center justify-center overflow-hidden bg-white transition-all duration-150 ${
+                i === selectedIdx
+                  ? "border-gray-900 shadow-sm"
+                  : "border-gray-200 opacity-60 hover:opacity-100 hover:border-gray-400"
+              }`}
+            >
+              <Image
+                src={img.url}
+                alt={img.altText ?? productName}
+                width={72}
+                height={72}
+                className="object-cover w-full h-full"
+              />
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Placeholder thumbnails when no images */}
+      {total === 0 && (
+        <div className="flex gap-2">
+          {[0, 1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className={`w-16 h-16 rounded-xl border-2 flex items-center justify-center ${
+                i === 0 ? "border-gray-900" : "border-gray-200 opacity-30"
+              }`}
+            >
+              <Smartphone className="w-5 h-5 text-gray-400" />
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

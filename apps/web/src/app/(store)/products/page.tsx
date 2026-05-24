@@ -2,9 +2,12 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { ProductsClient } from "./ProductsClient";
 import type { ProductCardData } from "@/components/products/ProductCard";
-import { getProducts } from "@icrowed/database/queries";
+import { getBrands, getCategories, getProducts, getReviewSummariesForProducts } from "@icrowd/database/queries";
 
-export const metadata: Metadata = { title: "All Products | iCrowed" };
+export const metadata: Metadata = { title: "All Products | iCrowd" };
+
+/** Always merge fresh catalog + brand list (sidebar brands are not only inferred from rows). */
+export const dynamic = "force-dynamic";
 
 const CARD_GRADIENTS = [
   "from-indigo-500 to-blue-600",
@@ -22,34 +25,65 @@ function productColor(id: string): string {
   return CARD_GRADIENTS[hash % CARD_GRADIENTS.length];
 }
 
-export default async function ProductsPage() {
-  const dbProducts = await getProducts({ limit: 500 }).catch(() => []);
+function primaryImageUrl(images: unknown): string | undefined {
+  if (!Array.isArray(images)) return undefined;
+  const rows = images as { url?: string; sortOrder?: number; isPrimary?: boolean }[];
+  const valid = rows.filter((img) => typeof img?.url === "string" && img.url.length > 0);
+  if (valid.length === 0) return undefined;
+  const primary = valid.find((img) => img.isPrimary);
+  if (primary?.url) return primary.url;
+  const sorted = [...valid].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
+  return sorted[0]?.url;
+}
 
-  const products: ProductCardData[] = dbProducts.map((p) => ({
-    id: p.id,
-    name: p.name,
-    slug: p.slug,
-    price: Number(p.price),
-    comparePrice: p.comparePrice ? Number(p.comparePrice) : undefined,
-    imageUrl:
-      (p.images as any[])?.find((img: any) => img.isPrimary)?.url ??
-      (p.images as any[])?.[0]?.url,
-    stock: p.stock,
-    color: productColor(p.id),
-    badge: p.comparePrice ? "Sale" : undefined,
-    brand: (p as any).brand?.name as string | undefined,
-    category: (p as any).category?.name as string | undefined,
-  }));
+export default async function ProductsPage() {
+  const [dbProducts, brandRows, categoryRows] = await Promise.all([
+    getProducts({ limit: 500 }).catch(() => []),
+    getBrands().catch(() => []),
+    getCategories().catch(() => []),
+  ]);
+
+  const brandFilterNames = brandRows.map((b) => b.name);
+  const categoryFilterOptions = categoryRows.map((c) => ({ slug: c.slug, name: c.name }));
+  const brandById = new Map(brandRows.map((b) => [b.id, b.name]));
+
+  const reviewSummaries = await getReviewSummariesForProducts(dbProducts.map((p) => p.id)).catch(
+    () => new Map<string, { rating: number; reviewCount: number }>(),
+  );
+
+  const products: ProductCardData[] = dbProducts.map((p) => {
+    const row = p as {
+      brand?: { name?: string } | null;
+      brandId?: string | null;
+      category?: { slug?: string } | null;
+    };
+    const brandName =
+      row.brand?.name ?? (row.brandId ? brandById.get(row.brandId) : undefined);
+    const reviewStats = reviewSummaries.get(p.id);
+    return {
+      id: p.id,
+      name: p.name,
+      slug: p.slug,
+      price: Number(p.price),
+      comparePrice: p.comparePrice ? Number(p.comparePrice) : undefined,
+      imageUrl: primaryImageUrl(p.images),
+      stock: p.stock,
+      color: productColor(p.id),
+      badge: p.comparePrice ? "Sale" : undefined,
+      brand: brandName,
+      categorySlug: row.category?.slug,
+      rating: reviewStats?.rating ?? 0,
+      reviewCount: reviewStats?.reviewCount ?? 0,
+    };
+  });
 
   return (
-    <Suspense
-      fallback={
-        <div className="bento-bg min-h-screen flex items-center justify-center py-24">
-          <p className="text-sm font-medium text-gray-500 animate-pulse">Loading products…</p>
-        </div>
-      }
-    >
-      <ProductsClient products={products} />
+    <Suspense fallback={<div className="bento-bg min-h-screen" />}>
+      <ProductsClient
+        products={products}
+        brandFilterNames={brandFilterNames}
+        categoryFilterOptions={categoryFilterOptions}
+      />
     </Suspense>
   );
 }

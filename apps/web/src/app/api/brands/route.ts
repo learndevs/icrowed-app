@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getAllBrands, createBrand } from "@icrowed/database/queries";
+import { getAllBrands, createBrand } from "@icrowd/database/queries";
+import { requireAdmin } from "@/lib/admin";
 
 function slugify(name: string) {
   return name.toLowerCase().replace(/[\s_]+/g, "-").replace(/[^a-z0-9-]/g, "").replace(/^-+|-+$/g, "");
@@ -11,7 +12,7 @@ export async function GET(req: NextRequest) {
     const all = searchParams.get("all") === "true";
     const result = all
       ? await getAllBrands()
-      : await (await import("@icrowed/database/queries")).getBrands();
+      : await (await import("@icrowd/database/queries")).getBrands();
     return NextResponse.json(result);
   } catch (err) {
     console.error("[GET /api/brands]", err);
@@ -20,6 +21,9 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  const auth = await requireAdmin();
+  if (auth instanceof NextResponse) return auth;
+
   try {
     const body = await req.json();
     const { name, slug: slugInput, logoUrl, isActive } = body;

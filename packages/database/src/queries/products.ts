@@ -1,6 +1,7 @@
-import { eq, ilike, and, desc, sql, count } from "drizzle-orm";
+import { eq, ilike, and, desc, asc, sql, count, inArray } from "drizzle-orm";
 import { db } from "../db";
 import { products, productImages, productVariants, categories, brands } from "../schema";
+import { getBrandBySlug } from "./categories";
 
 export async function getProducts(opts?: {
   categoryId?: string;
@@ -23,6 +24,42 @@ export async function getProducts(opts?: {
     with: { images: true, category: true, brand: true },
     orderBy: [desc(products.createdAt)],
     limit: opts?.limit ?? 20,
+    offset: opts?.offset ?? 0,
+  });
+}
+
+/** Home showcase — 6 products in a 5×2 desktop grid (row 1: five, row 2: one). */
+export const TOP_SELLING_SLUGS = [
+  "iphone-17-pro",
+  "ipad-pro",
+  "macbook-pro",
+  "earpods-pro",
+  "headset-pro",
+  "gimbal-pro",
+] as const;
+
+export async function getTopSellingProducts() {
+  const rows = await db.query.products.findMany({
+    where: and(
+      eq(products.isActive, true),
+      inArray(products.slug, [...TOP_SELLING_SLUGS]),
+    ),
+    with: { images: true, category: true, brand: true },
+  });
+  const order = new Map<string, number>(TOP_SELLING_SLUGS.map((s, i) => [s, i]));
+  return [...rows].sort((a, b) => (order.get(a.slug) ?? 99) - (order.get(b.slug) ?? 99));
+}
+
+/** Active storefront products for a brand identified by URL slug (e.g. `apple`). */
+export async function getProductsByBrandSlug(
+  brandSlug: string,
+  opts?: { limit?: number; offset?: number }
+) {
+  const brand = await getBrandBySlug(brandSlug);
+  if (!brand) return [];
+  return getProducts({
+    brandId: brand.id,
+    limit: opts?.limit ?? 24,
     offset: opts?.offset ?? 0,
   });
 }
@@ -69,6 +106,19 @@ export async function getProductsAdmin(opts?: {
     db.select({ total: count() }).from(products).where(where),
   ]);
   return { rows, total: totals[0]?.total ?? 0 };
+}
+
+/** Active Anker (or any brand) product with the lowest price — for storefront highlights. */
+export async function getLowestPricedProductByBrandSlug(brandSlug: string) {
+  const brandRow = await db.query.brands.findFirst({
+    where: eq(brands.slug, brandSlug),
+  });
+  if (!brandRow) return null;
+  return db.query.products.findFirst({
+    where: and(eq(products.brandId, brandRow.id), eq(products.isActive, true)),
+    orderBy: [asc(products.price)],
+    with: { images: true, brand: true },
+  });
 }
 
 export async function getProductBySlug(slug: string) {

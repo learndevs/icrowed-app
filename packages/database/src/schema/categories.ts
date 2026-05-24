@@ -16,6 +16,8 @@ export const categories = pgTable("categories", {
   name: varchar("name", { length: 100 }).notNull(),
   slug: varchar("slug", { length: 100 }).notNull().unique(),
   description: text("description"),
+  /** Short storefront line under the title (e.g. "200+ items") — home category cards */
+  highlight: varchar("highlight", { length: 120 }),
   imageUrl: text("image_url"),
   parentId: uuid("parent_id"),
   isActive: boolean("is_active").default(true).notNull(),

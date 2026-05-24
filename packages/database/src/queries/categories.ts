@@ -1,6 +1,33 @@
-import { eq, and, asc } from "drizzle-orm";
+import { eq, and, asc, inArray } from "drizzle-orm";
 import { db } from "../db";
 import { categories, brands } from "../schema";
+
+/** Top nav / home showcase — must match `CATEGORIES` seed slugs. */
+export const STOREFRONT_CATEGORY_SLUGS = [
+  "phones",
+  "earbuds",
+  "ipads",
+  "macbooks",
+  "charging-adapters",
+  "powerbanks",
+  "wireless-mics",
+  "speakers",
+  "headphones",
+  "gimbals",
+] as const;
+
+export type StorefrontCategorySlug = (typeof STOREFRONT_CATEGORY_SLUGS)[number];
+
+export async function getStorefrontCategories() {
+  const rows = await db
+    .select()
+    .from(categories)
+    .where(and(eq(categories.isActive, true), inArray(categories.slug, [...STOREFRONT_CATEGORY_SLUGS])))
+    .orderBy(asc(categories.sortOrder));
+
+  const order = new Map<string, number>(STOREFRONT_CATEGORY_SLUGS.map((s, i) => [s, i]));
+  return [...rows].sort((a, b) => (order.get(a.slug) ?? 99) - (order.get(b.slug) ?? 99));
+}
 
 export async function getCategories() {
   return db
@@ -70,6 +97,14 @@ export async function getAllBrands() {
 
 export async function getBrandById(id: string) {
   const [brand] = await db.select().from(brands).where(eq(brands.id, id));
+  return brand ?? null;
+}
+
+export async function getBrandBySlug(slug: string) {
+  const [brand] = await db
+    .select()
+    .from(brands)
+    .where(and(eq(brands.slug, slug), eq(brands.isActive, true)));
   return brand ?? null;
 }
 
