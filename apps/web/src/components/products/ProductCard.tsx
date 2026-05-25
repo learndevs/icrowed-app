@@ -38,6 +38,8 @@ export interface ProductCardData {
   brand?: string;
   /** Product category slug for `?category=` filtering */
   categorySlug?: string;
+  /** Shown in home Top Selling and `/products?featured=true` */
+  isFeatured?: boolean;
 }
 
 export function ProductCard({ product }: Readonly<{ product: ProductCardData }>) {

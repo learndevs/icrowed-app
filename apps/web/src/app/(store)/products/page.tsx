@@ -72,6 +72,7 @@ export default async function ProductsPage() {
       badge: p.comparePrice ? "Sale" : undefined,
       brand: brandName,
       categorySlug: row.category?.slug,
+      isFeatured: p.isFeatured,
       rating: reviewStats?.rating ?? 0,
       reviewCount: reviewStats?.reviewCount ?? 0,
     };

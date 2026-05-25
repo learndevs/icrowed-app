@@ -119,9 +119,13 @@ export function ProductsClient({
   const [categorySlug, setCategorySlug] = useState(() =>
     (searchParams.get("category") ?? "").toLowerCase().trim(),
   );
+  const [featuredOnly, setFeaturedOnly] = useState(
+    () => searchParams.get("featured") === "true",
+  );
 
   useEffect(() => {
     setCategorySlug((searchParams.get("category") ?? "").toLowerCase().trim());
+    setFeaturedOnly(searchParams.get("featured") === "true");
   }, [searchParams]);
 
   // ── Sync state → URL (skip initial mount) ──────────────────────────────────
@@ -135,9 +139,10 @@ export function ProductsClient({
     if (filters.minRating > 0)           params.set("minRating", String(filters.minRating));
     if (filters.inStockOnly)             params.set("inStock",   "1");
     if (categorySlug)                    params.set("category", categorySlug);
+    if (featuredOnly)                    params.set("featured", "true");
     const qs = params.toString();
     router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
-  }, [search, filters, sort, categorySlug]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [search, filters, sort, categorySlug, featuredOnly]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Filtered + sorted list ──────────────────────────────────────────────────
   const filtered = useMemo(() => {
@@ -149,6 +154,7 @@ export function ProductsClient({
     if (categorySlug) {
       r = r.filter((p) => (p.categorySlug ?? "").toLowerCase() === categorySlug);
     }
+    if (featuredOnly) r = r.filter((p) => p.isFeatured);
     if (filters.brands.length) r = r.filter((p) => p.brand && filters.brands.includes(p.brand));
     if (filters.minPrice)          r = r.filter((p) => p.price >= Number(filters.minPrice) * 1000);
     if (filters.maxPrice)          r = r.filter((p) => p.price <= Number(filters.maxPrice) * 1000);
@@ -160,7 +166,7 @@ export function ProductsClient({
     if (sort === "rating")     r.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
     if (sort === "popular")    r.sort((a, b) => (b.reviewCount ?? 0) - (a.reviewCount ?? 0));
     return r;
-  }, [products, sort, filters, search, categorySlug]);
+  }, [products, sort, filters, search, categorySlug, featuredOnly]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const safePage   = Math.min(page, totalPages);
@@ -169,6 +175,7 @@ export function ProductsClient({
   const activeCount =
     filters.brands.length +
     (categorySlug ? 1 : 0) +
+    (featuredOnly ? 1 : 0) +
     (filters.minPrice ? 1 : 0) +
     (filters.maxPrice ? 1 : 0) +
     (filters.minRating > 0 ? 1 : 0) +
@@ -198,11 +205,18 @@ export function ProductsClient({
     setFilters(DEFAULT_FILTERS);
     setSearch("");
     setCategorySlug("");
+    setFeaturedOnly(false);
     resetPage();
   }
 
   // ── Active filter chips ─────────────────────────────────────────────────────
   const chips: { label: string; onRemove: () => void }[] = [
+    ...(featuredOnly
+      ? [{
+          label: "Featured",
+          onRemove: () => { setFeaturedOnly(false); resetPage(); },
+        }]
+      : []),
     ...(categorySlug
       ? [{
           label: `Category: ${activeCategoryName ?? categorySlug}`,
@@ -412,7 +426,9 @@ export function ProductsClient({
         <div className="mb-6">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-black text-gray-900">{listTitle ?? "All Products"}</h1>
+              <h1 className="text-2xl sm:text-3xl font-black text-gray-900">
+                {listTitle ?? (featuredOnly ? "Featured Products" : "All Products")}
+              </h1>
               <p className="text-sm text-gray-400 mt-0.5">
                 {filtered.length} {filtered.length === 1 ? "product" : "products"} found
               </p>

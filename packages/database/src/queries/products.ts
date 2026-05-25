@@ -34,26 +34,14 @@ export async function getProducts(opts?: {
   });
 }
 
-/** Home showcase — 6 products in a 5×2 desktop grid (row 1: five, row 2: one). */
-export const TOP_SELLING_SLUGS = [
-  "iphone-17-pro",
-  "ipad-pro",
-  "macbook-pro",
-  "earpods-pro",
-  "headset-pro",
-  "gimbal-pro",
-] as const;
-
+/** Home showcase — up to 6 featured products in a 5×2 desktop grid (row 1: five, row 2: one). */
 export async function getTopSellingProducts() {
-  const rows = await db.query.products.findMany({
-    where: and(
-      eq(products.isActive, true),
-      inArray(products.slug, [...TOP_SELLING_SLUGS]),
-    ),
+  return db.query.products.findMany({
+    where: and(eq(products.isActive, true), eq(products.isFeatured, true)),
     with: { images: true, category: true, brand: true },
+    orderBy: [desc(products.updatedAt)],
+    limit: 6,
   });
-  const order = new Map<string, number>(TOP_SELLING_SLUGS.map((s, i) => [s, i]));
-  return [...rows].sort((a, b) => (order.get(a.slug) ?? 99) - (order.get(b.slug) ?? 99));
 }
 
 /** Active storefront products for a brand identified by URL slug (e.g. `apple`). */
