@@ -24,6 +24,7 @@ import {
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { SpecificationsEditor } from "@/components/admin/SpecificationsEditor";
+import { ShortDescriptionEditor } from "@/components/admin/ShortDescriptionEditor";
 import { markdownToSpecifications, specificationsToMarkdown } from "@/lib/specifications";
 import {
   VARIANT_OPTION_KEYS,
@@ -440,8 +441,10 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
                 <input required className={INPUT} value={name} onChange={(e) => setName(e.target.value)} />
               </div>
               <div>
-                <FieldLabel hint="(shown on listing cards)">Short Description</FieldLabel>
-                <textarea rows={2} className={TEXTAREA} value={shortDescription} onChange={(e) => setShortDescription(e.target.value)} />
+                <FieldLabel hint="(one feature per line)">
+                  Short Description
+                </FieldLabel>
+                <ShortDescriptionEditor value={shortDescription} onChange={setShortDescription} />
               </div>
               <div>
                 <FieldLabel>Full Description</FieldLabel>

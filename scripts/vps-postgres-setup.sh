@@ -26,6 +26,15 @@ ensure_pg17_server
 PG_HBA="$(pg_hba_file)"
 PG_CONF="$(pg_conf_file)"
 
+if [[ -z "${PG_HBA}" || ! -f "${PG_HBA}" ]]; then
+  echo "ERROR: Could not find pg_hba.conf"
+  exit 1
+fi
+if [[ -z "${PG_CONF}" || ! -f "${PG_CONF}" ]]; then
+  echo "ERROR: Could not find postgresql.conf"
+  exit 1
+fi
+
 echo "==> Allowing local password auth..."
 if ! grep -q "# icrowd local" "${PG_HBA}"; then
   cat >> "${PG_HBA}" <<'HBA'
@@ -88,7 +97,7 @@ CREDS
 chmod 600 "${CREDS_FILE}"
 
 echo "==> Verifying icrowd login..."
-if PGPASSWORD="${DB_PASSWORD}" psql -h 127.0.0.1 -U "${DB_USER}" -d "${DB_NAME}" -c "SELECT 1" >/dev/null 2>&1; then
+if PGPASSWORD="${DB_PASSWORD}" /usr/pgsql-17/bin/psql -h 127.0.0.1 -U "${DB_USER}" -d "${DB_NAME}" -c "SELECT 1" >/dev/null 2>&1; then
   echo "    icrowd login OK"
 else
   echo "WARNING: icrowd password login failed — check pg_hba.conf"

@@ -72,6 +72,7 @@ ensure_pg17_client() {
 ensure_pg17_server() {
   if systemctl is-active postgresql-17 >/dev/null 2>&1; then
     export PATH="/usr/pgsql-17/bin:${PATH}"
+    echo "==> PostgreSQL 17 already running ($(psql -V))"
     return 0
   fi
 
@@ -94,19 +95,33 @@ ensure_pg17_server() {
   echo "==> PostgreSQL 17 server running ($(psql -V))"
 }
 
-pg_psql() {
-  ensure_pg17_client >/dev/null 2>&1 || true
-  if [[ -x /usr/pgsql-17/bin/psql ]]; then
-    /usr/pgsql-17/bin/psql "$@"
-  else
-    psql "$@"
-  fi
+# Admin commands must run as the postgres OS user (peer auth on local socket).
+pg_admin_psql() {
+  local bin="/usr/pgsql-17/bin/psql"
+  [[ -x "${bin}" ]] || bin="$(command -v psql)"
+  sudo -u postgres "${bin}" "$@"
 }
 
 pg_hba_file() {
-  pg_psql -tAc "SHOW hba_file;" 2>/dev/null | tr -d '[:space:]'
+  local f
+  f="$(pg_admin_psql -tAc "SHOW hba_file;" 2>/dev/null | tr -d '[:space:]')"
+  if [[ -n "${f}" && -f "${f}" ]]; then
+    echo "${f}"
+    return
+  fi
+  if [[ -f /var/lib/pgsql/17/data/pg_hba.conf ]]; then
+    echo /var/lib/pgsql/17/data/pg_hba.conf
+  fi
 }
 
 pg_conf_file() {
-  pg_psql -tAc "SHOW config_file;" 2>/dev/null | tr -d '[:space:]'
+  local f
+  f="$(pg_admin_psql -tAc "SHOW config_file;" 2>/dev/null | tr -d '[:space:]')"
+  if [[ -n "${f}" && -f "${f}" ]]; then
+    echo "${f}"
+    return
+  fi
+  if [[ -f /var/lib/pgsql/17/data/postgresql.conf ]]; then
+    echo /var/lib/pgsql/17/data/postgresql.conf
+  fi
 }

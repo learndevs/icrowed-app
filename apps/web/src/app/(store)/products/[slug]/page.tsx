@@ -13,6 +13,8 @@ import {
   ProductReviewStatsProvider,
 } from "./ProductReviewStatsContext";
 import { ProductSpecifications } from "@/components/products/ProductSpecifications";
+import { ProductShortDescription } from "@/components/products/ProductShortDescription";
+import { hasShortDescription } from "@/lib/short-description";
 import { specificationsToMarkdown, hasSpecifications } from "@/lib/specifications";
 import {
   getProductBySlug,
@@ -66,13 +68,24 @@ const getProductPageData = cache(async (slug: string) => {
       : null,
   }));
 
+  const shortDescription = p.shortDescription ?? "";
+  const description = p.description ?? "";
+
   return {
     id: p.id,
     name: p.name,
     slug: p.slug,
     price: Number(p.price),
     stock: p.stock,
-    description: p.description ?? p.shortDescription ?? "",
+    shortDescription,
+    description,
+    /** Features for bullet list — short desc first, else legacy full desc */
+    featureBullets: shortDescription.trim() || description.trim(),
+    showFullDescription: Boolean(
+      shortDescription.trim() &&
+        description.trim() &&
+        description.trim() !== shortDescription.trim(),
+    ),
     specificationsMarkdown: specificationsToMarkdown(p.specifications),
     hasSpecifications: hasSpecifications(p.specifications),
     rating: summary.rating,
@@ -174,10 +187,17 @@ export default async function ProductDetailPage({ params }: Props) {
               }}
             />
 
-            {/* Description */}
-            <p className="text-sm text-gray-500 leading-relaxed border-t border-gray-100 pt-4">
-              {product.description}
-            </p>
+            {/* Feature highlights — bullet list */}
+            {hasShortDescription(product.featureBullets) && (
+              <ProductShortDescription text={product.featureBullets} />
+            )}
+
+            {/* Full description (when separate from short bullets) */}
+            {product.showFullDescription && (
+              <p className="text-sm text-gray-500 leading-relaxed border-t border-gray-100 pt-4">
+                {product.description}
+              </p>
+            )}
           </div>
         </div>
 

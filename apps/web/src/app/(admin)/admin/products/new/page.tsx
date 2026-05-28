@@ -16,6 +16,7 @@ import {
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { SpecificationsEditor } from "@/components/admin/SpecificationsEditor";
+import { ShortDescriptionEditor } from "@/components/admin/ShortDescriptionEditor";
 import { markdownToSpecifications } from "@/lib/specifications";
 
 interface Category { id: string; name: string; }
@@ -231,14 +232,10 @@ export default function NewProductPage() {
               </div>
 
               <div>
-                <FieldLabel hint="(shown on listing cards)">Short Description</FieldLabel>
-                <textarea
-                  rows={2}
-                  className={TEXTAREA}
-                  placeholder="Brief product summary…"
-                  value={shortDescription}
-                  onChange={(e) => setShortDescription(e.target.value)}
-                />
+                <FieldLabel hint="(one feature per line)">
+                  Short Description
+                </FieldLabel>
+                <ShortDescriptionEditor value={shortDescription} onChange={setShortDescription} />
               </div>
 
               <div>

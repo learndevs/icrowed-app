@@ -11,6 +11,7 @@ import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
 import type { User as SupabaseUser } from "@supabase/supabase-js";
 import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
+import { ProductSearchSheet } from "@/components/layout/ProductSearchSheet";
 
 const NAV_LINKS = [
   { href: "/products", label: "All Products" },
@@ -25,6 +26,7 @@ export default function Header() {
   const router = useRouter();
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
 
   useEffect(() => {
     const supabase = createClient();
@@ -95,8 +97,10 @@ export default function Header() {
             </Link>
 
             <button
-              aria-label="Search"
-              className="hidden sm:flex h-10 w-10 items-center justify-center rounded-lg hover:bg-[var(--surface)] text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
+              type="button"
+              aria-label="Search products"
+              onClick={() => setSearchOpen(true)}
+              className="flex h-10 w-10 items-center justify-center rounded-lg text-[var(--muted)] transition-colors hover:bg-[var(--surface)] hover:text-[var(--foreground)]"
             >
               <Search className="w-5 h-5" />
             </button>
@@ -203,7 +207,8 @@ export default function Header() {
       </div>
 
     </header>
-    <MobileBottomNav itemCount={itemCount} />
+    <ProductSearchSheet open={searchOpen} onClose={() => setSearchOpen(false)} />
+    <MobileBottomNav itemCount={itemCount} onSearchClick={() => setSearchOpen(true)} />
     </>
   );
 }
