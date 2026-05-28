@@ -9,6 +9,20 @@ export async function getApprovedSiteReviews() {
   });
 }
 
+export async function getAllSiteReviews() {
+  return db.query.siteReviews.findMany({
+    orderBy: [desc(siteReviews.createdAt)],
+  });
+}
+
+export async function deleteSiteReview(id: string) {
+  const [row] = await db
+    .delete(siteReviews)
+    .where(eq(siteReviews.id, id))
+    .returning();
+  return row ?? null;
+}
+
 export async function createSiteReview(data: {
   reviewerName: string;
   rating: number;
