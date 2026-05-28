@@ -9,6 +9,7 @@ export * from "./categories";
 export * from "./profiles";
 export * from "./offers";
 export * from "./reviews";
+export * from "./siteReviews";
 export * from "./shippingRates";
 export * from "./deliveryTypes";
 export * from "./storeSettings";
