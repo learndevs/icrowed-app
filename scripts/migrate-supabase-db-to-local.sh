@@ -78,6 +78,24 @@ fi
 
 ensure_pg17_client
 
+verify_local_connection() {
+  echo "==> Testing local Postgres login..."
+  if psql "${LOCAL_DATABASE_URL}" -c "SELECT 1" >/dev/null 2>&1; then
+    echo "    Local connection OK"
+    return 0
+  fi
+  echo
+  echo "ERROR: Cannot connect to local Postgres with saved credentials."
+  echo "The PG17 cluster is new — recreate the icrowd user/database first:"
+  echo
+  echo "  DB_PASSWORD='your-password' bash scripts/vps-postgres-setup.sh"
+  echo "  bash scripts/migrate-supabase-db-to-local.sh"
+  echo
+  exit 1
+}
+
+verify_local_connection
+
 mask_url() { echo "$1" | sed 's/:[^:@/]*@/:***@/'; }
 
 echo "==> Dumping public schema from Supabase..."

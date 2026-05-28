@@ -52,8 +52,10 @@ fi
 
 systemctl restart postgresql-17
 
+PSQL="/usr/pgsql-17/bin/psql"
+
 echo "==> Creating database and user..."
-sudo -u postgres psql -v ON_ERROR_STOP=1 <<SQL
+sudo -u postgres "${PSQL}" -v ON_ERROR_STOP=1 <<SQL
 DO \$\$
 BEGIN
   IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname = '${DB_USER}') THEN
@@ -70,7 +72,7 @@ WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = '${DB_NAME}')\gexec
 GRANT ALL PRIVILEGES ON DATABASE ${DB_NAME} TO ${DB_USER};
 SQL
 
-sudo -u postgres psql -d "${DB_NAME}" -v ON_ERROR_STOP=1 <<SQL
+sudo -u postgres "${PSQL}" -d "${DB_NAME}" -v ON_ERROR_STOP=1 <<SQL
 GRANT ALL ON SCHEMA public TO ${DB_USER};
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO ${DB_USER};
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO ${DB_USER};
@@ -84,6 +86,13 @@ DB_PASSWORD=${DB_PASSWORD}
 LOCAL_DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@127.0.0.1:5432/${DB_NAME}
 CREDS
 chmod 600 "${CREDS_FILE}"
+
+echo "==> Verifying icrowd login..."
+if PGPASSWORD="${DB_PASSWORD}" psql -h 127.0.0.1 -U "${DB_USER}" -d "${DB_NAME}" -c "SELECT 1" >/dev/null 2>&1; then
+  echo "    icrowd login OK"
+else
+  echo "WARNING: icrowd password login failed — check pg_hba.conf"
+fi
 
 echo
 echo "==> PostgreSQL 17 ready =="
