@@ -67,6 +67,7 @@ export default function NewProductPage() {
   const [weight, setWeight] = useState("");
   const [shortDescription, setShortDescription] = useState("");
   const [description, setDescription] = useState("");
+  const [warranty, setWarranty] = useState("");
   const [price, setPrice] = useState("");
   const [comparePrice, setComparePrice] = useState("");
   const [cost, setCost] = useState("");
@@ -124,6 +125,7 @@ export default function NewProductPage() {
           weight: weight || null,
           shortDescription: shortDescription || null,
           description: description || null,
+          warranty: warranty || null,
           price,
           comparePrice: comparePrice || null,
           cost: cost || null,
@@ -246,6 +248,16 @@ export default function NewProductPage() {
                   placeholder="Detailed product description, features, and benefits…"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
+                />
+              </div>
+
+              <div>
+                <FieldLabel hint="(shown below description on product page)">Warranty</FieldLabel>
+                <input
+                  className={INPUT}
+                  placeholder="e.g. 1 Year Warranty (Battery: 6 Months)"
+                  value={warranty}
+                  onChange={(e) => setWarranty(e.target.value)}
                 />
               </div>
             </div>

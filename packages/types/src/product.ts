@@ -4,6 +4,7 @@ export interface Product {
   slug: string;
   description?: string | null;
   shortDescription?: string | null;
+  warranty?: string | null;
   price: string;
   comparePrice?: string | null;
   stock: number;

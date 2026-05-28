@@ -191,6 +191,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
   const [weight, setWeight] = useState("");
   const [shortDescription, setShortDescription] = useState("");
   const [description, setDescription] = useState("");
+  const [warranty, setWarranty] = useState("");
   const [price, setPrice] = useState("");
   const [comparePrice, setComparePrice] = useState("");
   const [cost, setCost] = useState("");
@@ -239,6 +240,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
         setWeight(product.weight ?? "");
         setShortDescription(product.shortDescription ?? "");
         setDescription(product.description ?? "");
+        setWarranty(product.warranty ?? "");
         setPrice(product.price ?? "");
         setComparePrice(product.comparePrice ?? "");
         setCost(product.cost ?? "");
@@ -334,6 +336,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
           name, categoryId: categoryId || null, brandId: brandId || null,
           sku: sku || null, weight: weight || null,
           shortDescription: shortDescription || null, description: description || null,
+          warranty: warranty || null,
           price, comparePrice: comparePrice || null, cost: cost || null,
           stock: Number(stock), lowStockThreshold: Number(lowStockThreshold),
           isActive, isFeatured, tags,
@@ -449,6 +452,15 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
               <div>
                 <FieldLabel>Full Description</FieldLabel>
                 <textarea rows={6} className={TEXTAREA} value={description} onChange={(e) => setDescription(e.target.value)} />
+              </div>
+              <div>
+                <FieldLabel hint="(shown below description on product page)">Warranty</FieldLabel>
+                <input
+                  className={INPUT}
+                  placeholder="e.g. 1 Year Warranty (Battery: 6 Months)"
+                  value={warranty}
+                  onChange={(e) => setWarranty(e.target.value)}
+                />
               </div>
             </div>
           </SectionCard>

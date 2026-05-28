@@ -19,6 +19,7 @@ export const products = pgTable("products", {
   slug: varchar("slug", { length: 255 }).notNull().unique(),
   description: text("description"),
   shortDescription: text("short_description"),
+  warranty: text("warranty"),
   categoryId: uuid("category_id").references(() => categories.id),
   brandId: uuid("brand_id").references(() => brands.id),
   sku: varchar("sku", { length: 100 }).unique(),

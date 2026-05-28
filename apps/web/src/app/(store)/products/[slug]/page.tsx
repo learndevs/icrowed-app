@@ -14,6 +14,7 @@ import {
 } from "./ProductReviewStatsContext";
 import { ProductSpecifications } from "@/components/products/ProductSpecifications";
 import { ProductShortDescription } from "@/components/products/ProductShortDescription";
+import { ProductWarranty } from "@/components/products/ProductWarranty";
 import { hasShortDescription } from "@/lib/short-description";
 import { specificationsToMarkdown, hasSpecifications } from "@/lib/specifications";
 import {
@@ -79,6 +80,7 @@ const getProductPageData = cache(async (slug: string) => {
     stock: p.stock,
     shortDescription,
     description,
+    warranty: p.warranty ?? "",
     /** Features for bullet list — short desc first, else legacy full desc */
     featureBullets: shortDescription.trim() || description.trim(),
     showFullDescription: Boolean(
@@ -197,6 +199,10 @@ export default async function ProductDetailPage({ params }: Props) {
               <p className="text-sm text-gray-500 leading-relaxed border-t border-gray-100 pt-4">
                 {product.description}
               </p>
+            )}
+
+            {product.warranty.trim() && (
+              <ProductWarranty text={product.warranty} />
             )}
           </div>
         </div>

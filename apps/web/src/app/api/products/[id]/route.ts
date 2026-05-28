@@ -32,6 +32,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
         sku: products.sku,
         description: products.description,
         shortDescription: products.shortDescription,
+        warranty: products.warranty,
         price: products.price,
         comparePrice: products.comparePrice,
         cost: products.cost,
@@ -72,7 +73,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     const { id } = await params;
     const body = await req.json();
     const {
-      name, description, shortDescription, categoryId, brandId,
+      name, description, shortDescription, warranty, categoryId, brandId,
       sku, price, comparePrice, cost, stock, lowStockThreshold,
       isFeatured, isActive, specifications, tags, weight, slug,
       variants: variantsBody,
@@ -83,6 +84,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     if (slug !== undefined)               updateData.slug = slug;
     if (description !== undefined)        updateData.description = description;
     if (shortDescription !== undefined)   updateData.shortDescription = shortDescription;
+    if (warranty !== undefined)           updateData.warranty = warranty || null;
     if (categoryId !== undefined)         updateData.categoryId = categoryId;
     if (brandId !== undefined)            updateData.brandId = brandId;
     if (sku !== undefined)                updateData.sku = sku;

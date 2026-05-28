@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const {
-      name, description, shortDescription, categoryId, brandId,
+      name, description, shortDescription, warranty, categoryId, brandId,
       sku, price, comparePrice, cost, stock, lowStockThreshold,
       isFeatured, isActive, specifications, tags, weight,
       variants: variantsBody,
@@ -49,6 +49,7 @@ export async function POST(req: NextRequest) {
       slug: baseSlug || `product-${Date.now()}`,
       description: description ?? null,
       shortDescription: shortDescription ?? null,
+      warranty: warranty ?? null,
       categoryId: categoryId ?? null,
       brandId: brandId ?? null,
       sku: sku ?? null,
