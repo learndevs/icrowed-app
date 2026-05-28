@@ -53,10 +53,6 @@ export async function updateOffer(
 }
 
 export async function deleteOffer(id: string) {
-  const [offer] = await db
-    .update(offers)
-    .set({ isActive: false, updatedAt: new Date() })
-    .where(eq(offers.id, id))
-    .returning();
-  return offer;
+  const [offer] = await db.delete(offers).where(eq(offers.id, id)).returning();
+  return offer ?? null;
 }

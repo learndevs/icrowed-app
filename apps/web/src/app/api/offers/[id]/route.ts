@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { updateOffer, deleteOffer } from "@icrowd/database/queries";
 import { requireAdmin } from "@/lib/admin";
+
+function revalidateOfferPages() {
+  revalidatePath("/");
+  revalidatePath("/offers");
+}
 
 export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const auth = await requireAdmin();
@@ -30,6 +36,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     });
 
     if (!offer) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    revalidateOfferPages();
     return NextResponse.json(offer);
   } catch (err) {
     console.error("[PUT /api/offers/[id]]", err);
@@ -45,7 +52,8 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
   try {
     const offer = await deleteOffer(id);
     if (!offer) return NextResponse.json({ error: "Not found" }, { status: 404 });
-    return NextResponse.json(offer);
+    revalidateOfferPages();
+    return NextResponse.json({ success: true });
   } catch (err) {
     console.error("[DELETE /api/offers/[id]]", err);
     return NextResponse.json({ error: "Failed to delete offer" }, { status: 500 });

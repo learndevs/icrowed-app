@@ -1,10 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { getAllOffers, getActiveOffers, createOffer } from "@icrowd/database/queries";
 import { requireAdmin } from "@/lib/admin";
+
+function revalidateOfferPages() {
+  revalidatePath("/");
+  revalidatePath("/offers");
+}
 
 export async function GET(req: NextRequest) {
   try {
     const all = req.nextUrl.searchParams.get("all") === "true";
+    if (all) {
+      const auth = await requireAdmin();
+      if (auth instanceof NextResponse) return auth;
+    }
     const result = all ? await getAllOffers() : await getActiveOffers();
     return NextResponse.json(result);
   } catch (err) {
@@ -39,6 +49,7 @@ export async function POST(req: NextRequest) {
       sortOrder: sortOrder ?? 0,
     });
 
+    revalidateOfferPages();
     return NextResponse.json(offer, { status: 201 });
   } catch (err) {
     console.error("[POST /api/offers]", err);

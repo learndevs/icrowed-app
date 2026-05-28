@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
-import { Plus, Pencil, Trash2, X, Check } from "lucide-react";
+import { Plus, Pencil, Trash2, X } from "lucide-react";
 
 interface Offer {
   id: string;
@@ -40,6 +40,14 @@ const EMPTY_FORM: FormState = {
   badgeText: "", discountPercent: "", isActive: true, isFeatured: false,
   startsAt: "", endsAt: "", sortOrder: "0",
 };
+
+/** Format stored ISO timestamp for `<input type="datetime-local">` in browser local time. */
+function toDatetimeLocalValue(iso: string | null): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
 
 function formToBody(f: FormState) {
   return {
@@ -247,8 +255,8 @@ export default function AdminOffersPage() {
       discountPercent: offer.discountPercent ?? "",
       isActive: offer.isActive,
       isFeatured: offer.isFeatured,
-      startsAt: offer.startsAt ? offer.startsAt.slice(0, 16) : "",
-      endsAt: offer.endsAt ? offer.endsAt.slice(0, 16) : "",
+      startsAt: toDatetimeLocalValue(offer.startsAt),
+      endsAt: toDatetimeLocalValue(offer.endsAt),
       sortOrder: String(offer.sortOrder),
     });
   }
@@ -389,7 +397,7 @@ export default function AdminOffersPage() {
                       </Button>
                       {confirmDeleteId === offer.id ? (
                         <div className="flex items-center gap-1.5 text-sm">
-                          <span className="text-red-600 font-medium">Delete?</span>
+                          <span className="text-red-600 font-medium">Delete permanently?</span>
                           <Button
                             size="sm"
                             variant="outline"
@@ -397,7 +405,7 @@ export default function AdminOffersPage() {
                             disabled={deletingId === offer.id}
                             onClick={() => handleDelete(offer.id)}
                           >
-                            {deletingId === offer.id ? "..." : <Check className="w-3 h-3" />}
+                            {deletingId === offer.id ? "..." : "Yes"}
                           </Button>
                           <Button size="sm" variant="outline" onClick={() => setConfirmDeleteId(null)}>
                             <X className="w-3 h-3" />
