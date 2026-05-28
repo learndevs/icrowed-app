@@ -1,18 +1,15 @@
 #!/usr/bin/env bash
-# Install PostgreSQL on AlmaLinux/RHEL VPS for iCrowd app data.
+# Install PostgreSQL 17 on AlmaLinux/RHEL VPS for iCrowd app data.
 # Auth + Storage stay on Supabase Cloud; only DATABASE_URL moves to localhost.
 #
 # Run as root on VPS:
 #   DB_PASSWORD='your-secure-password' bash scripts/vps-postgres-setup.sh
-#
-# Then migrate data:
-#   bash scripts/migrate-supabase-db-to-local.sh
-#
-# Then update apps/web/.env.local:
-#   DATABASE_URL=postgresql://icrowd:PASSWORD@127.0.0.1:5432/icrowd
-#   (keep NEXT_PUBLIC_SUPABASE_* keys unchanged)
 
 set -euo pipefail
+
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+# shellcheck source=lib/pg17-tools.sh
+source "${ROOT}/scripts/lib/pg17-tools.sh"
 
 DB_NAME="${DB_NAME:-icrowd}"
 DB_USER="${DB_USER:-icrowd}"
@@ -24,16 +21,10 @@ if [[ -z "${DB_PASSWORD}" ]]; then
   exit 1
 fi
 
-echo "==> Installing PostgreSQL..."
-if ! command -v psql >/dev/null 2>&1; then
-  dnf install -y postgresql-server postgresql-contrib
-  postgresql-setup --initdb || /usr/bin/postgresql-setup --initdb
-fi
+ensure_pg17_server
 
-systemctl enable --now postgresql
-
-PG_HBA="$(sudo -u postgres psql -tAc "SHOW hba_file;" | tr -d '[:space:]')"
-PG_CONF="$(sudo -u postgres psql -tAc "SHOW config_file;" | tr -d '[:space:]')"
+PG_HBA="$(pg_hba_file)"
+PG_CONF="$(pg_conf_file)"
 
 echo "==> Allowing local password auth..."
 if ! grep -q "# icrowd local" "${PG_HBA}"; then
@@ -59,7 +50,7 @@ max_connections = 40
 CONF
 fi
 
-systemctl restart postgresql
+systemctl restart postgresql-17
 
 echo "==> Creating database and user..."
 sudo -u postgres psql -v ON_ERROR_STOP=1 <<SQL
@@ -85,13 +76,18 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO ${DB_USER};
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO ${DB_USER};
 SQL
 
+CREDS_FILE="${ROOT}/.postgres-local.env"
+cat > "${CREDS_FILE}" <<CREDS
+DB_NAME=${DB_NAME}
+DB_USER=${DB_USER}
+DB_PASSWORD=${DB_PASSWORD}
+LOCAL_DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@127.0.0.1:5432/${DB_NAME}
+CREDS
+chmod 600 "${CREDS_FILE}"
+
 echo
-echo "==> PostgreSQL ready =="
+echo "==> PostgreSQL 17 ready =="
 echo "DATABASE_URL=postgresql://${DB_USER}:${DB_PASSWORD}@127.0.0.1:5432/${DB_NAME}"
+echo "(saved to ${CREDS_FILE})"
 echo
-echo "Next steps:"
-echo "  1. bash scripts/migrate-supabase-db-to-local.sh"
-echo "  2. Update apps/web/.env.local with DATABASE_URL above"
-echo "  3. cd /var/www/icrowed-app && ./scripts/rebuild-and-restart.sh"
-echo
-echo "Keep NEXT_PUBLIC_SUPABASE_URL and SUPABASE keys — auth & image storage still use Supabase Cloud."
+echo "Next: bash scripts/migrate-supabase-db-to-local.sh"
