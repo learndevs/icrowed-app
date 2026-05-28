@@ -27,15 +27,21 @@ if (!connectionString) {
 /**
  * Supabase session pooler (:5432) caps concurrent clients at ~15 (EMAXCONNSESSION).
  * Use transaction pooler (:6543?pgbouncer=true) for the app; keep :5432 for migrations only.
- * Default max 5 avoids exhausting the session pool when pages fire many parallel queries.
+ * min: 1 + keepAlive avoids ~1s cold-connect penalty on VPS (US → Singapore).
  */
 const pool = new Pool({
   connectionString,
   ssl: sslForConnectionString(connectionString),
   connectionTimeoutMillis: Number(process.env.DATABASE_CONNECT_TIMEOUT_MS ?? 20_000),
-  idleTimeoutMillis: Number(process.env.DATABASE_IDLE_TIMEOUT_MS ?? 10_000),
+  idleTimeoutMillis: Number(process.env.DATABASE_IDLE_TIMEOUT_MS ?? 60_000),
   max: Number(process.env.DATABASE_POOL_MAX ?? 5),
+  min: Number(process.env.DATABASE_POOL_MIN ?? 1),
+  keepAlive: true,
+  keepAliveInitialDelayMillis: 10_000,
 });
+
+// Warm pool on startup so the first checkout/API request is not blocked on TLS handshake.
+void pool.query("SELECT 1").catch(() => {});
 
 export const db = drizzle(pool, { schema });
 export type DB = typeof db;
