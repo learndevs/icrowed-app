@@ -24,12 +24,17 @@ if (!connectionString) {
   );
 }
 
+/**
+ * Supabase session pooler (:5432) caps concurrent clients at ~15 (EMAXCONNSESSION).
+ * Use transaction pooler (:6543?pgbouncer=true) for the app; keep :5432 for migrations only.
+ * Default max 5 avoids exhausting the session pool when pages fire many parallel queries.
+ */
 const pool = new Pool({
   connectionString,
   ssl: sslForConnectionString(connectionString),
   connectionTimeoutMillis: Number(process.env.DATABASE_CONNECT_TIMEOUT_MS ?? 20_000),
-  idleTimeoutMillis: 30_000,
-  max: Number(process.env.DATABASE_POOL_MAX ?? 10),
+  idleTimeoutMillis: Number(process.env.DATABASE_IDLE_TIMEOUT_MS ?? 10_000),
+  max: Number(process.env.DATABASE_POOL_MAX ?? 5),
 });
 
 export const db = drizzle(pool, { schema });
