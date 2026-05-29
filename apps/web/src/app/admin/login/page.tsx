@@ -6,6 +6,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Eye, EyeOff, ShieldCheck, Smartphone } from "lucide-react";
+import { publicAdminLoginError } from "@/lib/admin-login-errors";
 
 function AdminLoginForm() {
   const router = useRouter();
@@ -32,7 +33,7 @@ function AdminLoginForm() {
     const data = (await res.json()) as { error?: string; role?: string };
 
     if (!res.ok) {
-      setError(data.error ?? "Sign in failed");
+      setError(publicAdminLoginError(res.status, data.error));
       setLoading(false);
       return;
     }

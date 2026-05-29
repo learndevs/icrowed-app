@@ -5,6 +5,7 @@ import {
   createAdminSessionToken,
 } from "@/lib/admin-session";
 import { verifyStaffCredentials } from "@/lib/admin-auth";
+import { publicAdminLoginError } from "@/lib/admin-login-errors";
 
 export async function POST(req: NextRequest) {
   try {
@@ -36,7 +37,9 @@ export async function POST(req: NextRequest) {
     return res;
   } catch (err) {
     console.error("[POST /api/admin/auth/login]", err);
-    const message = err instanceof Error ? err.message : "Login failed";
-    return NextResponse.json({ error: message }, { status: 500 });
+    return NextResponse.json(
+      { error: publicAdminLoginError(500) },
+      { status: 500 },
+    );
   }
 }
