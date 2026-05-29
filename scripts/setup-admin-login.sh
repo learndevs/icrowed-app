@@ -3,8 +3,6 @@
 # Run on VPS as root:
 #   cd /var/www/icrowed-app
 #   ADMIN_PASSWORD='your-password' bash scripts/setup-admin-login.sh
-#
-# Ensures DATABASE_URL in apps/web/.env points to LOCAL db (127.0.0.1), not Supabase.
 
 set -euo pipefail
 
@@ -20,6 +18,12 @@ PG_DB="${PG_DB:-icrowd}"
 ENV_FILE="${APP_DIR}/apps/web/.env"
 [[ -f "${ENV_FILE}" ]] || ENV_FILE="${APP_DIR}/apps/web/.env.local"
 
+SQL_TEMPLATE="${APP_DIR}/scripts/setup-admin-login.sql"
+TMP_SQL="$(mktemp /tmp/icrowd-admin-setup.XXXXXX.sql)"
+
+cleanup() { rm -f "${TMP_SQL}"; }
+trap cleanup EXIT
+
 echo "=== iCrowd admin login setup ==="
 
 if [[ -z "${ADMIN_PASSWORD}" ]]; then
@@ -28,6 +32,26 @@ if [[ -z "${ADMIN_PASSWORD}" ]]; then
   exit 1
 fi
 
+if [[ ! -f "${SQL_TEMPLATE}" ]]; then
+  echo "Missing ${SQL_TEMPLATE}"
+  exit 1
+fi
+
+# Escape single quotes for SQL string literals
+sql_escape() {
+  printf "%s" "$1" | sed "s/'/''/g"
+}
+
+EMAIL_SQL="$(sql_escape "${ADMIN_EMAIL}")"
+PASS_SQL="$(sql_escape "${ADMIN_PASSWORD}")"
+NAME_SQL="$(sql_escape "${ADMIN_NAME}")"
+
+sed \
+  -e "s/__ADMIN_EMAIL__/${EMAIL_SQL}/g" \
+  -e "s/__ADMIN_PASSWORD__/${PASS_SQL}/g" \
+  -e "s/__ADMIN_NAME__/${NAME_SQL}/g" \
+  "${SQL_TEMPLATE}" > "${TMP_SQL}"
+
 if [[ -f "${ENV_FILE}" ]]; then
   db_url="$(grep -E '^DATABASE_URL=' "${ENV_FILE}" | head -1 | cut -d= -f2- | tr -d '"' | tr -d "'")"
   echo "App DATABASE_URL (masked): $(echo "${db_url}" | sed 's/:[^:@/]*@/:***@/')"
@@ -35,9 +59,6 @@ if [[ -f "${ENV_FILE}" ]]; then
     echo ""
     echo "WARNING: DATABASE_URL still points to Supabase Cloud."
     echo "This script sets up LOCAL database '${PG_DB}'."
-    echo "Either:"
-    echo "  1) Point apps/web/.env DATABASE_URL to local Postgres, then re-run, OR"
-    echo "  2) Run the same SQL on Supabase (SQL editor), not only on local icrowd."
     echo ""
     read -r -p "Continue with local DB '${PG_DB}' anyway? [y/N] " ans
     [[ "${ans}" =~ ^[yY] ]] || exit 1
@@ -48,19 +69,14 @@ if [[ -f "${ENV_FILE}" ]]; then
   fi
 fi
 
-PSQL="sudo -u postgres psql"
+PSQL=(sudo -u postgres psql)
 if ! command -v psql &>/dev/null && [[ -x /usr/pgsql-17/bin/psql ]]; then
-  PSQL="sudo -u postgres /usr/pgsql-17/bin/psql"
+  PSQL=(sudo -u postgres /usr/pgsql-17/bin/psql)
 fi
 
 echo ""
 echo "==> Recreating auth schema + ${ADMIN_EMAIL} on database: ${PG_DB}"
-${PSQL} -d "${PG_DB}" -v ON_ERROR_STOP=1 \
-  -v admin_email="${ADMIN_EMAIL}" \
-  -v admin_password="${ADMIN_PASSWORD}" \
-  -v admin_name="${ADMIN_NAME}" \
-  -v app_db_user="${APP_DB_USER}" \
-  -f "${APP_DIR}/scripts/setup-admin-login.sql"
+"${PSQL[@]}" -d "${PG_DB}" -v ON_ERROR_STOP=1 -f "${TMP_SQL}"
 
 echo ""
 echo "==> Test login query AS app user (${APP_DB_USER})..."
@@ -75,12 +91,14 @@ if [[ -z "${LOCAL_URL}" && -f "${ENV_FILE}" ]]; then
 fi
 
 if [[ -n "${LOCAL_URL}" ]] && echo "${LOCAL_URL}" | grep -qE '@(127\.0\.0\.1|localhost)'; then
-  if psql "${LOCAL_URL}" -v ON_ERROR_STOP=1 -c "
+  EMAIL_TEST="$(sql_escape "${ADMIN_EMAIL}")"
+  PASS_TEST="$(sql_escape "${ADMIN_PASSWORD}")"
+  if PGPASSWORD="" psql "${LOCAL_URL}" -v ON_ERROR_STOP=1 -c "
     SELECT u.id, p.email, p.role::text
     FROM auth.users u
     INNER JOIN profiles p ON p.id = u.id
-    WHERE lower(u.email) = lower('${ADMIN_EMAIL}')
-      AND u.encrypted_password = crypt('${ADMIN_PASSWORD}', u.encrypted_password)
+    WHERE lower(u.email) = lower('${EMAIL_TEST}')
+      AND u.encrypted_password = crypt('${PASS_TEST}', u.encrypted_password)
       AND p.is_active = true
       AND p.role::text IN ('admin', 'operator');
   " 2>/dev/null; then

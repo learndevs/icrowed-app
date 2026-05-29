@@ -1,14 +1,5 @@
--- Full reset of admin-login schema + admin@icrowed.local (safe for VPS local Postgres).
--- Only drops schema "auth" — does NOT touch public products/orders/etc.
---
--- Run:
---   sudo -u postgres psql -d icrowd -v ON_ERROR_STOP=1 -f scripts/setup-admin-login.sql
---
--- Optional psql variables (defaults shown):
---   -v admin_email='admin@icrowed.local'
---   -v admin_password='YourPassword'
---   -v admin_name='Admin'
---   -v app_db_user='icrowd'
+-- Template: do not run directly. Use:
+--   ADMIN_PASSWORD='your-password' bash scripts/setup-admin-login.sh
 
 \echo '==> Checking public.profiles exists...'
 DO $$
@@ -69,48 +60,40 @@ CREATE INDEX users_email_idx ON auth.users (lower(email));
 CREATE UNIQUE INDEX identities_provider_uidx ON auth.identities (provider, provider_id);
 
 \echo '==> Remove orders and related data for existing admin profile...'
-DO $cleanup$
-DECLARE
-  v_profile_id uuid;
-  v_order_ids uuid[];
-BEGIN
-  SELECT id INTO v_profile_id
-  FROM profiles
-  WHERE lower(email) = lower(:'admin_email')
-  LIMIT 1;
+UPDATE order_status_history
+SET changed_by = NULL
+WHERE changed_by IN (
+  SELECT id FROM profiles WHERE lower(email) = lower('__ADMIN_EMAIL__')
+);
 
-  IF v_profile_id IS NULL THEN
-    RAISE NOTICE 'No existing profile for % — skip cleanup', :'admin_email';
-    RETURN;
-  END IF;
+DELETE FROM orders
+WHERE user_id IN (
+  SELECT id FROM profiles WHERE lower(email) = lower('__ADMIN_EMAIL__')
+);
 
-  SELECT array_agg(id) INTO v_order_ids
-  FROM orders
-  WHERE user_id = v_profile_id;
+DELETE FROM reviews
+WHERE user_id IN (
+  SELECT id FROM profiles WHERE lower(email) = lower('__ADMIN_EMAIL__')
+);
 
-  IF v_order_ids IS NOT NULL THEN
-    RAISE NOTICE 'Deleting % order(s) for admin profile', cardinality(v_order_ids);
-    -- order_items + order_status_history cascade when orders are deleted
-    DELETE FROM orders WHERE id = ANY (v_order_ids);
-  END IF;
+DELETE FROM wishlists
+WHERE user_id IN (
+  SELECT id FROM profiles WHERE lower(email) = lower('__ADMIN_EMAIL__')
+);
 
-  UPDATE order_status_history SET changed_by = NULL WHERE changed_by = v_profile_id;
-  DELETE FROM reviews WHERE user_id = v_profile_id;
-  DELETE FROM wishlists WHERE user_id = v_profile_id;
-  DELETE FROM addresses WHERE user_id = v_profile_id;
+DELETE FROM addresses
+WHERE user_id IN (
+  SELECT id FROM profiles WHERE lower(email) = lower('__ADMIN_EMAIL__')
+);
 
-  DELETE FROM profiles WHERE id = v_profile_id;
-  RAISE NOTICE 'Removed profile %', v_profile_id;
-END $cleanup$;
+DELETE FROM profiles
+WHERE lower(email) = lower('__ADMIN_EMAIL__');
 
-\echo '==> Create admin@icrowed.local...'
-DO $setup$
-DECLARE
-  v_id uuid := gen_random_uuid();
-  v_email text := :'admin_email';
-  v_password text := :'admin_password';
-  v_name text := :'admin_name';
-BEGIN
+\echo '==> Create admin user...'
+WITH new_id AS (
+  SELECT gen_random_uuid() AS id
+),
+ins_user AS (
   INSERT INTO auth.users (
     instance_id, id, aud, role, email, encrypted_password,
     email_confirmed_at, created_at, updated_at,
@@ -118,39 +101,56 @@ BEGIN
     confirmation_token, recovery_token, email_change_token_new,
     email_change_token_current, email_change, phone_change,
     phone_change_token, reauthentication_token
-  ) VALUES (
-    '00000000-0000-0000-0000-000000000000',
-    v_id, 'authenticated', 'authenticated', v_email,
-    crypt(v_password, gen_salt('bf')),
-    now(), now(), now(),
+  )
+  SELECT
+    '00000000-0000-0000-0000-000000000000'::uuid,
+    new_id.id,
+    'authenticated',
+    'authenticated',
+    '__ADMIN_EMAIL__',
+    crypt('__ADMIN_PASSWORD__', gen_salt('bf')),
+    now(),
+    now(),
+    now(),
     '{"provider":"email","providers":["email"]}'::jsonb,
     '{}'::jsonb,
-    false, false,
-    '', '', '', '', '', '', '', ''
-  );
-
+    false,
+    false,
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    '',
+    ''
+  FROM new_id
+  RETURNING id
+),
+ins_identity AS (
   INSERT INTO auth.identities (
     id, user_id, identity_data, provider, provider_id,
     last_sign_in_at, created_at, updated_at
-  ) VALUES (
+  )
+  SELECT
     gen_random_uuid(),
-    v_id,
+    ins_user.id,
     jsonb_build_object(
-      'sub', v_id::text,
-      'email', v_email,
+      'sub', ins_user.id::text,
+      'email', '__ADMIN_EMAIL__',
       'email_verified', true,
       'phone_verified', false
     ),
     'email',
-    v_id::text,
-    now(), now(), now()
-  );
-
-  INSERT INTO profiles (id, email, full_name, role, is_active, created_at, updated_at)
-  VALUES (v_id, v_email, v_name, 'admin', true, now(), now());
-
-  RAISE NOTICE 'Admin created: % id=%', v_email, v_id;
-END $setup$;
+    ins_user.id::text,
+    now(),
+    now(),
+    now()
+  FROM ins_user
+)
+INSERT INTO profiles (id, email, full_name, role, is_active, created_at, updated_at)
+SELECT ins_user.id, '__ADMIN_EMAIL__', '__ADMIN_NAME__', 'admin', true, now(), now()
+FROM ins_user;
 
 \echo '==> Grant auth to app user (icrowd)...'
 DO $$
@@ -167,9 +167,9 @@ END $$;
 
 COMMIT;
 
-\echo '==> Verify (as postgres)...'
+\echo '==> Verify...'
 SELECT p.email, p.role::text, p.is_active, u.id AS auth_id,
-       (u.encrypted_password = crypt(:'admin_password', u.encrypted_password)) AS password_ok
+       (u.encrypted_password = crypt('__ADMIN_PASSWORD__', u.encrypted_password)) AS password_ok
 FROM profiles p
 JOIN auth.users u ON u.id = p.id
-WHERE lower(p.email) = lower(:'admin_email');
+WHERE lower(p.email) = lower('__ADMIN_EMAIL__');
