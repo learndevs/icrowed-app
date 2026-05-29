@@ -11,14 +11,27 @@ export type AdminSessionPayload = {
   exp: number;
 };
 
+/** Stable signing key: explicit env, else derived from DATABASE_URL (VPS-friendly). */
 function getSessionSecret(): string {
   const secret = process.env.ADMIN_SESSION_SECRET?.trim();
   if (secret && secret.length >= 16) return secret;
+
+  const db = process.env.DATABASE_URL?.trim() ?? "";
+  if (db.length >= 20) {
+    let h = 2166136261;
+    for (let i = 0; i < db.length; i++) {
+      h ^= db.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+    return `icrowd-admin-${(h >>> 0).toString(16)}`;
+  }
+
   if (process.env.NODE_ENV === "development") {
     return "icrowd-dev-admin-session";
   }
+
   throw new Error(
-    "ADMIN_SESSION_SECRET must be set (16+ chars) in apps/web/.env.local for admin login.",
+    "Set ADMIN_SESSION_SECRET or DATABASE_URL in apps/web/.env for admin login.",
   );
 }
 

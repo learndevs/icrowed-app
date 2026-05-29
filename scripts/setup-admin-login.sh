@@ -109,6 +109,12 @@ else
   echo "Skip app-user test (no local DATABASE_URL)."
 fi
 
+if [[ -f "${ENV_FILE}" ]] && ! grep -qE '^ADMIN_SESSION_SECRET=.+' "${ENV_FILE}"; then
+  session_secret="$(openssl rand -hex 32 2>/dev/null || head -c 32 /dev/urandom | xxd -p -c 64)"
+  echo "ADMIN_SESSION_SECRET=${session_secret}" >> "${ENV_FILE}"
+  echo "==> Added ADMIN_SESSION_SECRET to ${ENV_FILE}"
+fi
+
 echo ""
 echo "============================================"
 echo "Admin login ready."
@@ -116,6 +122,6 @@ echo "  Email:    ${ADMIN_EMAIL}"
 echo "  Password: (what you set in ADMIN_PASSWORD)"
 echo "  URL:      /admin/login"
 echo ""
-echo "Restart app:"
-echo "  sudo -u icrowd pm2 restart icrowd-web"
+echo "Restart app (reload env):"
+echo "  sudo -u icrowd pm2 restart icrowd-web --update-env"
 echo "============================================"
