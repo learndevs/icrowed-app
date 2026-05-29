@@ -9,6 +9,7 @@ import {
   AlertTriangle, PackageX, ArrowRight, ShoppingCart,
 } from "lucide-react";
 import Image from "next/image";
+import { isLocalProductUploadUrl, normalizeProductImageUrl } from "@/lib/product-image-url";
 import Link from "next/link";
 
 const CART_CARD =
@@ -136,7 +137,14 @@ export default function CartPage() {
                     }`}
                   >
                     {item.imageUrl ? (
-                      <Image src={item.imageUrl} alt={item.name} fill className="object-cover" sizes="144px" />
+                      <Image
+                        src={normalizeProductImageUrl(item.imageUrl)}
+                        alt={item.name}
+                        fill
+                        className="object-cover"
+                        sizes="144px"
+                        unoptimized={isLocalProductUploadUrl(item.imageUrl)}
+                      />
                     ) : (
                       <ShoppingBag className="w-10 h-10 text-gray-300" />
                     )}

@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Star } from "lucide-react";
 import { TopSellingAddToCartButton } from "./TopSellingAddToCartButton";
+import { isLocalProductUploadUrl, normalizeProductImageUrl } from "@/lib/product-image-url";
 
 export type TopSellingProductData = {
   id: string;
@@ -32,6 +33,7 @@ export function TopSellingProductCard({
   const discount = discountPercent(product.price, product.comparePrice);
   const sold = product.soldCount;
   const isOOS = product.stock === 0;
+  const imageSrc = product.imageUrl ? normalizeProductImageUrl(product.imageUrl) : "";
 
   return (
     <Link
@@ -40,13 +42,14 @@ export function TopSellingProductCard({
     >
       {/* White image well */}
       <div className="relative aspect-square overflow-hidden rounded-lg bg-white md:rounded-xl">
-        {product.imageUrl ? (
+        {imageSrc ? (
           <Image
-            src={product.imageUrl}
+            src={imageSrc}
             alt={product.name}
             fill
             className="object-contain object-center p-4 transition-transform duration-300 group-hover:scale-[1.02] md:p-5"
             sizes="(max-width: 767px) 46vw, 18vw"
+            unoptimized={isLocalProductUploadUrl(imageSrc)}
           />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center text-zinc-300 text-xs">

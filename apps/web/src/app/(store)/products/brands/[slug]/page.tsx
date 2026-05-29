@@ -5,6 +5,7 @@ import { getBrandBySlug, getBrands, getCategories, getProductsByBrandSlug, getRe
 import { ProductsClient } from "../../ProductsClient";
 import type { ProductCardData } from "@/components/products/ProductCard";
 import { queryStorefront } from "@/lib/storefront-query";
+import { normalizeProductImageUrl } from "@/lib/product-image-url";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -32,9 +33,10 @@ function primaryImageUrl(images: unknown): string | undefined {
   const valid = rows.filter((img) => typeof img?.url === "string" && img.url.length > 0);
   if (valid.length === 0) return undefined;
   const primary = valid.find((img) => img.isPrimary);
-  if (primary?.url) return primary.url;
+  if (primary?.url) return normalizeProductImageUrl(primary.url);
   const sorted = [...valid].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
-  return sorted[0]?.url;
+  const url = sorted[0]?.url;
+  return url ? normalizeProductImageUrl(url) : undefined;
 }
 
 export const revalidate = 60;

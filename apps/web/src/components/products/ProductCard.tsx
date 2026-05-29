@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Heart, ShoppingCart, Star, Smartphone, Ban } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
+import { isLocalProductUploadUrl, normalizeProductImageUrl } from "@/lib/product-image-url";
 
 const GRADIENTS = [
   "from-sky-400 to-sky-600",
@@ -57,6 +58,8 @@ export function ProductCard({ product }: Readonly<{ product: ProductCardData }>)
       ? Math.round((1 - product.price / product.comparePrice) * 100)
       : null;
 
+  const imageSrc = product.imageUrl ? normalizeProductImageUrl(product.imageUrl) : "";
+
   function handleAddToCart(e: React.MouseEvent) {
     e.preventDefault();
     if (isOOS) return;
@@ -82,15 +85,16 @@ export function ProductCard({ product }: Readonly<{ product: ProductCardData }>)
           product.imageUrl ? "bg-gray-50" : `bg-linear-to-br ${gradient}`
         }`}
       >
-        {product.imageUrl ? (
+        {imageSrc ? (
           <Image
-            src={product.imageUrl}
+            src={imageSrc}
             alt={product.name}
             fill
             className={`object-cover transition-transform duration-500 ${
               isOOS ? "grayscale-[0.35]" : "group-hover:scale-105"
             }`}
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            unoptimized={isLocalProductUploadUrl(imageSrc)}
           />
         ) : (
           <Smartphone

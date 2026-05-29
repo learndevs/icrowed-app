@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db, products, productImages, brands, productVariants } from "@icrowd/database";
 import { and, eq, inArray } from "drizzle-orm";
+import { normalizeProductImageUrl } from "@/lib/product-image-url";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -43,7 +44,7 @@ export async function GET(req: NextRequest) {
     comparePrice: r.comparePrice ? Number(r.comparePrice) : undefined,
     stock: r.stock,
     brand: r.brandName ?? undefined,
-    imageUrl: r.imageUrl ?? undefined,
+    imageUrl: r.imageUrl ? normalizeProductImageUrl(r.imageUrl) : undefined,
   }));
 
   const variantRows =

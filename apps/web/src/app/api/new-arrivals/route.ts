@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getProducts } from "@icrowd/database/queries";
+import { normalizeProductImageUrl } from "@/lib/product-image-url";
 
 export async function GET() {
   try {
@@ -13,7 +14,10 @@ export async function GET() {
         comparePrice: p.comparePrice ? Number(p.comparePrice) : null,
         brand: p.brand?.name ?? null,
         category: p.category?.name ?? null,
-        imageUrl: p.images?.find((img) => img.isPrimary)?.url ?? p.images?.[0]?.url ?? null,
+        imageUrl: (() => {
+          const raw = p.images?.find((img) => img.isPrimary)?.url ?? p.images?.[0]?.url ?? null;
+          return raw ? normalizeProductImageUrl(raw) : null;
+        })(),
         createdAt: p.createdAt,
       })),
     });

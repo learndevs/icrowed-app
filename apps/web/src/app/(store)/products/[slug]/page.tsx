@@ -23,6 +23,7 @@ import {
   getApprovedReviews,
 } from "@icrowd/database/queries";
 import { queryStorefront } from "@/lib/storefront-query";
+import { normalizeProductImageUrl } from "@/lib/product-image-url";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -185,7 +186,11 @@ export default async function ProductDetailPage({ params }: Props) {
                 price: product.price,
                 stock: product.stock,
                 variants: product.variants,
-                primaryImageUrl: product.images.find((i) => i.isPrimary)?.url ?? product.images[0]?.url ?? null,
+                primaryImageUrl: (() => {
+                  const raw =
+                    product.images.find((i) => i.isPrimary)?.url ?? product.images[0]?.url ?? null;
+                  return raw ? normalizeProductImageUrl(raw) : null;
+                })(),
               }}
             />
 

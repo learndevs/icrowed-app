@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { isLocalProductUploadUrl, normalizeProductImageUrl } from "@/lib/product-image-url";
 import Image from "next/image";
 import { Heart, ShoppingCart, Smartphone, ArrowRight, Trash2 } from "lucide-react";
 import { useWishlist } from "@/context/WishlistContext";
@@ -115,11 +116,12 @@ export default function WishlistPage() {
                     <div className="relative rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 aspect-square mb-3 overflow-hidden">
                       {product.imageUrl ? (
                         <Image
-                          src={product.imageUrl}
+                          src={normalizeProductImageUrl(product.imageUrl)}
                           alt={product.name}
                           fill
                           className="object-cover transition-transform duration-500 group-hover:scale-105"
                           sizes="(max-width: 640px) 50vw, 25vw"
+                          unoptimized={isLocalProductUploadUrl(product.imageUrl)}
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">

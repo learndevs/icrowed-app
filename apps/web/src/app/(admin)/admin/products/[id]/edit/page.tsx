@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
+import { isLocalProductUploadUrl, normalizeProductImageUrl } from "@/lib/product-image-url";
 import { SpecificationsEditor } from "@/components/admin/SpecificationsEditor";
 import { ShortDescriptionEditor } from "@/components/admin/ShortDescriptionEditor";
 import { markdownToSpecifications, specificationsToMarkdown } from "@/lib/specifications";
@@ -664,11 +665,12 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
             >
               {activeImage ? (
                 <Image
-                  src={activeImage.url}
+                  src={normalizeProductImageUrl(activeImage.url)}
                   alt={activeImage.altText ?? "Product image"}
                   fill
                   className="object-contain p-3"
                   sizes="340px"
+                  unoptimized={isLocalProductUploadUrl(activeImage.url)}
                 />
               ) : (
                 <div className="absolute inset-0 flex flex-col items-center justify-center gap-3">
@@ -722,7 +724,14 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
                     activeImageIdx === i ? "border-indigo-500 shadow-sm" : "border-gray-200 hover:border-gray-300"
                   )}
                 >
-                  <Image src={img.url} alt={img.altText ?? ""} fill className="object-cover" sizes="64px" />
+                  <Image
+                    src={normalizeProductImageUrl(img.url)}
+                    alt={img.altText ?? ""}
+                    fill
+                    className="object-cover"
+                    sizes="64px"
+                    unoptimized={isLocalProductUploadUrl(img.url)}
+                  />
                   {img.isPrimary && (
                     <span className="absolute top-0.5 right-0.5 w-4 h-4 bg-amber-400 rounded-full flex items-center justify-center">
                       <Star className="w-2.5 h-2.5 fill-white text-white" />

@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react";
 import Image from "next/image";
 import { Smartphone, ChevronLeft, ChevronRight } from "lucide-react";
+import { isLocalProductUploadUrl, normalizeProductImageUrl } from "@/lib/product-image-url";
 
 interface ProductImage {
   id: string;
@@ -18,10 +19,15 @@ interface Props {
   gradient: string;
 }
 
+function imgSrc(url: string) {
+  return normalizeProductImageUrl(url);
+}
+
 export function ProductImages({ images, productName, gradient }: Readonly<Props>) {
   const sorted = [...images].sort((a, b) => a.sortOrder - b.sortOrder);
   const [selectedIdx, setSelectedIdx] = useState(0);
   const selected = sorted[selectedIdx];
+  const mainSrc = selected?.url ? imgSrc(selected.url) : "";
   const total = sorted.length;
 
   const prev = useCallback(() => {
@@ -39,14 +45,15 @@ export function ProductImages({ images, productName, gradient }: Readonly<Props>
         className={`bento-card relative bg-linear-to-br ${gradient} flex items-center justify-center overflow-hidden`}
         style={{ aspectRatio: "1 / 1" }}
       >
-        {selected?.url ? (
+        {mainSrc ? (
           <Image
-            src={selected.url}
+            src={mainSrc}
             alt={selected.altText ?? productName}
             fill
             className="object-cover transition-opacity duration-300"
             sizes="(max-width: 1024px) 90vw, 45vw"
             priority
+            unoptimized={isLocalProductUploadUrl(mainSrc)}
           />
         ) : (
           <Smartphone className="w-28 h-28 sm:w-36 sm:h-36 text-white/60" />
@@ -105,11 +112,12 @@ export function ProductImages({ images, productName, gradient }: Readonly<Props>
               }`}
             >
               <Image
-                src={img.url}
+                src={imgSrc(img.url)}
                 alt={img.altText ?? productName}
                 width={72}
                 height={72}
                 className="object-cover w-full h-full"
+                unoptimized={isLocalProductUploadUrl(imgSrc(img.url))}
               />
             </button>
           ))}

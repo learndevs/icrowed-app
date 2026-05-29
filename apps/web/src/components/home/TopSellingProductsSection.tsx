@@ -5,6 +5,7 @@ import {
   TopSellingProductCard,
   type TopSellingProductData,
 } from "./TopSellingProductCard";
+import { normalizeProductImageUrl } from "@/lib/product-image-url";
 
 interface DbImage {
   isPrimary?: boolean;
@@ -17,8 +18,8 @@ function primaryImage(imgs: DbImage[] | null | undefined): string | undefined {
   const valid = imgs.filter((i) => i.url);
   if (!valid.length) return undefined;
   const hit = valid.find((i) => i.isPrimary);
-  if (hit?.url) return hit.url;
-  return [...valid].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))[0]?.url;
+  const raw = hit?.url ?? [...valid].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))[0]?.url;
+  return raw ? normalizeProductImageUrl(raw) : undefined;
 }
 
 function mapRow(

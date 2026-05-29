@@ -30,13 +30,9 @@ export function resolveProductImagesUploadRoot(): string {
   return path.join(cwd, "public/uploads/products");
 }
 
-export function appPublicBaseUrl(): string {
-  const base = process.env.NEXT_PUBLIC_APP_URL?.trim() || "http://localhost:3000";
-  return base.replace(/\/$/, "");
-}
-
+/** Same-origin path served from apps/web/public (not tied to NEXT_PUBLIC_APP_URL). */
 export function buildProductImagePublicUrl(productId: string, filename: string): string {
-  return `${appPublicBaseUrl()}/uploads/products/${productId}/${filename}`;
+  return `/uploads/products/${productId}/${filename}`;
 }
 
 export function validateProductImageUpload(
