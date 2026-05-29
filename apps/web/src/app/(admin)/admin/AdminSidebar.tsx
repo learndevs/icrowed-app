@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   Package,
@@ -21,6 +21,7 @@ import {
   Star,
   ArrowLeft,
   ChevronRight,
+  LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -85,6 +86,13 @@ type Props = {
 
 export function AdminSidebar({ fullName, email, initials }: Readonly<Props>) {
   const pathname = usePathname();
+  const router = useRouter();
+
+  async function handleSignOut() {
+    await fetch("/api/admin/auth/logout", { method: "POST" });
+    router.push("/admin/login");
+    router.refresh();
+  }
 
   return (
     <aside className="w-64 shrink-0 flex flex-col bg-white border-r border-gray-100 overflow-hidden">
@@ -164,7 +172,7 @@ export function AdminSidebar({ fullName, email, initials }: Readonly<Props>) {
           </div>
         </div>
 
-        <div className="px-3 pb-3">
+        <div className="px-3 pb-3 space-y-0.5">
           <Link
             href="/"
             className="flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-400 hover:text-gray-700 hover:bg-gray-50 transition-colors group"
@@ -172,6 +180,14 @@ export function AdminSidebar({ fullName, email, initials }: Readonly<Props>) {
             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
             Back to Store
           </Link>
+          <button
+            type="button"
+            onClick={handleSignOut}
+            className="w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+          >
+            <LogOut className="w-4 h-4" />
+            Sign out
+          </button>
         </div>
       </div>
     </aside>

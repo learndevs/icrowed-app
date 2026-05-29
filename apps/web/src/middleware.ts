@@ -1,8 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createServerClient } from "@supabase/ssr";
+import {
+  ADMIN_SESSION_COOKIE,
+  getAdminSessionFromRequest,
+} from "@/lib/admin-session";
 
 function hasSupabaseSessionCookie(req: NextRequest): boolean {
   return req.cookies.getAll().some((c) => c.name.startsWith("sb-") && c.name.includes("auth-token"));
+}
+
+function isAdminPublicPath(pathname: string): boolean {
+  return pathname === "/admin/login";
 }
 
 export default async function middleware(req: NextRequest) {
@@ -10,14 +18,25 @@ export default async function middleware(req: NextRequest) {
   const pathname = req.nextUrl.pathname;
   const isAdminRoute = pathname.startsWith("/admin");
 
+  if (isAdminRoute) {
+    const adminSession = await getAdminSessionFromRequest(req);
+    if (!isAdminPublicPath(pathname) && !adminSession) {
+      const nextPath = `${req.nextUrl.pathname}${req.nextUrl.search}`;
+      const loginUrl = new URL(
+        `/admin/login?next=${encodeURIComponent(nextPath)}`,
+        req.url,
+      );
+      return NextResponse.redirect(loginUrl);
+    }
+    return res;
+  }
+
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  // Skip auth refresh if Supabase is not yet configured (env vars missing)
   if (!url || !key) return res;
 
-  // Anonymous storefront traffic does not need a Supabase round-trip on every page view.
-  if (!isAdminRoute && !hasSupabaseSessionCookie(req)) {
+  if (!hasSupabaseSessionCookie(req)) {
     return res;
   }
 
@@ -35,22 +54,11 @@ export default async function middleware(req: NextRequest) {
     },
   });
 
-  // Refresh session so it stays alive
-  const { data: { user } } = await supabase.auth.getUser();
-
-  // Protect /admin/* — redirect unauthenticated users to login
-  if (isAdminRoute) {
-    if (!user) {
-      const nextPath = `${req.nextUrl.pathname}${req.nextUrl.search}`;
-      const loginUrl = new URL(`/login?next=${encodeURIComponent(nextPath)}`, req.url);
-      return NextResponse.redirect(loginUrl);
-    }
-  }
+  await supabase.auth.getUser();
 
   return res;
 }
 
-// Static string literal only — `String.raw` / dynamic values break Next segment-config analysis at build time.
 export const config = {
   matcher: [
     "/((?!_next/static|_next/image|favicon\\.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",

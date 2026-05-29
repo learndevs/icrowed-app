@@ -147,7 +147,7 @@ async function main() {
     console.log("  Email:    ", email);
     console.log("  Password: ", password, generated ? "(generated — save this now)" : "");
     console.log("  User ID:  ", userId);
-    console.log("\n  Sign in at /login then visit /admin");
+    console.log("\n  Sign in at /admin/login then visit /admin");
   } catch (err) {
     await client.query("ROLLBACK").catch(() => {});
     throw err;

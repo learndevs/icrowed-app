@@ -1,55 +1,47 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
-import { Eye, EyeOff, Smartphone } from "lucide-react";
-import { Suspense } from "react";
+import { Eye, EyeOff, ShieldCheck, Smartphone } from "lucide-react";
 
-function LoginForm() {
+function AdminLoginForm() {
   const router = useRouter();
   const params = useSearchParams();
-  const next = params.get("next") ?? "/";
+  const next = params.get("next") ?? "/admin";
 
-  useEffect(() => {
-    if (next.startsWith("/admin")) {
-      const q = next !== "/admin" ? `?next=${encodeURIComponent(next)}` : "";
-      router.replace(`/admin/login${q}`);
-    }
-  }, [next, router]);
-
-  if (next.startsWith("/admin")) {
-    return null;
-  }
-
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState("admin@icrowed.local");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(
-    params.get("error") === "auth_callback_failed"
-      ? "Authentication failed. Please try again."
-      : null
-  );
+  const [error, setError] = useState<string | null>(null);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
-    const supabase = createClient();
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const res = await fetch("/api/admin/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    });
 
-    if (error) {
-      setError(error.message);
+    const data = (await res.json()) as { error?: string; role?: string };
+
+    if (!res.ok) {
+      setError(data.error ?? "Sign in failed");
       setLoading(false);
       return;
     }
 
-    router.push(next);
+    if (data.role === "operator" && next.startsWith("/admin/admins")) {
+      router.push("/admin");
+    } else {
+      router.push(next);
+    }
     router.refresh();
   }
 
@@ -57,8 +49,13 @@ function LoginForm() {
     <Card className="w-full max-w-sm">
       <CardContent className="space-y-5">
         <div className="text-center">
-          <h1 className="text-xl font-bold">Welcome back</h1>
-          <p className="text-sm text-[var(--muted)] mt-1">Sign in to your iCrowd account</p>
+          <div className="mx-auto w-10 h-10 rounded-lg bg-indigo-600 flex items-center justify-center mb-3">
+            <ShieldCheck className="w-5 h-5 text-white" />
+          </div>
+          <h1 className="text-xl font-bold">Admin sign in</h1>
+          <p className="text-sm text-[var(--muted)] mt-1">
+            Postgres credentials (no Supabase Auth)
+          </p>
         </div>
 
         {error && (
@@ -73,10 +70,9 @@ function LoginForm() {
             <input
               type="email"
               required
-              autoComplete="email"
+              autoComplete="username"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
               className="w-full h-10 px-3 rounded-lg border border-[var(--border)] bg-white text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
             />
           </div>
@@ -104,17 +100,13 @@ function LoginForm() {
           </div>
 
           <Button type="submit" className="w-full" size="lg" disabled={loading}>
-            {loading ? "Signing in…" : "Sign In"}
+            {loading ? "Signing in…" : "Sign in to Admin"}
           </Button>
         </form>
 
         <p className="text-center text-sm text-[var(--muted)]">
-          Don&apos;t have an account?{" "}
-          <Link
-            href={`/register${next !== "/" ? `?next=${next}` : ""}`}
-            className="text-[var(--color-primary)] font-medium hover:underline"
-          >
-            Sign up
+          <Link href="/" className="text-[var(--color-primary)] font-medium hover:underline">
+            Back to store
           </Link>
         </p>
       </CardContent>
@@ -122,17 +114,17 @@ function LoginForm() {
   );
 }
 
-export default function LoginPage() {
+export default function AdminLoginPage() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-[var(--surface)] px-4 py-12">
+    <div className="min-h-screen flex flex-col items-center justify-center bg-slate-50 px-4 py-12">
       <Link href="/" className="flex items-center gap-2 font-bold text-xl mb-8">
-        <div className="w-8 h-8 rounded-lg bg-[var(--color-primary)] flex items-center justify-center">
+        <div className="w-8 h-8 rounded-lg bg-indigo-600 flex items-center justify-center">
           <Smartphone className="w-4 h-4 text-white" />
         </div>
-        iCrowd
+        iCrowd Admin
       </Link>
       <Suspense>
-        <LoginForm />
+        <AdminLoginForm />
       </Suspense>
     </div>
   );
