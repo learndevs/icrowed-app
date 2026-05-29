@@ -19,10 +19,6 @@ ENV_FILE="${APP_DIR}/apps/web/.env"
 [[ -f "${ENV_FILE}" ]] || ENV_FILE="${APP_DIR}/apps/web/.env.local"
 
 SQL_TEMPLATE="${APP_DIR}/scripts/setup-admin-login.sql"
-TMP_SQL="$(mktemp /tmp/icrowd-admin-setup.XXXXXX.sql)"
-
-cleanup() { rm -f "${TMP_SQL}"; }
-trap cleanup EXIT
 
 echo "=== iCrowd admin login setup ==="
 
@@ -46,11 +42,13 @@ EMAIL_SQL="$(sql_escape "${ADMIN_EMAIL}")"
 PASS_SQL="$(sql_escape "${ADMIN_PASSWORD}")"
 NAME_SQL="$(sql_escape "${ADMIN_NAME}")"
 
-sed \
-  -e "s/__ADMIN_EMAIL__/${EMAIL_SQL}/g" \
-  -e "s/__ADMIN_PASSWORD__/${PASS_SQL}/g" \
-  -e "s/__ADMIN_NAME__/${NAME_SQL}/g" \
-  "${SQL_TEMPLATE}" > "${TMP_SQL}"
+render_sql() {
+  sed \
+    -e "s/__ADMIN_EMAIL__/${EMAIL_SQL}/g" \
+    -e "s/__ADMIN_PASSWORD__/${PASS_SQL}/g" \
+    -e "s/__ADMIN_NAME__/${NAME_SQL}/g" \
+    "${SQL_TEMPLATE}"
+}
 
 if [[ -f "${ENV_FILE}" ]]; then
   db_url="$(grep -E '^DATABASE_URL=' "${ENV_FILE}" | head -1 | cut -d= -f2- | tr -d '"' | tr -d "'")"
@@ -76,7 +74,7 @@ fi
 
 echo ""
 echo "==> Recreating auth schema + ${ADMIN_EMAIL} on database: ${PG_DB}"
-"${PSQL[@]}" -d "${PG_DB}" -v ON_ERROR_STOP=1 -f "${TMP_SQL}"
+render_sql | "${PSQL[@]}" -d "${PG_DB}" -v ON_ERROR_STOP=1 -f -
 
 echo ""
 echo "==> Test login query AS app user (${APP_DB_USER})..."
