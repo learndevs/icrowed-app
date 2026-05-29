@@ -68,9 +68,40 @@ CREATE TABLE auth.identities (
 CREATE INDEX users_email_idx ON auth.users (lower(email));
 CREATE UNIQUE INDEX identities_provider_uidx ON auth.identities (provider, provider_id);
 
-\echo '==> Remove stale admin rows in public.profiles (wrong id / duplicate email)...'
-DELETE FROM profiles
-WHERE lower(email) = lower(:'admin_email');
+\echo '==> Remove orders and related data for existing admin profile...'
+DO $cleanup$
+DECLARE
+  v_profile_id uuid;
+  v_order_ids uuid[];
+BEGIN
+  SELECT id INTO v_profile_id
+  FROM profiles
+  WHERE lower(email) = lower(:'admin_email')
+  LIMIT 1;
+
+  IF v_profile_id IS NULL THEN
+    RAISE NOTICE 'No existing profile for % — skip cleanup', :'admin_email';
+    RETURN;
+  END IF;
+
+  SELECT array_agg(id) INTO v_order_ids
+  FROM orders
+  WHERE user_id = v_profile_id;
+
+  IF v_order_ids IS NOT NULL THEN
+    RAISE NOTICE 'Deleting % order(s) for admin profile', cardinality(v_order_ids);
+    -- order_items + order_status_history cascade when orders are deleted
+    DELETE FROM orders WHERE id = ANY (v_order_ids);
+  END IF;
+
+  UPDATE order_status_history SET changed_by = NULL WHERE changed_by = v_profile_id;
+  DELETE FROM reviews WHERE user_id = v_profile_id;
+  DELETE FROM wishlists WHERE user_id = v_profile_id;
+  DELETE FROM addresses WHERE user_id = v_profile_id;
+
+  DELETE FROM profiles WHERE id = v_profile_id;
+  RAISE NOTICE 'Removed profile %', v_profile_id;
+END $cleanup$;
 
 \echo '==> Create admin@icrowed.local...'
 DO $setup$
