@@ -18,16 +18,29 @@ const EXT_BY_TYPE: Record<string, string> = {
 
 const SUPABASE_BUCKET = "product-images";
 
-/** Directory on disk: apps/web/public/uploads/products */
+/** Next.js app root (apps/web), stable regardless of PM2 cwd. */
+export function resolveWebAppRoot(): string {
+  const fromEnv = process.env.ICROWD_WEB_ROOT?.trim();
+  if (fromEnv) return path.resolve(fromEnv);
+
+  const cwd = process.cwd();
+  const candidates = [cwd, path.join(cwd, "apps/web")];
+  for (const base of candidates) {
+    if (
+      existsSync(path.join(base, "package.json")) &&
+      existsSync(path.join(base, "public"))
+    ) {
+      return base;
+    }
+  }
+  return cwd;
+}
+
+/** Directory on disk: {webRoot}/public/uploads/products */
 export function resolveProductImagesUploadRoot(): string {
   const explicit = process.env.PRODUCT_IMAGES_UPLOAD_DIR?.trim();
   if (explicit) return path.resolve(explicit);
-
-  const cwd = process.cwd();
-  if (existsSync(path.join(cwd, "apps/web"))) {
-    return path.join(cwd, "apps/web/public/uploads/products");
-  }
-  return path.join(cwd, "public/uploads/products");
+  return path.join(resolveWebAppRoot(), "public/uploads/products");
 }
 
 /** Same-origin path served from apps/web/public (not tied to NEXT_PUBLIC_APP_URL). */
