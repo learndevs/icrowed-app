@@ -10,6 +10,16 @@ const supabaseHost = (() => {
   }
 })();
 
+const appHost = (() => {
+  const raw = process.env.NEXT_PUBLIC_APP_URL;
+  if (!raw) return undefined;
+  try {
+    return new URL(raw).hostname;
+  } catch {
+    return undefined;
+  }
+})();
+
 const nextConfig: NextConfig = {
   transpilePackages: ["@icrowd/database", "@icrowd/env", "@icrowd/types"],
   images: {
@@ -18,6 +28,20 @@ const nextConfig: NextConfig = {
         protocol: "https",
         hostname: "images.unsplash.com",
       },
+      ...(appHost
+        ? [
+            {
+              protocol: "https" as const,
+              hostname: appHost,
+              pathname: "/uploads/**",
+            },
+            {
+              protocol: "http" as const,
+              hostname: appHost,
+              pathname: "/uploads/**",
+            },
+          ]
+        : []),
       ...(supabaseHost
         ? [
             {

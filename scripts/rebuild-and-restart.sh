@@ -21,6 +21,10 @@ for pkg in database env types; do
   fi
 done
 
+echo "==> Ensuring product image upload directory..."
+mkdir -p "${APP_DIR}/apps/web/public/uploads/products"
+chown -R icrowd:icrowd "${APP_DIR}/apps/web/public/uploads" 2>/dev/null || true
+
 echo "==> Building Next.js app..."
 npm run build --workspace=web
 

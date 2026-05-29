@@ -1,23 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
 import { db } from "@icrowd/database";
 import { productImages } from "@icrowd/database";
 import { eq, and } from "drizzle-orm";
-import { getSupabaseServiceRoleKey } from "@icrowd/env";
 import { requireAdmin } from "@/lib/admin";
-
-const BUCKET = "product-images";
-
-function getSupabaseAdmin() {
-  return createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    getSupabaseServiceRoleKey(),
-  );
-}
+import { deleteProductImageFile } from "@/lib/product-images-storage";
 
 export async function DELETE(
   _req: NextRequest,
-  { params }: { params: Promise<{ id: string; imageId: string }> }
+  { params }: { params: Promise<{ id: string; imageId: string }> },
 ) {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
@@ -34,23 +24,12 @@ export async function DELETE(
       return NextResponse.json({ error: "Image not found" }, { status: 404 });
     }
 
-    // Extract storage path from public URL
-    // URL pattern: .../storage/v1/object/public/{bucket}/{path}
-    const urlParts = image.url.split(`/storage/v1/object/public/${BUCKET}/`);
-    if (urlParts.length === 2) {
-      const supabase = getSupabaseAdmin();
-      const { error } = await supabase.storage.from(BUCKET).remove([urlParts[1]]);
-      if (error) {
-        console.warn("[supabase delete]", error.message);
-        // Non-fatal — still remove DB record
-      }
-    }
+    await deleteProductImageFile(image.url);
 
     await db
       .delete(productImages)
       .where(and(eq(productImages.id, imageId), eq(productImages.productId, id)));
 
-    // If deleted image was primary, promote the next one
     if (image.isPrimary) {
       const [next] = await db
         .select()
@@ -75,14 +54,13 @@ export async function DELETE(
 
 export async function PATCH(
   _req: NextRequest,
-  { params }: { params: Promise<{ id: string; imageId: string }> }
+  { params }: { params: Promise<{ id: string; imageId: string }> },
 ) {
   const auth = await requireAdmin();
   if (auth instanceof NextResponse) return auth;
 
   try {
     const { id, imageId } = await params;
-    // Unset all primary for this product, then set the selected one
     await db
       .update(productImages)
       .set({ isPrimary: false })
