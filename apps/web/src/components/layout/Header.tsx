@@ -55,15 +55,17 @@ export default function Header() {
       <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="relative flex items-center justify-between h-14 sm:h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 type-logo-wordmark text-xl text-[var(--foreground)]">
+          <Link href="/" className="flex items-center gap-2.5 type-logo-wordmark text-xl text-[var(--foreground)] min-w-0">
             <Image
-              src="/icrowd-logo.svg"
-              alt="iCrowd logo"
-              width={28}
-              height={28}
-              className="shrink-0"
+              src="/icrowd-navbar-logo.png"
+              alt=""
+              width={160}
+              height={48}
+              priority
+              unoptimized
+              className="h-8 w-auto max-w-[6.5rem] shrink-0 object-contain object-left sm:h-9 sm:max-w-[7.75rem]"
             />
-            <span>iCrowd</span>
+            <span className="truncate">iCrowd</span>
           </Link>
 
           {/* Desktop nav */}
