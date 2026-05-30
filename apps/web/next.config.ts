@@ -22,6 +22,19 @@ const appHost = (() => {
 
 const nextConfig: NextConfig = {
   transpilePackages: ["@icrowd/database", "@icrowd/env", "@icrowd/types"],
+  async headers() {
+    return [
+      {
+        source: "/home/categories/:path*",
+        headers: [
+          {
+            key: "Cache-Control",
+            value: "public, max-age=0, must-revalidate",
+          },
+        ],
+      },
+    ];
+  },
   images: {
     remotePatterns: [
       {

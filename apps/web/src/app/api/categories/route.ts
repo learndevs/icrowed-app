@@ -1,9 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import {
   getAllCategories,
   createCategory,
 } from "@icrowd/database/queries";
 import { requireAdmin } from "@/lib/admin";
+
+function revalidateCategoryPages() {
+  revalidatePath("/");
+  revalidatePath("/categories");
+}
 
 function slugify(name: string) {
   return name.toLowerCase().replace(/[\s_]+/g, "-").replace(/[^a-z0-9-]/g, "").replace(/^-+|-+$/g, "");
@@ -46,6 +52,7 @@ export async function POST(req: NextRequest) {
       sortOrder: sortOrder ?? 0,
     });
 
+    revalidateCategoryPages();
     return NextResponse.json(category, { status: 201 });
   } catch (err: any) {
     console.error("[POST /api/categories]", err);

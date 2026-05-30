@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { getCategoryById, updateCategory, deleteCategory } from "@icrowd/database/queries";
 import { requireAdmin } from "@/lib/admin";
+
+function revalidateCategoryPages() {
+  revalidatePath("/");
+  revalidatePath("/categories");
+}
 
 export async function GET(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -35,6 +41,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
 
     const category = await updateCategory(id, updateData as any);
     if (!category) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    revalidateCategoryPages();
     return NextResponse.json(category);
   } catch (err: any) {
     console.error("[PUT /api/categories/[id]]", err);
@@ -53,6 +60,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
     const { id } = await params;
     const category = await deleteCategory(id);
     if (!category) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    revalidateCategoryPages();
     return NextResponse.json({ success: true });
   } catch (err) {
     console.error("[DELETE /api/categories/[id]]", err);

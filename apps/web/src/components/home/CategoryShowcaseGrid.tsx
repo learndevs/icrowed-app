@@ -11,10 +11,20 @@ export type CategoryShowcaseItem = {
   name: string;
 };
 
-function showcaseImageSrc(slug: string, imageUrl: string | null | undefined): string {
+function showcaseImageSrc(
+  slug: string,
+  imageUrl: string | null | undefined,
+  updatedAt?: Date | string | null,
+): string {
   const u = imageUrl?.trim();
-  if (u) return u;
-  return `/home/categories/${slug}.png`;
+  const base = u || `/home/categories/${slug}.png`;
+  if (base.startsWith("http")) return base;
+
+  const version = updatedAt ? new Date(updatedAt).getTime() : null;
+  if (!version || Number.isNaN(version)) return base;
+
+  const sep = base.includes("?") ? "&" : "?";
+  return `${base}${sep}v=${version}`;
 }
 
 /** Map DB category row → grid item (paths under `public/` resolve from `image_url`). */
@@ -22,11 +32,12 @@ export function categoryRowToShowcaseItem(cat: {
   slug: string;
   name: string;
   imageUrl: string | null;
+  updatedAt?: Date | string | null;
 }): CategoryShowcaseItem {
   return {
     slug: cat.slug,
     href: `/products?category=${encodeURIComponent(cat.slug)}`,
-    imageSrc: showcaseImageSrc(cat.slug, cat.imageUrl),
+    imageSrc: showcaseImageSrc(cat.slug, cat.imageUrl, cat.updatedAt),
     name: cat.name,
   };
 }
