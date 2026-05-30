@@ -396,7 +396,7 @@ export default function AdminCategoriesPage() {
 
                         {confirmDeleteId === cat.id ? (
                           <div className="flex items-center gap-1.5">
-                            <span className="text-xs font-semibold text-red-500">Delete?</span>
+                            <span className="text-xs font-semibold text-red-500">Delete permanently?</span>
                             <button
                               disabled={deletingId === cat.id}
                               onClick={() => handleDelete(cat.id)}
@@ -415,6 +415,8 @@ export default function AdminCategoriesPage() {
                         ) : (
                           <button
                             onClick={() => setConfirmDeleteId(cat.id)}
+                            title="Permanently delete category"
+                            aria-label="Permanently delete category"
                             className="h-8 w-8 rounded-lg border border-red-100 text-red-400 hover:bg-red-50 hover:border-red-200 hover:text-red-600 transition-colors flex items-center justify-center"
                           >
                             <Trash2 className="w-3.5 h-3.5" />

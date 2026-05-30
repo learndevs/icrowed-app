@@ -1,32 +1,9 @@
-import { eq, and, asc, inArray } from "drizzle-orm";
+import { eq, and, asc } from "drizzle-orm";
 import { db } from "../db";
-import { categories, brands } from "../schema";
-
-/** Top nav / home showcase — must match `CATEGORIES` seed slugs. */
-export const STOREFRONT_CATEGORY_SLUGS = [
-  "phones",
-  "earbuds",
-  "ipads",
-  "macbooks",
-  "charging-adapters",
-  "powerbanks",
-  "wireless-mics",
-  "speakers",
-  "headphones",
-  "gimbals",
-] as const;
-
-export type StorefrontCategorySlug = (typeof STOREFRONT_CATEGORY_SLUGS)[number];
+import { categories, brands, products } from "../schema";
 
 export async function getStorefrontCategories() {
-  const rows = await db
-    .select()
-    .from(categories)
-    .where(and(eq(categories.isActive, true), inArray(categories.slug, [...STOREFRONT_CATEGORY_SLUGS])))
-    .orderBy(asc(categories.sortOrder));
-
-  const order = new Map<string, number>(STOREFRONT_CATEGORY_SLUGS.map((s, i) => [s, i]));
-  return [...rows].sort((a, b) => (order.get(a.slug) ?? 99) - (order.get(b.slug) ?? 99));
+  return getCategories();
 }
 
 export async function getCategories() {
@@ -74,12 +51,26 @@ export async function updateCategory(
 }
 
 export async function deleteCategory(id: string) {
-  const [category] = await db
-    .update(categories)
-    .set({ isActive: false, updatedAt: new Date() })
-    .where(eq(categories.id, id))
-    .returning();
-  return category;
+  return db.transaction(async (tx) => {
+    const [existing] = await tx
+      .select({ id: categories.id })
+      .from(categories)
+      .where(eq(categories.id, id));
+    if (!existing) return null;
+
+    await tx
+      .update(products)
+      .set({ categoryId: null, updatedAt: new Date() })
+      .where(eq(products.categoryId, id));
+
+    await tx
+      .update(categories)
+      .set({ parentId: null, updatedAt: new Date() })
+      .where(eq(categories.parentId, id));
+
+    const [category] = await tx.delete(categories).where(eq(categories.id, id)).returning();
+    return category ?? null;
+  });
 }
 
 // ─── Brands ───────────────────────────────────────────────────────────────────
@@ -128,10 +119,19 @@ export async function updateBrand(
 }
 
 export async function deleteBrand(id: string) {
-  const [brand] = await db
-    .update(brands)
-    .set({ isActive: false })
-    .where(eq(brands.id, id))
-    .returning();
-  return brand;
+  return db.transaction(async (tx) => {
+    const [existing] = await tx
+      .select({ id: brands.id })
+      .from(brands)
+      .where(eq(brands.id, id));
+    if (!existing) return null;
+
+    await tx
+      .update(products)
+      .set({ brandId: null, updatedAt: new Date() })
+      .where(eq(products.brandId, id));
+
+    const [brand] = await tx.delete(brands).where(eq(brands.id, id)).returning();
+    return brand ?? null;
+  });
 }
