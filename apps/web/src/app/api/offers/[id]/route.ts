@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
+import { eq } from "drizzle-orm";
+import { db, offers } from "@icrowd/database";
 import { updateOffer, deleteOffer } from "@icrowd/database/queries";
 import { requireAdmin } from "@/lib/admin";
+import {
+  deleteAllOfferImagesForOffer,
+  deleteOfferImageFile,
+} from "@/lib/offer-images-storage";
 
 function revalidateOfferPages() {
   revalidatePath("/");
@@ -21,10 +27,14 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       return NextResponse.json({ error: "title is required" }, { status: 400 });
     }
 
+    const [existing] = await db.select().from(offers).where(eq(offers.id, id));
+    if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+    const nextImageUrl = imageUrl ?? null;
     const offer = await updateOffer(id, {
       title,
       description: description ?? null,
-      imageUrl: imageUrl ?? null,
+      imageUrl: nextImageUrl,
       linkUrl: linkUrl ?? null,
       badgeText: badgeText ?? null,
       discountPercent: discountPercent ?? null,
@@ -36,6 +46,11 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     });
 
     if (!offer) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+    if (existing.imageUrl && existing.imageUrl !== nextImageUrl) {
+      await deleteOfferImageFile(existing.imageUrl);
+    }
+
     revalidateOfferPages();
     return NextResponse.json(offer);
   } catch (err) {
@@ -52,6 +67,7 @@ export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ 
   try {
     const offer = await deleteOffer(id);
     if (!offer) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    await deleteAllOfferImagesForOffer(id);
     revalidateOfferPages();
     return NextResponse.json({ success: true });
   } catch (err) {

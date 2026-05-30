@@ -3,18 +3,26 @@
  * Store and prefer paths like /uploads/products/{id}/file.png (same-origin).
  */
 
-const LOCAL_UPLOAD_PREFIX = "/uploads/products/";
+const LOCAL_PRODUCT_UPLOAD_PREFIX = "/uploads/products/";
+const LOCAL_OFFER_UPLOAD_PREFIX = "/uploads/offers/";
+
+function extractLocalUploadPathname(pathname: string): string | null {
+  if (pathname.startsWith(LOCAL_PRODUCT_UPLOAD_PREFIX)) return pathname;
+  if (pathname.startsWith(LOCAL_OFFER_UPLOAD_PREFIX)) return pathname;
+  return null;
+}
 
 export function normalizeProductImageUrl(url: string | null | undefined): string {
   if (!url?.trim()) return "";
   const trimmed = url.trim();
 
-  if (trimmed.startsWith(LOCAL_UPLOAD_PREFIX)) return trimmed;
+  const direct = extractLocalUploadPathname(trimmed);
+  if (direct) return direct;
 
   if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
     try {
-      const pathname = new URL(trimmed).pathname;
-      if (pathname.startsWith(LOCAL_UPLOAD_PREFIX)) return pathname;
+      const local = extractLocalUploadPathname(new URL(trimmed).pathname);
+      if (local) return local;
     } catch {
       return trimmed;
     }
@@ -24,5 +32,9 @@ export function normalizeProductImageUrl(url: string | null | undefined): string
 }
 
 export function isLocalProductUploadUrl(url: string): boolean {
-  return normalizeProductImageUrl(url).startsWith(LOCAL_UPLOAD_PREFIX);
+  const normalized = normalizeProductImageUrl(url);
+  return (
+    normalized.startsWith(LOCAL_PRODUCT_UPLOAD_PREFIX) ||
+    normalized.startsWith(LOCAL_OFFER_UPLOAD_PREFIX)
+  );
 }

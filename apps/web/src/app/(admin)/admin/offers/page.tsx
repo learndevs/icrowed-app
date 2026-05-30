@@ -1,10 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import { Card } from "@/components/ui/Card";
-import { Plus, Pencil, Trash2, X } from "lucide-react";
+import { ImagePlus, Loader2, Plus, Pencil, Trash2, X } from "lucide-react";
+import {
+  normalizeProductImageUrl,
+} from "@/lib/product-image-url";
 
 interface Offer {
   id: string;
@@ -72,6 +75,7 @@ function OfferForm({
   saving,
   onCancel,
   submitLabel,
+  offerId,
 }: {
   form: FormState;
   setForm: (f: FormState) => void;
@@ -79,9 +83,36 @@ function OfferForm({
   saving: boolean;
   onCancel: () => void;
   submitLabel: string;
+  offerId?: string | null;
 }) {
   const f = form;
   const s = setForm;
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+
+  async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file || !offerId) return;
+    setUploadingImage(true);
+    setUploadError(null);
+    try {
+      const fd = new FormData();
+      fd.append("file", file);
+      const res = await fetch(`/api/offers/${offerId}/image`, { method: "POST", body: fd });
+      if (!res.ok) throw new Error((await res.json()).error ?? "Upload failed");
+      const data = (await res.json()) as { imageUrl: string };
+      s({ ...f, imageUrl: data.imageUrl });
+    } catch (err: unknown) {
+      setUploadError(err instanceof Error ? err.message : "Upload failed");
+    } finally {
+      setUploadingImage(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  }
+
+  const previewSrc = f.imageUrl ? normalizeProductImageUrl(f.imageUrl) : "";
+
   return (
     <form onSubmit={onSubmit} className="space-y-4">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -105,14 +136,80 @@ function OfferForm({
             onChange={(e) => s({ ...f, description: e.target.value })}
           />
         </div>
-        <div>
-          <label className="text-sm font-medium mb-1 block">Image URL</label>
-          <input
-            className="w-full h-10 px-3 rounded-lg border border-[var(--border)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-            placeholder="https://..."
-            value={f.imageUrl}
-            onChange={(e) => s({ ...f, imageUrl: e.target.value })}
-          />
+        <div className="sm:col-span-2">
+          <label className="text-sm font-medium mb-1 block">Offer Image</label>
+          <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-3 space-y-3">
+            {previewSrc ? (
+              <div className="relative aspect-[16/9] max-w-sm overflow-hidden rounded-lg border border-[var(--border)] bg-white">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={previewSrc}
+                  alt="Offer preview"
+                  className="h-full w-full object-cover"
+                />
+              </div>
+            ) : (
+              <div className="flex max-w-sm aspect-[16/9] flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-[var(--border)] bg-white text-[var(--muted)]">
+                <ImagePlus className="h-8 w-8 opacity-40" />
+                <p className="text-xs">No image yet</p>
+              </div>
+            )}
+
+            {offerId ? (
+              <div className="flex flex-wrap items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  disabled={uploadingImage}
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  {uploadingImage ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <ImagePlus className="w-3.5 h-3.5" />
+                  )}
+                  {uploadingImage ? "Uploading..." : "Upload image"}
+                </Button>
+                {f.imageUrl && (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => s({ ...f, imageUrl: "" })}
+                  >
+                    Remove
+                  </Button>
+                )}
+              </div>
+            ) : (
+              <p className="text-xs text-[var(--muted)]">
+                Save the offer first, then edit it to upload an image file.
+              </p>
+            )}
+
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              className="hidden"
+              onChange={handleImageUpload}
+            />
+
+            <div>
+              <label className="text-xs text-[var(--muted)] mb-1 block">Or paste image URL</label>
+              <input
+                className="w-full h-10 px-3 rounded-lg border border-[var(--border)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                placeholder="https://... or /uploads/offers/..."
+                value={f.imageUrl}
+                onChange={(e) => s({ ...f, imageUrl: e.target.value })}
+              />
+            </div>
+
+            {uploadError && (
+              <p className="text-xs text-red-600">{uploadError}</p>
+            )}
+          </div>
         </div>
         <div>
           <label className="text-sm font-medium mb-1 block">Link URL</label>
@@ -355,6 +452,7 @@ export default function AdminOffersPage() {
                       saving={editSaving}
                       onCancel={() => setEditingId(null)}
                       submitLabel="Update Offer"
+                      offerId={editingId}
                     />
                   </div>
                 ) : (
@@ -362,7 +460,7 @@ export default function AdminOffersPage() {
                     <div className="flex items-start gap-4 min-w-0">
                       {offer.imageUrl && (
                         <img
-                          src={offer.imageUrl}
+                          src={normalizeProductImageUrl(offer.imageUrl)}
                           alt={offer.title}
                           className="w-16 h-12 object-cover rounded-lg shrink-0 border border-[var(--border)]"
                         />

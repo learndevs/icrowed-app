@@ -1,5 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
+import {
+  isLocalProductUploadUrl,
+  normalizeProductImageUrl,
+} from "@/lib/product-image-url";
 
 export type HomeOfferItem = {
   id: string;
@@ -34,12 +38,12 @@ export function HomeOfferCard({ offer }: Readonly<{ offer: HomeOfferItem }>) {
     >
       {offer.imageUrl ? (
         <Image
-          src={offer.imageUrl}
+          src={normalizeProductImageUrl(offer.imageUrl)}
           alt=""
           fill
           className="object-cover transition-transform duration-500 group-hover:scale-[1.03]"
           sizes="(max-width: 1023px) 88vw, 33vw"
-          unoptimized={offer.imageUrl.startsWith("http")}
+          unoptimized={isLocalProductUploadUrl(offer.imageUrl)}
         />
       ) : (
         <div className={`absolute inset-0 bg-gradient-to-br ${gradient}`} aria-hidden />

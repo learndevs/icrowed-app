@@ -3,6 +3,10 @@ import Image from "next/image";
 import { ArrowUpRight, Tag, Clock } from "lucide-react";
 import type { getActiveOffers } from "@icrowd/database/queries";
 import { cn } from "@/lib/utils";
+import {
+  isLocalProductUploadUrl,
+  normalizeProductImageUrl,
+} from "@/lib/product-image-url";
 
 export type StoreOffer = Awaited<ReturnType<typeof getActiveOffers>>[number];
 
@@ -42,11 +46,12 @@ export function StoreOfferCard({
       {offer.imageUrl ? (
         <div className="absolute inset-0">
           <Image
-            src={offer.imageUrl}
+            src={normalizeProductImageUrl(offer.imageUrl)}
             alt={offer.title}
             fill
             className="object-cover group-hover:scale-105 transition-transform duration-500"
             sizes="(max-width:640px) 85vw, (max-width:1024px) 50vw, 33vw"
+            unoptimized={isLocalProductUploadUrl(offer.imageUrl)}
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent" />
         </div>
