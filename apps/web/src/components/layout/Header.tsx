@@ -63,11 +63,11 @@ export default function Header() {
             <Image
               src="/icrowd-navbar-logo.png"
               alt="iCrowd"
-              width={200}
-              height={56}
+              width={220}
+              height={64}
               priority
               unoptimized
-              className="h-8 w-auto object-contain object-left sm:h-9"
+              className="h-9 w-auto max-w-[11rem] object-contain object-left sm:h-10 sm:max-w-[12.5rem]"
             />
           </Link>
 
