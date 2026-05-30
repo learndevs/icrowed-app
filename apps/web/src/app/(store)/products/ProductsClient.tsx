@@ -12,6 +12,7 @@ import {
 } from "@/components/home/TopSellingProductCard";
 import type { BrandFilterOption } from "@/components/products/BrandCatalogSelect";
 import { BrandCatalogSelect } from "@/components/products/BrandCatalogSelect";
+import type { ProductCardData } from "@/components/products/ProductCard";
 
 export type CategoryFilterOption = { slug: string; name: string };
 
