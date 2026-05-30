@@ -65,7 +65,7 @@ export function CategoryShowcaseGrid({ items }: Readonly<{ items: CategoryShowca
               src={cat.imageSrc}
               alt={cat.name}
               fill
-              unoptimized={cat.imageSrc.startsWith("http")}
+              unoptimized
               className="object-contain object-center p-1 sm:p-2 transition-transform duration-300 group-hover:scale-[1.03]"
               sizes="(max-width: 768px) 50vw, (max-width: 1280px) 45vw, 30vw"
             />
