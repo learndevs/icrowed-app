@@ -10,7 +10,8 @@ import {
   TopSellingProductCard,
   type TopSellingProductData,
 } from "@/components/home/TopSellingProductCard";
-import type { ProductCardData } from "@/components/products/ProductCard";
+import type { BrandFilterOption } from "@/components/products/BrandCatalogSelect";
+import { BrandCatalogSelect } from "@/components/products/BrandCatalogSelect";
 
 export type CategoryFilterOption = { slug: string; name: string };
 
@@ -35,7 +36,6 @@ const SORT_OPTIONS = [
   { label: "Price ↑",     value: "price_asc"  },
   { label: "Price ↓",     value: "price_desc" },
   { label: "Top Rated",   value: "rating"     },
-  { label: "Most Popular",value: "popular"    },
 ] as const;
 
 type SortValue = (typeof SORT_OPTIONS)[number]["value"];
@@ -67,6 +67,7 @@ export function ProductsClient({
   initialBrand,
   listTitle,
   brandFilterNames,
+  brandFilterOptions = [],
   categoryFilterOptions = [],
 }: Readonly<{
   products: ProductCardData[];
@@ -76,6 +77,8 @@ export function ProductsClient({
   listTitle?: string;
   /** Active brands from DB — merged into the Brand filter so names always match the catalog */
   brandFilterNames?: readonly string[];
+  /** Brands with logos for the catalog brand dropdown */
+  brandFilterOptions?: readonly BrandFilterOption[];
   /** Active categories from DB for the sidebar filter */
   categoryFilterOptions?: readonly CategoryFilterOption[];
 }>) {
@@ -89,11 +92,24 @@ export function ProductsClient({
     const fromProducts = products
       .map((p) => p.brand)
       .filter((b): b is string => !!b);
-    const fromCatalog = brandFilterNames ?? [];
+    const fromCatalog = brandFilterNames ?? brandFilterOptions.map((b) => b.name);
     return [...new Set([...fromProducts, ...fromCatalog])].sort((a, b) =>
       a.localeCompare(b, "en", { sensitivity: "base" }),
     );
-  }, [products, brandFilterNames]);
+  }, [products, brandFilterNames, brandFilterOptions]);
+
+  const catalogBrands = useMemo(() => {
+    if (brandFilterOptions.length > 0) {
+      return [...brandFilterOptions].sort((a, b) =>
+        a.name.localeCompare(b.name, "en", { sensitivity: "base" }),
+      );
+    }
+    return BRANDS.map((name) => ({
+      name,
+      slug: name.toLowerCase().replace(/\s+/g, "-"),
+      logoUrl: null,
+    }));
+  }, [brandFilterOptions, BRANDS]);
 
   // ── State — initialised from URL on first render ────────────────────────────
   const [sort, setSort] = useState<SortValue>("latest");
@@ -165,7 +181,6 @@ export function ProductsClient({
     if (sort === "price_asc")  r.sort((a, b) => a.price - b.price);
     if (sort === "price_desc") r.sort((a, b) => b.price - a.price);
     if (sort === "rating")     r.sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0));
-    if (sort === "popular")    r.sort((a, b) => (b.reviewCount ?? 0) - (a.reviewCount ?? 0));
     return r;
   }, [products, sort, filters, search, categorySlug, featuredOnly]);
 
@@ -184,6 +199,17 @@ export function ProductsClient({
 
   // ── Helpers ─────────────────────────────────────────────────────────────────
   function resetPage() { setPage(1); }
+
+  const selectedCatalogBrand =
+    filters.brands.length === 1 ? filters.brands[0] : null;
+
+  function setCatalogBrand(brandName: string | null) {
+    setFilters((f) => ({
+      ...f,
+      brands: brandName ? [brandName] : [],
+    }));
+    resetPage();
+  }
 
   function toggleBrand(value: string) {
     setFilters((f) => ({
@@ -528,22 +554,30 @@ export function ProductsClient({
           {/* ── Main content ───────────────────────────────────────────────── */}
           <div className="flex-1 min-w-0">
 
-            {/* Sort bar */}
-            <div className="flex items-center gap-2 mb-5 flex-wrap">
-              <span className="text-xs font-semibold text-gray-400 mr-1">Sort:</span>
-              {SORT_OPTIONS.map((opt) => (
-                <button
-                  key={opt.value}
-                  onClick={() => { setSort(opt.value); resetPage(); }}
-                  className={`px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all duration-150 ${
-                    sort === opt.value
-                      ? "bg-gray-900 text-white shadow-sm"
-                      : "bento-card text-gray-600 hover:text-gray-900"
-                  }`}
-                >
-                  {opt.label}
-                </button>
-              ))}
+            {/* Sort bar + brand filter */}
+            <div className="mb-5 flex flex-col gap-2.5 sm:flex-row sm:flex-wrap sm:items-center">
+              <BrandCatalogSelect
+                brands={catalogBrands}
+                value={selectedCatalogBrand}
+                onChange={setCatalogBrand}
+                className="w-full sm:w-auto sm:shrink-0"
+              />
+              <div className="flex min-w-0 flex-1 items-center gap-2 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                <span className="shrink-0 text-xs font-semibold text-gray-400">Sort:</span>
+                {SORT_OPTIONS.map((opt) => (
+                  <button
+                    key={opt.value}
+                    onClick={() => { setSort(opt.value); resetPage(); }}
+                    className={`shrink-0 px-3.5 py-1.5 rounded-full text-xs font-semibold transition-all duration-150 ${
+                      sort === opt.value
+                        ? "bg-gray-900 text-white shadow-sm"
+                        : "bento-card text-gray-600 hover:text-gray-900"
+                    }`}
+                  >
+                    {opt.label}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Grid or empty state */}

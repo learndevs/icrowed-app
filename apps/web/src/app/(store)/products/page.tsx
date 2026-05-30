@@ -46,6 +46,11 @@ export default async function ProductsPage() {
   ]);
 
   const brandFilterNames = brandRows.map((b) => b.name);
+  const brandFilterOptions = brandRows.map((b) => ({
+    name: b.name,
+    slug: b.slug,
+    logoUrl: b.logoUrl ?? null,
+  }));
   const categoryFilterOptions = categoryRows.map((c) => ({ slug: c.slug, name: c.name }));
   const brandById = new Map(brandRows.map((b) => [b.id, b.name]));
 
@@ -86,6 +91,7 @@ export default async function ProductsPage() {
       <ProductsClient
         products={products}
         brandFilterNames={brandFilterNames}
+        brandFilterOptions={brandFilterOptions}
         categoryFilterOptions={categoryFilterOptions}
       />
     </Suspense>
