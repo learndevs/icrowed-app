@@ -6,6 +6,7 @@ import { Heart, ShoppingCart, Star, Smartphone, Ban } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
 import { isLocalProductUploadUrl, normalizeProductImageUrl } from "@/lib/product-image-url";
+import { ProductWarranty } from "@/components/products/ProductWarranty";
 
 const GRADIENTS = [
   "from-sky-400 to-sky-600",
@@ -41,6 +42,7 @@ export interface ProductCardData {
   categorySlug?: string;
   /** Shown in home Top Selling and `/products?featured=true` */
   isFeatured?: boolean;
+  warranty?: string | null;
 }
 
 export function ProductCard({ product }: Readonly<{ product: ProductCardData }>) {
@@ -175,6 +177,12 @@ export function ProductCard({ product }: Readonly<{ product: ProductCardData }>)
           {product.reviewCount != null && (
             <span className="text-[10px] text-gray-400">({product.reviewCount})</span>
           )}
+        </div>
+      )}
+
+      {product.warranty?.trim() && (
+        <div className="mb-2">
+          <ProductWarranty text={product.warranty} compact />
         </div>
       )}
 

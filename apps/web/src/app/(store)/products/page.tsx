@@ -77,6 +77,7 @@ export default async function ProductsPage() {
       isFeatured: p.isFeatured,
       rating: reviewStats?.rating ?? 0,
       reviewCount: reviewStats?.reviewCount ?? 0,
+      warranty: p.warranty ?? null,
     };
   });
 

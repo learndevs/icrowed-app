@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Star } from "lucide-react";
 import { TopSellingAddToCartButton } from "./TopSellingAddToCartButton";
 import { isLocalProductUploadUrl, normalizeProductImageUrl } from "@/lib/product-image-url";
+import { ProductWarranty } from "@/components/products/ProductWarranty";
 
 export type TopSellingProductData = {
   id: string;
@@ -13,6 +14,7 @@ export type TopSellingProductData = {
   imageUrl?: string;
   stock: number;
   soldCount?: number;
+  warranty?: string | null;
 };
 
 /** Deterministic LKR formatting — avoids SSR/client `toLocaleString` mismatches. */
@@ -95,6 +97,12 @@ export function TopSellingProductCard({
             {formatLkrAmount(product.price)}
           </span>
         </p>
+
+        {product.warranty?.trim() && (
+          <div className="mt-1.5 md:mt-2">
+            <ProductWarranty text={product.warranty} compact />
+          </div>
+        )}
 
         <div className="mt-1.5 flex items-center gap-1 md:mt-2 md:gap-1.5">
           {sold != null && sold > 0 && (

@@ -23,6 +23,7 @@ function toTopSellingProduct(product: ProductCardData): TopSellingProductData {
     comparePrice: product.comparePrice,
     imageUrl: product.imageUrl,
     stock: product.stock,
+    warranty: product.warranty,
   };
 }
 

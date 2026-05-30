@@ -36,6 +36,7 @@ function mapRow(
     imageUrl: primaryImage(imgs ?? undefined),
     stock: p.stock,
     soldCount: specs?.soldCount,
+    warranty: p.warranty ?? null,
   };
 }
 

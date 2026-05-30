@@ -92,6 +92,7 @@ export default async function BrandProductsPage({ params }: Props) {
       categorySlug: row.category?.slug,
       rating: reviewStats?.rating ?? 0,
       reviewCount: reviewStats?.reviewCount ?? 0,
+      warranty: p.warranty ?? null,
     };
   });
 
