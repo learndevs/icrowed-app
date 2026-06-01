@@ -2,9 +2,9 @@
 
 import { useRef, useCallback } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { HomeOfferCard, type HomeOfferItem } from "./HomeOfferCard";
+import { OfferCard, type OfferCardItem } from "@/components/offers/OfferCard";
 
-export function HomeOffersCarousel({ offers }: Readonly<{ offers: HomeOfferItem[] }>) {
+export function HomeOffersCarousel({ offers }: Readonly<{ offers: OfferCardItem[] }>) {
   const trackRef = useRef<HTMLDivElement>(null);
 
   const scroll = useCallback((direction: "prev" | "next") => {
@@ -48,7 +48,7 @@ export function HomeOffersCarousel({ offers }: Readonly<{ offers: HomeOfferItem[
             data-offer-card
             className="w-[min(88vw,420px)] shrink-0 snap-center lg:w-[calc((100%-2.5rem)/3)] lg:snap-start"
           >
-            <HomeOfferCard offer={offer} />
+            <OfferCard offer={offer} />
           </div>
         ))}
       </div>

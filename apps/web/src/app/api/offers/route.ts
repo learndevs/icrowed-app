@@ -29,7 +29,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { title, description, imageUrl, linkUrl, badgeText, discountPercent, isActive, isFeatured, startsAt, endsAt, sortOrder } = body;
+    const { title, description, imageUrl, linkUrl, instagramUrl, badgeText, discountPercent, isActive, isFeatured, startsAt, endsAt, sortOrder } = body;
 
     if (!title) {
       return NextResponse.json({ error: "title is required" }, { status: 400 });
@@ -40,6 +40,7 @@ export async function POST(req: NextRequest) {
       description: description ?? null,
       imageUrl: imageUrl ?? null,
       linkUrl: linkUrl ?? null,
+      instagramUrl: instagramUrl ?? null,
       badgeText: badgeText ?? null,
       discountPercent: discountPercent ?? null,
       isActive: isActive ?? true,

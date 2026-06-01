@@ -16,6 +16,7 @@ export const offers = pgTable("offers", {
   description: text("description"),
   imageUrl: text("image_url"),
   linkUrl: text("link_url"),
+  instagramUrl: text("instagram_url"),
   badgeText: varchar("badge_text", { length: 50 }),
   discountPercent: decimal("discount_percent", { precision: 5, scale: 2 }),
   isActive: boolean("is_active").default(true).notNull(),

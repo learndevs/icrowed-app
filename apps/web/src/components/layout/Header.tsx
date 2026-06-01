@@ -91,15 +91,16 @@ export default function Header() {
 
           {/* Actions */}
           <div className="flex items-center gap-2">
-            {/* Mobile auth link: top bar shows only logo + sign in/account */}
-            <Link
-              href={user ? "/account" : "/login"}
-              aria-label={user ? "My account" : "Sign in"}
-              className="md:hidden h-10 px-3 flex items-center gap-2 rounded-lg text-[var(--muted)] hover:text-[var(--foreground)] transition-colors text-sm font-medium"
-            >
-              <User className="w-5 h-5" />
-              <span>{user ? "Account" : "Sign In"}</span>
-            </Link>
+            {user && (
+              <Link
+                href="/account"
+                aria-label="My account"
+                className="md:hidden h-10 px-3 flex items-center gap-2 rounded-lg text-[var(--muted)] hover:text-[var(--foreground)] transition-colors text-sm font-medium"
+              >
+                <User className="w-5 h-5" />
+                <span>Account</span>
+              </Link>
+            )}
 
             <button
               type="button"
@@ -111,73 +112,62 @@ export default function Header() {
             </button>
 
             {/* User menu */}
-            <div className="relative hidden sm:block">
-              {user ? (
-                <>
-                  <button
-                    onClick={() => setUserMenuOpen((v) => !v)}
-                    className="h-10 px-3 flex items-center gap-2 rounded-lg hover:bg-[var(--surface)] text-[var(--muted)] hover:text-[var(--foreground)] transition-colors text-sm font-medium"
-                    aria-label="Account menu"
-                  >
-                    <div className="w-6 h-6 rounded-full bg-[var(--color-primary)] text-white text-xs font-bold flex items-center justify-center uppercase">
-                      {displayName?.[0] ?? "U"}
-                    </div>
-                    <span className="hidden lg:block max-w-24 truncate">{displayName}</span>
-                  </button>
-
-                  {userMenuOpen && (
-                    <>
-                      <div className="fixed inset-0 z-[80]" onClick={() => setUserMenuOpen(false)} />
-                      <div className="absolute right-0 top-12 z-[90] w-48 bg-white rounded-xl shadow-lg border border-[var(--border)] py-1 overflow-hidden">
-                        <div className="px-3 py-2 border-b border-[var(--border)]">
-                          <p className="text-xs font-semibold truncate">{displayName}</p>
-                          <p className="text-xs text-[var(--muted)] truncate">{user.email}</p>
-                        </div>
-                        <Link
-                          href="/account"
-                          onClick={() => setUserMenuOpen(false)}
-                          className="flex items-center gap-2 px-3 py-2.5 text-sm hover:bg-[var(--surface)] transition-colors"
-                        >
-                          <User className="w-4 h-4" /> My Account
-                        </Link>
-                        <Link
-                          href="/account/orders"
-                          onClick={() => setUserMenuOpen(false)}
-                          className="flex items-center gap-2 px-3 py-2.5 text-sm hover:bg-[var(--surface)] transition-colors"
-                        >
-                          <Package className="w-4 h-4" /> My Orders
-                        </Link>
-                        <Link
-                          href="/wishlist"
-                          onClick={() => setUserMenuOpen(false)}
-                          className="flex items-center gap-2 px-3 py-2.5 text-sm hover:bg-[var(--surface)] transition-colors"
-                        >
-                          <Heart className="w-4 h-4" /> Wishlist
-                          {wishlistCount > 0 && (
-                            <span className="ml-auto text-[10px] font-bold bg-rose-100 text-rose-600 rounded-full px-1.5 py-0.5">{wishlistCount}</span>
-                          )}
-                        </Link>
-                        <button
-                          onClick={handleSignOut}
-                          className="w-full flex items-center gap-2 px-3 py-2.5 text-sm hover:bg-red-50 text-red-600 transition-colors"
-                        >
-                          <LogOut className="w-4 h-4" /> Sign Out
-                        </button>
-                      </div>
-                    </>
-                  )}
-                </>
-              ) : (
-                <Link
-                  href="/login"
-                  aria-label="Sign in"
+            {user && (
+              <div className="relative hidden sm:block">
+                <button
+                  onClick={() => setUserMenuOpen((v) => !v)}
                   className="h-10 px-3 flex items-center gap-2 rounded-lg hover:bg-[var(--surface)] text-[var(--muted)] hover:text-[var(--foreground)] transition-colors text-sm font-medium"
+                  aria-label="Account menu"
                 >
-                  <User className="w-5 h-5" />
-                  <span className="hidden lg:block">Sign In</span>
-                </Link>
-              )}
-            </div>
+                  <div className="w-6 h-6 rounded-full bg-[var(--color-primary)] text-white text-xs font-bold flex items-center justify-center uppercase">
+                    {displayName?.[0] ?? "U"}
+                  </div>
+                  <span className="hidden lg:block max-w-24 truncate">{displayName}</span>
+                </button>
+
+                {userMenuOpen && (
+                  <>
+                    <div className="fixed inset-0 z-[80]" onClick={() => setUserMenuOpen(false)} />
+                    <div className="absolute right-0 top-12 z-[90] w-48 bg-white rounded-xl shadow-lg border border-[var(--border)] py-1 overflow-hidden">
+                      <div className="px-3 py-2 border-b border-[var(--border)]">
+                        <p className="text-xs font-semibold truncate">{displayName}</p>
+                        <p className="text-xs text-[var(--muted)] truncate">{user.email}</p>
+                      </div>
+                      <Link
+                        href="/account"
+                        onClick={() => setUserMenuOpen(false)}
+                        className="flex items-center gap-2 px-3 py-2.5 text-sm hover:bg-[var(--surface)] transition-colors"
+                      >
+                        <User className="w-4 h-4" /> My Account
+                      </Link>
+                      <Link
+                        href="/account/orders"
+                        onClick={() => setUserMenuOpen(false)}
+                        className="flex items-center gap-2 px-3 py-2.5 text-sm hover:bg-[var(--surface)] transition-colors"
+                      >
+                        <Package className="w-4 h-4" /> My Orders
+                      </Link>
+                      <Link
+                        href="/wishlist"
+                        onClick={() => setUserMenuOpen(false)}
+                        className="flex items-center gap-2 px-3 py-2.5 text-sm hover:bg-[var(--surface)] transition-colors"
+                      >
+                        <Heart className="w-4 h-4" /> Wishlist
+                        {wishlistCount > 0 && (
+                          <span className="ml-auto text-[10px] font-bold bg-rose-100 text-rose-600 rounded-full px-1.5 py-0.5">{wishlistCount}</span>
+                        )}
+                      </Link>
+                      <button
+                        onClick={handleSignOut}
+                        className="w-full flex items-center gap-2 px-3 py-2.5 text-sm hover:bg-red-50 text-red-600 transition-colors"
+                      >
+                        <LogOut className="w-4 h-4" /> Sign Out
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
 
             {/* Wishlist */}
             <Link

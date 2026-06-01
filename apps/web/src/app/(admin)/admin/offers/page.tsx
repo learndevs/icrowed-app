@@ -8,6 +8,7 @@ import { ImagePlus, Loader2, Plus, Pencil, Trash2, X } from "lucide-react";
 import {
   normalizeProductImageUrl,
 } from "@/lib/product-image-url";
+import { dateInputToISO, toDateInputValue } from "@/lib/offer-dates";
 
 interface Offer {
   id: string;
@@ -15,6 +16,7 @@ interface Offer {
   description: string | null;
   imageUrl: string | null;
   linkUrl: string | null;
+  instagramUrl: string | null;
   badgeText: string | null;
   discountPercent: string | null;
   isActive: boolean;
@@ -29,6 +31,7 @@ interface FormState {
   description: string;
   imageUrl: string;
   linkUrl: string;
+  instagramUrl: string;
   badgeText: string;
   discountPercent: string;
   isActive: boolean;
@@ -39,18 +42,10 @@ interface FormState {
 }
 
 const EMPTY_FORM: FormState = {
-  title: "", description: "", imageUrl: "", linkUrl: "",
+  title: "", description: "", imageUrl: "", linkUrl: "", instagramUrl: "",
   badgeText: "", discountPercent: "", isActive: true, isFeatured: false,
   startsAt: "", endsAt: "", sortOrder: "0",
 };
-
-/** Format stored ISO timestamp for `<input type="datetime-local">` in browser local time. */
-function toDatetimeLocalValue(iso: string | null): string {
-  if (!iso) return "";
-  const d = new Date(iso);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
 
 function formToBody(f: FormState) {
   return {
@@ -58,12 +53,13 @@ function formToBody(f: FormState) {
     description: f.description || null,
     imageUrl: f.imageUrl || null,
     linkUrl: f.linkUrl || null,
+    instagramUrl: f.instagramUrl || null,
     badgeText: f.badgeText || null,
     discountPercent: f.discountPercent ? Number(f.discountPercent) : null,
     isActive: f.isActive,
     isFeatured: f.isFeatured,
-    startsAt: f.startsAt || null,
-    endsAt: f.endsAt || null,
+    startsAt: dateInputToISO(f.startsAt, false),
+    endsAt: dateInputToISO(f.endsAt, true),
     sortOrder: Number(f.sortOrder),
   };
 }
@@ -212,14 +208,26 @@ function OfferForm({
           </div>
         </div>
         <div>
-          <label className="text-sm font-medium mb-1 block">Link URL</label>
+          <label className="text-sm font-medium mb-1 block">Facebook Link</label>
           <input
             className="w-full h-10 px-3 rounded-lg border border-[var(--border)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-            placeholder="/products?category=..."
+            placeholder="https://facebook.com/..."
             value={f.linkUrl}
             onChange={(e) => s({ ...f, linkUrl: e.target.value })}
           />
         </div>
+        <div>
+          <label className="text-sm font-medium mb-1 block">Instagram Link</label>
+          <input
+            className="w-full h-10 px-3 rounded-lg border border-[var(--border)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+            placeholder="https://instagram.com/..."
+            value={f.instagramUrl}
+            onChange={(e) => s({ ...f, instagramUrl: e.target.value })}
+          />
+        </div>
+        <p className="text-xs text-[var(--muted)] sm:col-span-2">
+          Social links appear as buttons in the offer popup when customers click the image.
+        </p>
         <div>
           <label className="text-sm font-medium mb-1 block">Badge Text</label>
           <input
@@ -243,22 +251,25 @@ function OfferForm({
           />
         </div>
         <div>
-          <label className="text-sm font-medium mb-1 block">Starts At</label>
+          <label className="text-sm font-medium mb-1 block">Start Date</label>
           <input
-            type="datetime-local"
+            type="date"
             className="w-full h-10 px-3 rounded-lg border border-[var(--border)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
             value={f.startsAt}
             onChange={(e) => s({ ...f, startsAt: e.target.value })}
           />
+          <p className="mt-1 text-xs text-[var(--muted)]">Leave empty to start immediately.</p>
         </div>
         <div>
-          <label className="text-sm font-medium mb-1 block">Ends At</label>
+          <label className="text-sm font-medium mb-1 block">End Date</label>
           <input
-            type="datetime-local"
+            type="date"
             className="w-full h-10 px-3 rounded-lg border border-[var(--border)] text-sm focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
             value={f.endsAt}
+            min={f.startsAt || undefined}
             onChange={(e) => s({ ...f, endsAt: e.target.value })}
           />
+          <p className="mt-1 text-xs text-[var(--muted)]">Leave empty for no end date. Offer stays active through this day.</p>
         </div>
         <div>
           <label className="text-sm font-medium mb-1 block">Sort Order</label>
@@ -348,12 +359,13 @@ export default function AdminOffersPage() {
       description: offer.description ?? "",
       imageUrl: offer.imageUrl ?? "",
       linkUrl: offer.linkUrl ?? "",
+      instagramUrl: offer.instagramUrl ?? "",
       badgeText: offer.badgeText ?? "",
       discountPercent: offer.discountPercent ?? "",
       isActive: offer.isActive,
       isFeatured: offer.isFeatured,
-      startsAt: toDatetimeLocalValue(offer.startsAt),
-      endsAt: toDatetimeLocalValue(offer.endsAt),
+      startsAt: toDateInputValue(offer.startsAt),
+      endsAt: toDateInputValue(offer.endsAt),
       sortOrder: String(offer.sortOrder),
     });
   }

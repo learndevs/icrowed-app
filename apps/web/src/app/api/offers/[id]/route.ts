@@ -21,7 +21,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   const { id } = await params;
   try {
     const body = await req.json();
-    const { title, description, imageUrl, linkUrl, badgeText, discountPercent, isActive, isFeatured, startsAt, endsAt, sortOrder } = body;
+    const { title, description, imageUrl, linkUrl, instagramUrl, badgeText, discountPercent, isActive, isFeatured, startsAt, endsAt, sortOrder } = body;
 
     if (!title) {
       return NextResponse.json({ error: "title is required" }, { status: 400 });
@@ -36,6 +36,7 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
       description: description ?? null,
       imageUrl: nextImageUrl,
       linkUrl: linkUrl ?? null,
+      instagramUrl: instagramUrl ?? null,
       badgeText: badgeText ?? null,
       discountPercent: discountPercent ?? null,
       isActive: isActive ?? true,

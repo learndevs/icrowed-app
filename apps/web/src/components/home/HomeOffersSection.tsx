@@ -1,20 +1,21 @@
 import Link from "next/link";
 import { getActiveOffers } from "@icrowd/database/queries";
 import { HomeOffersCarousel } from "./HomeOffersCarousel";
-import type { HomeOfferItem } from "./HomeOfferCard";
+import type { OfferCardItem } from "@/components/offers/OfferCard";
 import { queryStorefront } from "@/lib/storefront-query";
 
 const HOME_OFFERS_LIMIT = 6;
 
 function mapOffer(
   o: Awaited<ReturnType<typeof getActiveOffers>>[number],
-): HomeOfferItem {
+): OfferCardItem {
   return {
     id: o.id,
     title: o.title,
     description: o.description,
     imageUrl: o.imageUrl,
     linkUrl: o.linkUrl,
+    instagramUrl: o.instagramUrl,
   };
 }
 

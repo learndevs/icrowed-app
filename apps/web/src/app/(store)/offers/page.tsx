@@ -2,84 +2,68 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowUpRight, Megaphone } from "lucide-react";
 import { getActiveOffers } from "@icrowd/database/queries";
-import { StoreOfferCard } from "@/components/offers/StoreOfferCard";
+import { OfferCard } from "@/components/offers/OfferCard";
 import { queryStorefront } from "@/lib/storefront-query";
 
 export const metadata: Metadata = { title: "Offers & Deals | iCrowd" };
 
 export const revalidate = 60;
 
-export default async function OffersPage() {
-  const offers = await queryStorefront("offers-page", () => getActiveOffers());
+function mapOffer(o: Awaited<ReturnType<typeof getActiveOffers>>[number]) {
+  return {
+    id: o.id,
+    title: o.title,
+    description: o.description,
+    imageUrl: o.imageUrl,
+    linkUrl: o.linkUrl,
+    instagramUrl: o.instagramUrl,
+  };
+}
 
-  const featured = offers.filter((o) => o.isFeatured);
-  const regular = offers.filter((o) => !o.isFeatured);
+export default async function OffersPage() {
+  const offers = (await queryStorefront("offers-page", () => getActiveOffers())).map(mapOffer);
 
   return (
     <div className="bento-bg min-h-screen">
-      <div className="px-3 sm:px-5 lg:px-8 py-6 max-w-[1400px] mx-auto space-y-6">
-        {/* Header */}
+      <div className="mx-auto max-w-[1400px] space-y-6 px-3 py-6 sm:px-5 lg:px-8">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <div className="w-7 h-7 rounded-lg bg-rose-500 flex items-center justify-center">
-              <Megaphone className="w-3.5 h-3.5 text-white" />
+          <div className="mb-1 flex items-center gap-2">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-rose-500">
+              <Megaphone className="h-3.5 w-3.5 text-white" />
             </div>
-            <span className="text-xs font-bold tracking-widest text-rose-500 uppercase">Limited Time</span>
+            <span className="text-xs font-bold uppercase tracking-widest text-rose-500">Limited Time</span>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-black text-gray-900 leading-tight">
+          <h1 className="text-3xl font-black leading-tight text-gray-900 sm:text-4xl">
             Offers &amp; Deals
           </h1>
-          <p className="text-gray-400 text-sm mt-1">
+          <p className="mt-1 text-sm text-gray-400">
             Exclusive discounts — shop before they&apos;re gone
           </p>
         </div>
 
         {offers.length === 0 ? (
           <div className="bento-card p-12 text-center">
-            <Megaphone className="w-8 h-8 text-gray-300 mx-auto mb-3" />
-            <p className="text-gray-400 text-sm">No active offers right now. Check back soon!</p>
+            <Megaphone className="mx-auto mb-3 h-8 w-8 text-gray-300" />
+            <p className="text-sm text-gray-400">No active offers right now. Check back soon!</p>
           </div>
         ) : (
-          <>
-            {/* Featured offers */}
-            {featured.length > 0 && (
-              <div>
-                <h2 className="text-base font-bold text-gray-900 mb-3">Featured Deals</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {featured.map((offer) => (
-                    <StoreOfferCard key={offer.id} offer={offer} />
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Regular offers */}
-            {regular.length > 0 && (
-              <div>
-                {featured.length > 0 && (
-                  <h2 className="text-base font-bold text-gray-900 mb-3">More Offers</h2>
-                )}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                  {regular.map((offer) => (
-                    <StoreOfferCard key={offer.id} offer={offer} />
-                  ))}
-                </div>
-              </div>
-            )}
-          </>
+          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            {offers.map((offer) => (
+              <OfferCard key={offer.id} offer={offer} />
+            ))}
+          </div>
         )}
 
-        {/* Browse all products CTA */}
-        <div className="bento-card p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="bento-card flex flex-col items-center justify-between gap-4 p-6 sm:flex-row">
           <div>
-            <p className="font-black text-lg text-gray-900">Want more deals?</p>
-            <p className="text-gray-400 text-sm mt-0.5">Browse our full catalog for the best prices</p>
+            <p className="text-lg font-black text-gray-900">Want more deals?</p>
+            <p className="mt-0.5 text-sm text-gray-400">Browse our full catalog for the best prices</p>
           </div>
           <Link
             href="/products"
-            className="shrink-0 inline-flex items-center gap-2 bg-sky-500 hover:bg-sky-600 text-white font-bold px-5 py-2.5 rounded-full text-sm transition-colors"
+            className="inline-flex shrink-0 items-center gap-2 rounded-full bg-sky-500 px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-sky-600"
           >
-            Shop All Products <ArrowUpRight className="w-4 h-4" />
+            Shop All Products <ArrowUpRight className="h-4 w-4" />
           </Link>
         </div>
       </div>
