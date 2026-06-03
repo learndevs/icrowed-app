@@ -7,6 +7,7 @@ import {
   colorSwatchHexByValue,
   formatVariantChoiceLabel,
   normalizeVariantOptions,
+  sortVariantsByPrecedence,
   type VariantOptionKey,
   VARIANT_OPTION_LABELS,
 } from "@icrowd/database/variant-options";
@@ -21,6 +22,7 @@ export interface ProductVariantRow {
   price: number | null;
   sku: string | null;
   options: unknown;
+  sortOrder?: number;
 }
 
 interface Props {
@@ -152,35 +154,40 @@ export function ProductDetailClient({ product }: Readonly<Props>) {
   const { addItem } = useCart();
   const router = useRouter();
 
-  const dims = useMemo(
-    () => activeVariantDimensions(product.variants.map((v) => ({ options: v.options }))),
+  const orderedVariants = useMemo(
+    () => sortVariantsByPrecedence(product.variants),
     [product.variants],
   );
 
+  const dims = useMemo(
+    () => activeVariantDimensions(orderedVariants),
+    [orderedVariants],
+  );
+
   const colorHexByLabel = useMemo(
-    () => (dims.includes("color") ? colorSwatchHexByValue(product.variants) : new Map<string, string>()),
-    [product.variants, dims],
+    () => (dims.includes("color") ? colorSwatchHexByValue(orderedVariants) : new Map<string, string>()),
+    [orderedVariants, dims],
   );
 
   const [selection, setSelection] = useState<Partial<Record<VariantOptionKey, string>>>({});
   const [added, setAdded] = useState(false);
 
   useEffect(() => {
-    if (product.variants.length === 0) {
+    if (orderedVariants.length === 0) {
       setSelection({});
       return;
     }
-    setSelection(pickDefaultSelection(product.variants, dims));
-  }, [product.id, product.variants, dims]);
+    setSelection(pickDefaultSelection(orderedVariants, dims));
+  }, [product.id, orderedVariants, dims]);
 
   const selectedVariant = useMemo(() => {
-    if (product.variants.length === 0) return null;
-    return resolveSelectedVariant(product.variants, selection, dims);
-  }, [product.variants, selection, dims]);
+    if (orderedVariants.length === 0) return null;
+    return resolveSelectedVariant(orderedVariants, selection, dims);
+  }, [orderedVariants, selection, dims]);
 
   const displayPrice = selectedVariant?.price ?? product.price;
   const outOfStock =
-    product.variants.length > 0
+    orderedVariants.length > 0
       ? !selectedVariant || Number(selectedVariant.stock) <= 0
       : Number(product.stock) <= 0;
 
@@ -189,12 +196,12 @@ export function ProductDetailClient({ product }: Readonly<Props>) {
   function setDimension(dim: VariantOptionKey, value: string) {
     setSelection((prev) => {
       const next = { ...prev, [dim]: value };
-      const pool = product.variants.filter((v) => matchesCurrentSelection(v, next, dims));
+      const pool = orderedVariants.filter((v) => matchesCurrentSelection(v, next, dims));
       if (pool.length === 0) {
-        const anchor = product.variants.find(
+        const anchor = orderedVariants.find(
           (v) => normalizeVariantOptions(v.options)[dim] === value && Number(v.stock) > 0,
         );
-        const anchorRow = anchor ?? product.variants.find((v) => normalizeVariantOptions(v.options)[dim] === value);
+        const anchorRow = anchor ?? orderedVariants.find((v) => normalizeVariantOptions(v.options)[dim] === value);
         if (anchorRow) return pickDefaultSelection([anchorRow], dims);
       }
       return next;
@@ -203,7 +210,7 @@ export function ProductDetailClient({ product }: Readonly<Props>) {
 
   function addThenFeedback() {
     if (outOfStock) return;
-    if (product.variants.length > 0 && !selectedVariant) return;
+    if (orderedVariants.length > 0 && !selectedVariant) return;
 
     const choiceLabel = selectedVariant
       ? formatVariantChoiceLabel(selectedVariant.options, selectedVariant.name)
@@ -225,7 +232,7 @@ export function ProductDetailClient({ product }: Readonly<Props>) {
 
   function handleBuyNow() {
     if (outOfStock) return;
-    if (product.variants.length > 0 && !selectedVariant) return;
+    if (orderedVariants.length > 0 && !selectedVariant) return;
 
     const choiceLabel = selectedVariant
       ? formatVariantChoiceLabel(selectedVariant.options, selectedVariant.name)
@@ -255,7 +262,7 @@ export function ProductDetailClient({ product }: Readonly<Props>) {
       {dims.length > 0 && (
         <div className="flex flex-col gap-4">
           {dims.map((dim) => {
-            const values = uniqueValuesForDimension(product.variants, dim, dims, selection);
+            const values = uniqueValuesForDimension(orderedVariants, dim, dims, selection);
             if (values.length === 0) return null;
             const label = VARIANT_OPTION_LABELS[dim];
             return (
@@ -266,7 +273,7 @@ export function ProductDetailClient({ product }: Readonly<Props>) {
                 <div className="flex flex-wrap gap-3">
                   {values.map((val) => {
                     const isSelected = selection[dim] === val;
-                    const anyInStock = product.variants.some(
+                    const anyInStock = orderedVariants.some(
                       (v) =>
                         normalizeVariantOptions(v.options)[dim] === val &&
                         matchesPartial(v, selection, dims, dim) &&
@@ -331,7 +338,7 @@ export function ProductDetailClient({ product }: Readonly<Props>) {
       {selectedVariant &&
         selectedVariant.stock > 0 &&
         selectedVariant.stock <= 5 &&
-        product.variants.length > 0 && (
+        orderedVariants.length > 0 && (
           <p className="text-xs text-amber-600 font-semibold">
             Only {selectedVariant.stock} left for this selection
           </p>

@@ -61,6 +61,8 @@ export const productVariants = pgTable("product_variants", {
   stock: integer("stock").default(0).notNull(),
   options: jsonb("options"),
   isActive: boolean("is_active").default(true).notNull(),
+  /** Admin row order — controls storefront option value and dimension precedence. */
+  sortOrder: integer("sort_order").default(0).notNull(),
 });
 
 // ─── Relations ────────────────────────────────────────────────────────────────

@@ -120,7 +120,9 @@ export async function getProductBySlug(slug: string) {
     where: and(eq(products.slug, slug), eq(products.isActive, true)),
     with: {
       images: true,
-      variants: true,
+      variants: {
+        orderBy: (v, { asc }) => [asc(v.sortOrder), asc(v.name)],
+      },
       category: true,
       brand: true,
     },

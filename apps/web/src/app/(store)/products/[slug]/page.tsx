@@ -104,6 +104,7 @@ const getProductPageData = cache(async (slug: string) => {
         price: v.price ? Number(v.price) : null,
         sku: v.sku ?? null,
         options: v.options ?? null,
+        sortOrder: v.sortOrder ?? 0,
       })),
     initialReviews,
   };

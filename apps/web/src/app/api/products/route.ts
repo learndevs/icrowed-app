@@ -67,15 +67,19 @@ export async function POST(req: NextRequest) {
 
     if (Array.isArray(variantsBody) && variantsBody.length > 0) {
       const normalized = variantsBody.map(
-        (v: {
-          id?: string;
-          name?: string;
-          sku?: string | null;
-          price?: string | number | null;
-          stock?: number;
-          options?: Record<string, unknown> | null;
-          isActive?: boolean;
-        }) => ({
+        (
+          v: {
+            id?: string;
+            name?: string;
+            sku?: string | null;
+            price?: string | number | null;
+            stock?: number;
+            options?: Record<string, unknown> | null;
+            isActive?: boolean;
+            sortOrder?: number;
+          },
+          index: number,
+        ) => ({
           id: v.id,
           name: String(v.name ?? "").trim() || "Configuration",
           sku: v.sku ?? null,
@@ -86,6 +90,7 @@ export async function POST(req: NextRequest) {
           stock: Number(v.stock ?? 0),
           options: v.options ?? null,
           isActive: v.isActive ?? true,
+          sortOrder: v.sortOrder ?? index,
         }),
       );
       await syncProductVariants(product.id, normalized);

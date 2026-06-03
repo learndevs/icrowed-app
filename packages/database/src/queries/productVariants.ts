@@ -10,12 +10,13 @@ export type ProductVariantInput = {
   stock: number;
   options?: Record<string, unknown> | null;
   isActive?: boolean;
+  sortOrder?: number;
 };
 
 export async function listVariantsForProduct(productId: string) {
   return db.query.productVariants.findMany({
     where: eq(productVariants.productId, productId),
-    orderBy: (v, { asc }) => [asc(v.name)],
+    orderBy: (v, { asc }) => [asc(v.sortOrder), asc(v.name)],
   });
 }
 
@@ -36,7 +37,8 @@ export async function syncProductVariants(productId: string, rows: ProductVarian
         );
     }
 
-    for (const r of rows) {
+    for (let i = 0; i < rows.length; i++) {
+      const r = rows[i]!;
       const base = {
         productId,
         name: r.name,
@@ -45,6 +47,7 @@ export async function syncProductVariants(productId: string, rows: ProductVarian
         stock: r.stock,
         options: r.options ?? null,
         isActive: r.isActive ?? true,
+        sortOrder: r.sortOrder ?? i,
       };
       if (r.id) {
         await tx.update(productVariants).set(base).where(eq(productVariants.id, r.id));

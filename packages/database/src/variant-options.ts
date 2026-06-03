@@ -38,18 +38,37 @@ export function normalizeVariantOptions(raw: unknown): Partial<Record<VariantOpt
   return out;
 }
 
-/** Keys that appear on at least one variant with a non-empty value (fixed display order). */
+/** Sort variants by admin row precedence (`sort_order`, then name). */
+export function sortVariantsByPrecedence<T extends { sortOrder?: number | null; name?: string }>(
+  variants: ReadonlyArray<T>,
+): T[] {
+  return [...variants].sort((a, b) => {
+    const ao = a.sortOrder ?? 0;
+    const bo = b.sortOrder ?? 0;
+    if (ao !== bo) return ao - bo;
+    return String(a.name ?? "").localeCompare(String(b.name ?? ""));
+  });
+}
+
+/**
+ * Option dimensions to show on the storefront, in admin row precedence order.
+ * Pass variants sorted by {@link sortVariantsByPrecedence} (or unsorted — this sorts internally).
+ */
 export function activeVariantDimensions(
-  variants: ReadonlyArray<{ options: unknown }>,
+  variants: ReadonlyArray<{ options: unknown; sortOrder?: number | null; name?: string }>,
 ): VariantOptionKey[] {
   const seen = new Set<VariantOptionKey>();
-  for (const v of variants) {
+  const out: VariantOptionKey[] = [];
+  for (const v of sortVariantsByPrecedence(variants)) {
     const n = normalizeVariantOptions(v.options);
     for (const k of VARIANT_OPTION_KEYS) {
-      if (n[k]) seen.add(k);
+      if (n[k] && !seen.has(k)) {
+        seen.add(k);
+        out.push(k);
+      }
     }
   }
-  return VARIANT_OPTION_KEYS.filter((k) => seen.has(k));
+  return out;
 }
 
 /** Human-readable label for cart / line items (no "variant" wording). */

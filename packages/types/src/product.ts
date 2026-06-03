@@ -36,6 +36,7 @@ export interface ProductVariant {
   stock: number;
   options?: Record<string, string> | null;
   isActive: boolean;
+  sortOrder?: number;
 }
 
 export interface ProductWithRelations extends Product {
