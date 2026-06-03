@@ -67,7 +67,7 @@ export default function Header() {
               height={64}
               priority
               unoptimized
-              className="h-9 w-auto max-w-[11rem] object-contain object-left sm:h-10 sm:max-w-[12.5rem]"
+              className="h-10 w-auto max-w-[12.5rem] object-contain object-left sm:h-11 sm:max-w-[14rem]"
             />
           </Link>
 

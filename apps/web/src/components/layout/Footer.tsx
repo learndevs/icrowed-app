@@ -66,23 +66,17 @@ function FooterLogo({ className = "" }: { className?: string }) {
   return (
     <Link
       href="/"
-      className={`inline-flex items-center gap-3 ${className}`}
+      aria-label="iCrowd home"
+      className={`inline-flex shrink-0 items-center ${className}`}
     >
       <Image
-        src="/icrowd-logo.svg"
+        src="/icrowd-navbar-logo.png"
         alt="iCrowd"
-        width={48}
-        height={48}
-        className="h-11 w-11 shrink-0 sm:h-12 sm:w-12"
+        width={220}
+        height={64}
+        unoptimized
+        className="h-12 w-auto max-w-[14rem] object-contain object-left sm:h-14 sm:max-w-[17rem] lg:h-16 lg:max-w-[20rem]"
       />
-      <div className="flex flex-col gap-1">
-        <span className="text-[1.625rem] font-bold leading-none tracking-tight text-black sm:text-[1.75rem]">
-          iCrowd
-        </span>
-        <span className="text-[0.625rem] font-medium uppercase leading-tight tracking-[0.28em] text-black">
-          WWW.ICROWD.COM
-        </span>
-      </div>
     </Link>
   );
 }
