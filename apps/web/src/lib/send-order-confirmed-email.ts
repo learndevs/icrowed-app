@@ -50,7 +50,7 @@ export async function sendOrderConfirmedEmail(orderId: string): Promise<void> {
 
     const pdf = buildInvoicePdfBuffer(order as OrderWithItems, store);
 
-    await sendEmail({
+    const result = await sendEmail({
       to: order.customerEmail,
       subject,
       html,
@@ -61,6 +61,10 @@ export async function sendOrderConfirmedEmail(orderId: string): Promise<void> {
         },
       ],
     });
+
+    if (!result.ok) {
+      console.error("[sendOrderConfirmedEmail] Resend:", result.error);
+    }
   } catch (err) {
     console.error("[sendOrderConfirmedEmail]", orderId, err);
   }

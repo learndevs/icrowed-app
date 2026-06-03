@@ -13,7 +13,16 @@ const serverSchema = z.object({
   STRIPE_SECRET_KEY: z.string().startsWith("sk_"),
   STRIPE_WEBHOOK_SECRET: z.string().startsWith("whsec_"),
   RESEND_API_KEY: z.string().startsWith("re_"),
-  EMAIL_FROM: z.string().email(),
+  /** Plain email or `Name <email@domain.com>` — must be verified in Resend. */
+  EMAIL_FROM: z
+    .string()
+    .min(3)
+    .refine(
+      (s) =>
+        /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s) ||
+        /^.+<[^\s@]+@[^\s@]+\.[^\s@]+>$/.test(s.trim()),
+      "EMAIL_FROM must be an email or Name <email@domain.com>",
+    ),
 });
 
 const clientSchema = z.object({

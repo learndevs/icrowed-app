@@ -94,10 +94,21 @@ export function TemplateEditor({ templateKey, label: _label, variables, defaultC
       const res = await fetch(`/api/admin/email-templates/${templateKey}/test`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ to: testTo, vars: SAMPLE_VARS }),
+        body: JSON.stringify({
+          to: testTo,
+          vars: SAMPLE_VARS,
+          subject: form.subject,
+          bodyHtml: form.bodyHtml,
+        }),
       });
-      if (!res.ok) throw new Error((await res.json())?.error ?? "Failed");
-      setMsg({ type: "success", text: `Test email sent to ${testTo}.` });
+      const data = (await res.json()) as { error?: string; id?: string };
+      if (!res.ok) throw new Error(data.error ?? "Failed to send test email");
+      setMsg({
+        type: "success",
+        text: data.id
+          ? `Test email sent to ${testTo} (id: ${data.id}).`
+          : `Test email sent to ${testTo}.`,
+      });
     } catch (e: unknown) {
       setMsg({ type: "error", text: e instanceof Error ? e.message : "Failed to send test." });
     } finally {
