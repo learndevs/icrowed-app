@@ -57,11 +57,12 @@ export const TEMPLATE_DEFAULTS: Record<TemplateKey, TemplateDefault> = {
 
   /* ── Order Confirmation ─────────────────────────── */
   order_confirmation: {
-    subject: "Order {{orderNumber}} confirmed – thank you!",
-    bodyText: "Hi {{customerName}}, your order {{orderNumber}} has been confirmed. Total: LKR {{total}}. Track at {{appUrl}}",
+    subject: "Order {{orderNumber}} confirmed – invoice attached",
+    bodyText:
+      "Hi {{customerName}}, your order {{orderNumber}} has been confirmed by our team. Total: LKR {{total}}. Your invoice PDF is attached. Track at {{appUrl}}",
     bodyHtml: BASE(`
-      <h1 style="margin:0 0 6px;color:#111827;font-size:22px;font-weight:700;">Thank you for your order! 🎉</h1>
-      <p style="margin:0;color:#6b7280;font-size:15px;">Hi {{customerName}}, we've received your order and it's being reviewed.</p>
+      <h1 style="margin:0 0 6px;color:#111827;font-size:22px;font-weight:700;">Your order is confirmed! ✅</h1>
+      <p style="margin:0;color:#6b7280;font-size:15px;">Hi {{customerName}}, we've confirmed your order and attached your invoice as a PDF.</p>
       ${DIVIDER}
       ${ORDER_BOX("{{orderNumber}}")}
       ${LABEL("Payment Method")}
@@ -69,7 +70,7 @@ export const TEMPLATE_DEFAULTS: Record<TemplateKey, TemplateDefault> = {
       ${LABEL("Order Total")}
       <p style="margin:0;color:#111827;font-size:18px;font-weight:700;">LKR {{total}}</p>
       ${DIVIDER}
-      <p style="margin:0;color:#6b7280;font-size:14px;">You'll receive another email when your order is shipped.</p>
+      <p style="margin:0;color:#6b7280;font-size:14px;">You'll receive another email when your order ships.</p>
       ${BTN("Track Your Order", "{{appUrl}}/orders")}
     `),
   },

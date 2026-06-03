@@ -6,6 +6,7 @@ import { logAudit } from "@/lib/audit";
 import { sendEmail } from "@/lib/email";
 import { orderShippedTemplate } from "@/lib/email-templates/orderShipped";
 import { orderDeliveredTemplate } from "@/lib/email-templates/orderDelivered";
+import { sendOrderConfirmedEmail } from "@/lib/send-order-confirmed-email";
 
 export async function GET(
   _req: NextRequest,
@@ -66,6 +67,14 @@ export async function PATCH(
 
     // Send status-driven emails (non-blocking)
     const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "";
+    if (
+      status === "confirmed" &&
+      before?.status !== "confirmed" &&
+      updated.customerEmail
+    ) {
+      void sendOrderConfirmedEmail(id);
+    }
+
     if (updated.customerEmail) {
       if (status === "shipped") {
         sendEmail({
