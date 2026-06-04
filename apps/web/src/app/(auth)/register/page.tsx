@@ -1,17 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Eye, EyeOff, Smartphone } from "lucide-react";
 import { Suspense } from "react";
-import { notifyAuthChange } from "@/lib/auth-client";
 import { publicLoginError } from "@/lib/auth-errors";
 
 function RegisterForm() {
-  const router = useRouter();
   const params = useSearchParams();
   const next = params.get("next") ?? "/";
 
@@ -22,6 +20,25 @@ function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [pendingEmail, setPendingEmail] = useState<string | null>(null);
+  const [resendLoading, setResendLoading] = useState(false);
+
+  async function handleResend() {
+    if (!pendingEmail) return;
+    setResendLoading(true);
+    try {
+      const res = await fetch("/api/auth/resend-verification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: pendingEmail }),
+      });
+      const data = (await res.json()) as { error?: string; message?: string };
+      if (!res.ok) setError(data.error ?? "Could not resend email.");
+      else setError(null);
+    } finally {
+      setResendLoading(false);
+    }
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -37,10 +54,13 @@ function RegisterForm() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password, fullName, phone: phone || undefined }),
-      credentials: "include",
     });
 
-    const data = (await res.json()) as { error?: string };
+    const data = (await res.json()) as {
+      error?: string;
+      needsVerification?: boolean;
+      email?: string;
+    };
 
     if (!res.ok) {
       setError(publicLoginError(res.status, data.error));
@@ -48,9 +68,40 @@ function RegisterForm() {
       return;
     }
 
-    notifyAuthChange();
-    router.push(next);
-    router.refresh();
+    setPendingEmail(data.email ?? email);
+    setLoading(false);
+  }
+
+  if (pendingEmail) {
+    return (
+      <Card className="w-full max-w-sm">
+        <CardContent className="space-y-5 text-center">
+          <div className="w-14 h-14 rounded-full bg-green-50 flex items-center justify-center mx-auto">
+            <span className="text-2xl">✉️</span>
+          </div>
+          <h2 className="text-lg font-bold">Check your email</h2>
+          <p className="text-sm text-[var(--muted)]">
+            We sent a verification link to <strong>{pendingEmail}</strong>. Open it to
+            activate your account, then sign in.
+          </p>
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full"
+            disabled={resendLoading}
+            onClick={handleResend}
+          >
+            {resendLoading ? "Sending…" : "Resend verification email"}
+          </Button>
+          <Link
+            href={`/login${next !== "/" ? `?next=${encodeURIComponent(next)}` : ""}`}
+            className="block"
+          >
+            <Button className="w-full">Go to Sign In</Button>
+          </Link>
+        </CardContent>
+      </Card>
+    );
   }
 
   return (

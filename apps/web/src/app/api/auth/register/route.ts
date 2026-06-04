@@ -1,10 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import {
-  CUSTOMER_SESSION_COOKIE,
-  createCustomerSessionToken,
-  customerSessionCookieOptions,
-} from "@/lib/customer-session";
 import { registerCustomer } from "@/lib/customer-auth";
+import { sendVerificationEmail } from "@/lib/auth-emails";
 import { publicLoginError } from "@/lib/auth-errors";
 
 export async function POST(req: NextRequest) {
@@ -37,15 +33,30 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const token = await createCustomerSessionToken({
-      sub: result.userId,
+    const sent = await sendVerificationEmail({
+      userId: result.userId,
       email: result.email,
-      role: "customer",
+      fullName: result.fullName,
     });
 
-    const res = NextResponse.json({ ok: true });
-    res.cookies.set(CUSTOMER_SESSION_COOKIE, token, customerSessionCookieOptions());
-    return res;
+    if (!sent.ok) {
+      console.error("[POST /api/auth/register] verification email:", sent.error);
+      return NextResponse.json(
+        {
+          error:
+            "Account created but we could not send the verification email. Use resend on the login page.",
+          code: "EMAIL_SEND_FAILED",
+        },
+        { status: 503 },
+      );
+    }
+
+    return NextResponse.json({
+      ok: true,
+      needsVerification: true,
+      email: result.email,
+      resent: result.alreadyPending === true,
+    });
   } catch (err) {
     console.error("[POST /api/auth/register]", err);
     return NextResponse.json(

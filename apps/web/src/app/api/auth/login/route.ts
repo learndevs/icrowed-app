@@ -4,7 +4,7 @@ import {
   createCustomerSessionToken,
   customerSessionCookieOptions,
 } from "@/lib/customer-session";
-import { verifyCustomerCredentials } from "@/lib/customer-auth";
+import { authenticateCustomer } from "@/lib/customer-auth";
 import { publicLoginError } from "@/lib/auth-errors";
 
 export async function POST(req: NextRequest) {
@@ -21,14 +21,25 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const customer = await verifyCustomerCredentials(email.trim(), password);
-    if (!customer) {
+    const auth = await authenticateCustomer(email.trim(), password);
+    if (!auth) {
       return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
     }
 
+    if (auth.status === "unverified") {
+      return NextResponse.json(
+        {
+          error: "Please verify your email before signing in.",
+          code: "EMAIL_NOT_VERIFIED",
+          email: auth.email,
+        },
+        { status: 403 },
+      );
+    }
+
     const token = await createCustomerSessionToken({
-      sub: customer.userId,
-      email: customer.email,
+      sub: auth.userId,
+      email: auth.email,
       role: "customer",
     });
 

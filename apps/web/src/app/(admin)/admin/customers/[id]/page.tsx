@@ -7,6 +7,7 @@ import { formatPrice, formatDate } from "@/lib/utils";
 import { db, profiles, orders, addresses, listAuditLogs } from "@icrowd/database";
 import { eq, sql, desc } from "drizzle-orm";
 import { CustomerActions } from "./CustomerActions";
+import { getStaffFromSession } from "@/lib/admin-auth";
 
 export const dynamic = "force-dynamic";
 
@@ -26,6 +27,7 @@ export default async function CustomerDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
+  const staff = await getStaffFromSession();
   const profile = await db.query.profiles.findFirst({
     where: eq(profiles.id, id),
     with: { addresses: true },
@@ -261,8 +263,10 @@ export default async function CustomerDetailPage({
 
           <CustomerActions
             userId={profile.id}
+            email={profile.email}
             currentRole={profile.role}
             isActive={profile.isActive}
+            currentAdminId={staff?.userId ?? ""}
           />
         </div>
       </div>

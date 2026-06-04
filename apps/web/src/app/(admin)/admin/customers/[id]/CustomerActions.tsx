@@ -8,11 +8,19 @@ import { Card, CardContent } from "@/components/ui/Card";
 
 interface Props {
   userId: string;
+  email: string;
   currentRole: "customer" | "operator" | "admin";
   isActive: boolean;
+  currentAdminId: string;
 }
 
-export function CustomerActions({ userId, currentRole, isActive }: Props) {
+export function CustomerActions({
+  userId,
+  email,
+  currentRole,
+  isActive,
+  currentAdminId,
+}: Props) {
   const router = useRouter();
   const [role, setRole] = useState(currentRole);
   const [busy, setBusy] = useState(false);
@@ -32,6 +40,43 @@ export function CustomerActions({ userId, currentRole, isActive }: Props) {
     } catch (e: unknown) {
       setErr(e instanceof Error ? e.message : "Failed");
     } finally {
+      setBusy(false);
+    }
+  }
+
+  async function deleteUser() {
+    if (currentRole === "admin") {
+      setErr("Admin accounts cannot be deleted here.");
+      return;
+    }
+    if (userId === currentAdminId) {
+      setErr("You cannot delete your own account.");
+      return;
+    }
+    const typed = window.prompt(
+      `Type "${email}" to permanently delete this account.`,
+    );
+    if (typed !== email) return;
+    if (
+      !window.confirm(
+        "This permanently deletes the login and profile. Orders stay in the system but are unlinked. Continue?",
+      )
+    ) {
+      return;
+    }
+
+    setBusy(true);
+    setErr(null);
+    try {
+      const res = await fetch(`/api/admin/customers/${userId}`, {
+        method: "DELETE",
+      });
+      const data = (await res.json()) as { error?: string };
+      if (!res.ok) throw new Error(data.error ?? "Failed to delete");
+      router.push("/admin/customers");
+      router.refresh();
+    } catch (e: unknown) {
+      setErr(e instanceof Error ? e.message : "Failed to delete");
       setBusy(false);
     }
   }
@@ -95,6 +140,22 @@ export function CustomerActions({ userId, currentRole, isActive }: Props) {
             Deactivated accounts cannot place new orders. Their existing data is preserved.
           </p>
         </div>
+        {currentRole !== "admin" && userId !== currentAdminId && (
+          <div className="pt-2 border-t border-[var(--border)]">
+            <Button
+              variant="destructive"
+              onClick={deleteUser}
+              loading={busy}
+              className="w-full"
+            >
+              Delete account permanently
+            </Button>
+            <p className="text-xs text-[var(--muted)] mt-2">
+              Removes login credentials and profile. Order history is kept without a linked
+              customer.
+            </p>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

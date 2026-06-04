@@ -15,13 +15,20 @@ export type VerifiedCustomer = {
   phone: string | null;
 };
 
-export async function verifyCustomerCredentials(
+export type CustomerAuthResult =
+  | { status: "ok"; userId: string; email: string }
+  | { status: "unverified"; userId: string; email: string };
+
+export async function authenticateCustomer(
   email: string,
   password: string,
-): Promise<{ userId: string; email: string } | null> {
+): Promise<CustomerAuthResult | null> {
   try {
     const result = await db.execute(sql`
-      SELECT u.id AS id, p.email AS email
+      SELECT
+        u.id AS id,
+        p.email AS email,
+        (u.email_confirmed_at IS NOT NULL) AS confirmed
       FROM auth.users u
       INNER JOIN profiles p ON p.id = u.id
       WHERE lower(u.email) = lower(${email})
@@ -32,11 +39,132 @@ export async function verifyCustomerCredentials(
       LIMIT 1
     `);
 
-    const row = result.rows[0] as { id: string; email: string } | undefined;
+    const row = result.rows[0] as
+      | { id: string; email: string; confirmed: boolean }
+      | undefined;
     if (!row) return null;
-    return { userId: row.id, email: row.email };
+    if (!row.confirmed) {
+      return { status: "unverified", userId: row.id, email: row.email };
+    }
+    return { status: "ok", userId: row.id, email: row.email };
   } catch (err) {
-    console.error("[verifyCustomerCredentials]", err);
+    console.error("[authenticateCustomer]", err);
+    return null;
+  }
+}
+
+/** @deprecated Use authenticateCustomer */
+export async function verifyCustomerCredentials(
+  email: string,
+  password: string,
+): Promise<{ userId: string; email: string } | null> {
+  const auth = await authenticateCustomer(email, password);
+  if (!auth || auth.status !== "ok") return null;
+  return { userId: auth.userId, email: auth.email };
+}
+
+export async function confirmCustomerEmail(
+  userId: string,
+  email: string,
+): Promise<boolean> {
+  try {
+    const result = await db.execute(sql`
+      UPDATE auth.users u
+      SET email_confirmed_at = now(), updated_at = now()
+      FROM profiles p
+      WHERE u.id = p.id
+        AND u.id = ${userId}::uuid
+        AND lower(u.email) = lower(${email})
+        AND p.role::text = 'customer'
+        AND u.email_confirmed_at IS NULL
+      RETURNING u.id
+    `);
+    if ((result.rowCount ?? 0) === 0) return false;
+
+    await db.execute(sql`
+      UPDATE auth.identities
+      SET
+        identity_data = jsonb_set(
+          identity_data,
+          '{email_verified}',
+          'true'::jsonb,
+          true
+        ),
+        updated_at = now()
+      WHERE user_id = ${userId}::uuid
+        AND provider = 'email'
+    `);
+    return true;
+  } catch (err) {
+    console.error("[confirmCustomerEmail]", err);
+    return false;
+  }
+}
+
+export async function updateCustomerPassword(
+  userId: string,
+  email: string,
+  newPassword: string,
+): Promise<boolean> {
+  if (newPassword.length < 8) return false;
+  try {
+    const result = await db.execute(sql`
+      UPDATE auth.users u
+      SET
+        encrypted_password = crypt(${newPassword}, gen_salt('bf')),
+        updated_at = now()
+      FROM profiles p
+      WHERE u.id = p.id
+        AND u.id = ${userId}::uuid
+        AND lower(u.email) = lower(${email})
+        AND p.role::text = 'customer'
+        AND p.is_active = true
+      RETURNING u.id
+    `);
+    return (result.rowCount ?? 0) > 0;
+  } catch (err) {
+    console.error("[updateCustomerPassword]", err);
+    return false;
+  }
+}
+
+export async function getCustomerForEmailActions(email: string): Promise<{
+  userId: string;
+  email: string;
+  fullName: string | null;
+  emailConfirmed: boolean;
+} | null> {
+  try {
+    const result = await db.execute(sql`
+      SELECT
+        u.id AS id,
+        p.email AS email,
+        p.full_name AS full_name,
+        (u.email_confirmed_at IS NOT NULL) AS confirmed
+      FROM auth.users u
+      INNER JOIN profiles p ON p.id = u.id
+      WHERE lower(u.email) = lower(${email})
+        AND p.role::text = 'customer'
+        AND p.is_active = true
+      LIMIT 1
+    `);
+    const row = result.rows[0] as
+      | {
+          id: string;
+          email: string;
+          full_name: string | null;
+          confirmed: boolean;
+        }
+      | undefined;
+    if (!row) return null;
+    return {
+      userId: row.id,
+      email: row.email,
+      fullName: row.full_name,
+      emailConfirmed: row.confirmed,
+    };
+  } catch (err) {
+    console.error("[getCustomerForEmailActions]", err);
     return null;
   }
 }
@@ -46,7 +174,15 @@ export async function registerCustomer(input: {
   password: string;
   fullName?: string;
   phone?: string;
-}): Promise<{ userId: string; email: string } | { error: string; status: number }> {
+}): Promise<
+  | {
+      userId: string;
+      email: string;
+      fullName: string | null;
+      alreadyPending?: boolean;
+    }
+  | { error: string; status: number }
+> {
   const email = input.email.trim();
   const fullName = input.fullName?.trim() || null;
   const phone = input.phone?.trim() || null;
@@ -66,6 +202,15 @@ export async function registerCustomer(input: {
     const existingRow = existing.rows[0] as { role: string | null } | undefined;
     if (existingRow) {
       if (existingRow.role === "customer") {
+        const pending = await getCustomerForEmailActions(email);
+        if (pending && !pending.emailConfirmed) {
+          return {
+            userId: pending.userId,
+            email: pending.email,
+            fullName: pending.fullName,
+            alreadyPending: true,
+          };
+        }
         return { error: "An account with this email already exists.", status: 409 };
       }
       if (existingRow.role === "admin" || existingRow.role === "operator") {
@@ -108,7 +253,8 @@ export async function registerCustomer(input: {
           'authenticated',
           ${email},
           crypt(${input.password}, gen_salt('bf')),
-          now(), now(), now(),
+          NULL,
+          now(), now(),
           '{"provider":"email","providers":["email"]}'::jsonb,
           ${rawUserMetaData}::jsonb,
           false, false,
@@ -123,7 +269,7 @@ export async function registerCustomer(input: {
       const identityData = JSON.stringify({
         sub: id,
         email,
-        email_verified: true,
+        email_verified: false,
         phone_verified: false,
       });
 
@@ -154,7 +300,7 @@ export async function registerCustomer(input: {
       return id;
     });
 
-    return { userId, email };
+    return { userId, email, fullName };
   } catch (err) {
     console.error("[registerCustomer]", err);
     return { error: "Could not create account.", status: 500 };
@@ -183,6 +329,15 @@ export async function resolveCustomerSession(
 
   if (!profile?.isActive) return null;
   if (profile.role !== "customer") return null;
+
+  const confirmed = await db.execute(sql`
+    SELECT (email_confirmed_at IS NOT NULL) AS confirmed
+    FROM auth.users
+    WHERE id = ${session.sub}::uuid
+    LIMIT 1
+  `);
+  const confirmedRow = confirmed.rows[0] as { confirmed: boolean } | undefined;
+  if (!confirmedRow?.confirmed) return null;
 
   return {
     userId: session.sub,
