@@ -6,10 +6,14 @@ import { usePathname, useRouter } from "next/navigation";
 import { Heart, ShoppingCart, Search, User, LogOut, Package } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
-import { useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { useCallback, useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
-import type { User as SupabaseUser } from "@supabase/supabase-js";
+import {
+  AUTH_CHANGE_EVENT,
+  customerSignOut,
+  fetchCustomerUser,
+  type CustomerUser,
+} from "@/lib/auth-client";
 import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
 import { ProductSearchSheet } from "@/components/layout/ProductSearchSheet";
 
@@ -24,28 +28,31 @@ export default function Header() {
   const { count: wishlistCount } = useWishlist();
   const pathname = usePathname();
   const router = useRouter();
-  const [user, setUser] = useState<SupabaseUser | null>(null);
+  const [user, setUser] = useState<CustomerUser | null>(null);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
 
-  useEffect(() => {
-    const supabase = createClient();
-    supabase.auth.getUser().then(({ data }) => setUser(data.user));
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
-      setUser(session?.user ?? null);
-    });
-    return () => subscription.unsubscribe();
+  const loadUser = useCallback(() => {
+    fetchCustomerUser().then(setUser);
   }, []);
 
+  useEffect(() => {
+    loadUser();
+    const onAuthChange = () => loadUser();
+    window.addEventListener(AUTH_CHANGE_EVENT, onAuthChange);
+    return () => window.removeEventListener(AUTH_CHANGE_EVENT, onAuthChange);
+  }, [loadUser]);
+
   async function handleSignOut() {
-    const supabase = createClient();
-    await supabase.auth.signOut();
+    await customerSignOut();
+    setUser(null);
     setUserMenuOpen(false);
     router.push("/");
     router.refresh();
   }
 
-  const displayName = (user?.user_metadata?.full_name as string | undefined)?.split(" ")[0] ?? user?.email?.split("@")[0];
+  const displayName =
+    user?.fullName?.split(" ")[0] ?? user?.email?.split("@")[0];
 
   return (
     <>
@@ -91,7 +98,7 @@ export default function Header() {
 
           {/* Actions */}
           <div className="flex items-center gap-2">
-            {user && (
+            {user ? (
               <Link
                 href="/account"
                 aria-label="My account"
@@ -99,6 +106,15 @@ export default function Header() {
               >
                 <User className="w-5 h-5" />
                 <span>Account</span>
+              </Link>
+            ) : (
+              <Link
+                href={`/login${pathname !== "/" ? `?next=${encodeURIComponent(pathname)}` : ""}`}
+                aria-label="Sign in"
+                className="sm:hidden h-10 px-3 flex items-center gap-2 rounded-lg text-[var(--muted)] hover:text-[var(--foreground)] transition-colors text-sm font-medium"
+              >
+                <User className="w-5 h-5" />
+                <span>Sign in</span>
               </Link>
             )}
 
@@ -110,6 +126,23 @@ export default function Header() {
             >
               <Search className="w-5 h-5" />
             </button>
+
+            {!user && (
+              <div className="hidden sm:flex items-center gap-1">
+                <Link
+                  href={`/login${pathname !== "/" ? `?next=${encodeURIComponent(pathname)}` : ""}`}
+                  className="h-10 px-3 flex items-center rounded-lg text-sm font-medium text-[var(--muted)] hover:text-[var(--foreground)] hover:bg-[var(--surface)] transition-colors"
+                >
+                  Sign in
+                </Link>
+                <Link
+                  href={`/register${pathname !== "/" ? `?next=${encodeURIComponent(pathname)}` : ""}`}
+                  className="h-10 px-3 flex items-center rounded-lg text-sm font-medium bg-[var(--color-primary)] text-white hover:opacity-90 transition-opacity"
+                >
+                  Sign up
+                </Link>
+              </div>
+            )}
 
             {/* User menu */}
             {user && (

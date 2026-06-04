@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/context/CartContext";
-import { createClient } from "@/lib/supabase/client";
+import { fetchCustomerUser } from "@/lib/auth-client";
 import { formatPrice } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { BankDetailsCard } from "@/components/checkout/BankDetailsCard";
@@ -104,9 +104,8 @@ export default function CheckoutPage() {
   const [customerEmail, setCustomerEmail] = useState("");
 
   useEffect(() => {
-    createClient()
-      .auth.getUser()
-      .then(({ data: { user } }) => {
+    fetchCustomerUser()
+      .then((user) => {
         if (user?.email) setCustomerEmail(user.email);
       })
       .catch(() => {});
@@ -212,10 +211,7 @@ export default function CheckoutPage() {
     setError(null);
 
     try {
-      const supabase = createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      const user = await fetchCustomerUser();
 
       const orderRes = await fetch("/api/orders", {
         method: "POST",

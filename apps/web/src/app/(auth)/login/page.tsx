@@ -3,11 +3,12 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Eye, EyeOff, Smartphone } from "lucide-react";
 import { Suspense } from "react";
+import { notifyAuthChange } from "@/lib/auth-client";
+import { publicLoginError } from "@/lib/auth-errors";
 
 function LoginForm() {
   const router = useRouter();
@@ -31,8 +32,8 @@ function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(
     params.get("error") === "auth_callback_failed"
-      ? "Authentication failed. Please try again."
-      : null
+      ? "Sign in with your email and password."
+      : null,
   );
 
   async function handleSubmit(e: React.FormEvent) {
@@ -40,15 +41,22 @@ function LoginForm() {
     setLoading(true);
     setError(null);
 
-    const supabase = createClient();
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const res = await fetch("/api/auth/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+      credentials: "include",
+    });
 
-    if (error) {
-      setError(error.message);
+    const data = (await res.json()) as { error?: string };
+
+    if (!res.ok) {
+      setError(publicLoginError(res.status, data.error));
       setLoading(false);
       return;
     }
 
+    notifyAuthChange();
     router.push(next);
     router.refresh();
   }
@@ -111,7 +119,7 @@ function LoginForm() {
         <p className="text-center text-sm text-[var(--muted)]">
           Don&apos;t have an account?{" "}
           <Link
-            href={`/register${next !== "/" ? `?next=${next}` : ""}`}
+            href={`/register${next !== "/" ? `?next=${encodeURIComponent(next)}` : ""}`}
             className="text-[var(--color-primary)] font-medium hover:underline"
           >
             Sign up

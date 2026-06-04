@@ -1,24 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
 import { db, addresses } from "@icrowd/database";
 import { eq, and } from "drizzle-orm";
+import { requireCustomer } from "@/lib/require-customer";
 
 export async function POST(
   _req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const auth = await requireCustomer();
+  if (auth instanceof NextResponse) return auth;
 
   const { id } = await params;
 
-  // Unset all defaults for this user, then set the chosen one
-  await db.update(addresses).set({ isDefault: false }).where(eq(addresses.userId, user.id));
+  await db.update(addresses).set({ isDefault: false }).where(eq(addresses.userId, auth.userId));
 
-  const [updated] = await db.update(addresses)
+  const [updated] = await db
+    .update(addresses)
     .set({ isDefault: true })
-    .where(and(eq(addresses.id, id), eq(addresses.userId, user.id)))
+    .where(and(eq(addresses.id, id), eq(addresses.userId, auth.userId)))
     .returning();
 
   if (!updated) return NextResponse.json({ error: "Not found" }, { status: 404 });

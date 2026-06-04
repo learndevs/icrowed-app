@@ -3,11 +3,12 @@
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Eye, EyeOff, Smartphone } from "lucide-react";
 import { Suspense } from "react";
+import { notifyAuthChange } from "@/lib/auth-client";
+import { publicLoginError } from "@/lib/auth-errors";
 
 function RegisterForm() {
   const router = useRouter();
@@ -21,7 +22,6 @@ function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -33,43 +33,24 @@ function RegisterForm() {
     setLoading(true);
     setError(null);
 
-    const supabase = createClient();
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { full_name: fullName, phone },
-        emailRedirectTo: `${window.location.origin}/api/auth/callback?next=${next}`,
-      },
+    const res = await fetch("/api/auth/register", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password, fullName, phone: phone || undefined }),
+      credentials: "include",
     });
 
-    if (error) {
-      setError(error.message);
+    const data = (await res.json()) as { error?: string };
+
+    if (!res.ok) {
+      setError(publicLoginError(res.status, data.error));
       setLoading(false);
       return;
     }
 
-    setSuccess(true);
-    setLoading(false);
-  }
-
-  if (success) {
-    return (
-      <Card className="w-full max-w-sm">
-        <CardContent className="space-y-4 text-center">
-          <div className="w-14 h-14 rounded-full bg-green-50 flex items-center justify-center mx-auto">
-            <span className="text-2xl">✉️</span>
-          </div>
-          <h2 className="text-lg font-bold">Check your email</h2>
-          <p className="text-sm text-[var(--muted)]">
-            We sent a confirmation link to <strong>{email}</strong>. Click it to activate your account.
-          </p>
-          <Link href="/login" className="block">
-            <Button variant="outline" className="w-full">Back to Login</Button>
-          </Link>
-        </CardContent>
-      </Card>
-    );
+    notifyAuthChange();
+    router.push(next);
+    router.refresh();
   }
 
   return (
@@ -155,7 +136,7 @@ function RegisterForm() {
         <p className="text-center text-sm text-[var(--muted)]">
           Already have an account?{" "}
           <Link
-            href={`/login${next !== "/" ? `?next=${next}` : ""}`}
+            href={`/login${next !== "/" ? `?next=${encodeURIComponent(next)}` : ""}`}
             className="text-[var(--color-primary)] font-medium hover:underline"
           >
             Sign in

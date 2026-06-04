@@ -1,6 +1,8 @@
 import { ReactNode } from "react";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { ClipboardList, Truck, LayoutDashboard, Smartphone } from "lucide-react";
+import { getStaffFromSession } from "@/lib/admin-auth";
 
 const NAV = [
   { href: "/operator", label: "Dashboard", icon: LayoutDashboard },
@@ -8,7 +10,13 @@ const NAV = [
   { href: "/operator/track", label: "Tracking", icon: Truck },
 ];
 
-export default function OperatorLayout({ children }: { children: ReactNode }) {
+export default async function OperatorLayout({ children }: { children: ReactNode }) {
+  const staff = await getStaffFromSession();
+  if (!staff) redirect("/admin/login?next=/operator");
+  if (staff.role !== "admin" && staff.role !== "operator") {
+    redirect("/admin/login?next=/operator");
+  }
+
   return (
     <div className="flex h-screen overflow-hidden bg-[var(--surface)]">
       <aside className="w-56 shrink-0 border-r border-[var(--border)] bg-white flex flex-col">
@@ -42,7 +50,9 @@ export default function OperatorLayout({ children }: { children: ReactNode }) {
       <div className="flex-1 flex flex-col overflow-hidden">
         <header className="h-16 bg-white border-b border-[var(--border)] px-6 flex items-center justify-between shrink-0">
           <h1 className="font-semibold">Operator Panel</h1>
-          <div className="w-8 h-8 rounded-full bg-[var(--brand-100)] flex items-center justify-center text-sm font-bold text-[var(--brand-700)]">O</div>
+          <div className="w-8 h-8 rounded-full bg-[var(--brand-100)] flex items-center justify-center text-sm font-bold text-[var(--brand-700)]">
+            {staff.email[0]?.toUpperCase() ?? "O"}
+          </div>
         </header>
         <main className="flex-1 overflow-y-auto p-6">{children}</main>
       </div>

@@ -1,24 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@supabase/ssr";
-import {
-  ADMIN_SESSION_COOKIE,
-  getAdminSessionFromRequest,
-} from "@/lib/admin-session";
-
-function hasSupabaseSessionCookie(req: NextRequest): boolean {
-  return req.cookies.getAll().some((c) => c.name.startsWith("sb-") && c.name.includes("auth-token"));
-}
+import { getAdminSessionFromRequest } from "@/lib/admin-session";
+import { getCustomerSessionFromRequest } from "@/lib/customer-session";
 
 function isAdminPublicPath(pathname: string): boolean {
   return pathname === "/admin/login";
 }
 
-export default async function middleware(req: NextRequest) {
-  const res = NextResponse.next({ request: req });
-  const pathname = req.nextUrl.pathname;
-  const isAdminRoute = pathname.startsWith("/admin");
+function isOperatorPublicPath(pathname: string): boolean {
+  return false;
+}
 
-  if (isAdminRoute) {
+export default async function middleware(req: NextRequest) {
+  const pathname = req.nextUrl.pathname;
+
+  if (pathname.startsWith("/admin")) {
     const adminSession = await getAdminSessionFromRequest(req);
     if (!isAdminPublicPath(pathname) && !adminSession) {
       const nextPath = `${req.nextUrl.pathname}${req.nextUrl.search}`;
@@ -28,35 +23,43 @@ export default async function middleware(req: NextRequest) {
       );
       return NextResponse.redirect(loginUrl);
     }
-    return res;
+    return NextResponse.next();
   }
 
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!url || !key) return res;
-
-  if (!hasSupabaseSessionCookie(req)) {
-    return res;
+  if (pathname.startsWith("/operator")) {
+    const adminSession = await getAdminSessionFromRequest(req);
+    if (!isOperatorPublicPath(pathname)) {
+      if (!adminSession) {
+        const nextPath = `${req.nextUrl.pathname}${req.nextUrl.search}`;
+        return NextResponse.redirect(
+          new URL(
+            `/admin/login?next=${encodeURIComponent(nextPath)}`,
+            req.url,
+          ),
+        );
+      }
+      if (
+        adminSession.role !== "admin" &&
+        adminSession.role !== "operator"
+      ) {
+        return NextResponse.redirect(new URL("/admin/login", req.url));
+      }
+    }
+    return NextResponse.next();
   }
 
-  const supabase = createServerClient(url, key, {
-    cookies: {
-      getAll() {
-        return req.cookies.getAll();
-      },
-      setAll(cookiesToSet) {
-        cookiesToSet.forEach(({ name, value, options }) => {
-          req.cookies.set(name, value);
-          res.cookies.set(name, value, options);
-        });
-      },
-    },
-  });
+  // Touch customer session cookie on account routes (validates signature/expiry).
+  if (
+    pathname.startsWith("/account") ||
+    pathname.startsWith("/api/account") ||
+    pathname.startsWith("/api/profile") ||
+    pathname.startsWith("/api/addresses") ||
+    pathname.startsWith("/api/wishlist")
+  ) {
+    await getCustomerSessionFromRequest(req);
+  }
 
-  await supabase.auth.getUser();
-
-  return res;
+  return NextResponse.next();
 }
 
 export const config = {

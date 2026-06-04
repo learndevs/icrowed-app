@@ -1,32 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
-import { db, wishlists, products } from "@icrowd/database";
-import { eq, inArray } from "drizzle-orm";
+import { db, wishlists } from "@icrowd/database";
+import { eq } from "drizzle-orm";
+import { requireCustomer } from "@/lib/require-customer";
 
 export async function GET() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const auth = await requireCustomer();
+  if (auth instanceof NextResponse) return auth;
 
   const rows = await db
     .select({ productId: wishlists.productId })
     .from(wishlists)
-    .where(eq(wishlists.userId, user.id));
+    .where(eq(wishlists.userId, auth.userId));
 
   return NextResponse.json({ productIds: rows.map((r) => r.productId) });
 }
 
 export async function POST(req: NextRequest) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const auth = await requireCustomer();
+  if (auth instanceof NextResponse) return auth;
 
   const { productId } = await req.json().catch(() => ({}));
   if (!productId) return NextResponse.json({ error: "productId required" }, { status: 400 });
 
   await db
     .insert(wishlists)
-    .values({ userId: user.id, productId })
+    .values({ userId: auth.userId, productId })
     .onConflictDoNothing();
 
   return NextResponse.json({ success: true });

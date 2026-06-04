@@ -1,20 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
 import { db, addresses } from "@icrowd/database";
 import { eq, and } from "drizzle-orm";
-
-async function getAuthUser() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  return user;
-}
+import { requireCustomer } from "@/lib/require-customer";
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
-  const user = await getAuthUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const auth = await requireCustomer();
+  if (auth instanceof NextResponse) return auth;
 
   const { id } = await params;
   const body = await req.json();
@@ -25,12 +19,12 @@ export async function PATCH(
     isDefault,
   } = body;
 
-  // If setting as default, clear other defaults first
   if (isDefault) {
-    await db.update(addresses).set({ isDefault: false }).where(eq(addresses.userId, user.id));
+    await db.update(addresses).set({ isDefault: false }).where(eq(addresses.userId, auth.userId));
   }
 
-  const [updated] = await db.update(addresses)
+  const [updated] = await db
+    .update(addresses)
     .set({
       ...(label !== undefined && { label }),
       ...(recipientName !== undefined && { recipientName }),
@@ -43,7 +37,7 @@ export async function PATCH(
       postalCode: postalCode ?? null,
       ...(isDefault !== undefined && { isDefault }),
     })
-    .where(and(eq(addresses.id, id), eq(addresses.userId, user.id)))
+    .where(and(eq(addresses.id, id), eq(addresses.userId, auth.userId)))
     .returning();
 
   if (!updated) return NextResponse.json({ error: "Not found" }, { status: 404 });
@@ -52,12 +46,14 @@ export async function PATCH(
 
 export async function DELETE(
   _req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
-  const user = await getAuthUser();
-  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const auth = await requireCustomer();
+  if (auth instanceof NextResponse) return auth;
 
   const { id } = await params;
-  await db.delete(addresses).where(and(eq(addresses.id, id), eq(addresses.userId, user.id)));
+  await db
+    .delete(addresses)
+    .where(and(eq(addresses.id, id), eq(addresses.userId, auth.userId)));
   return NextResponse.json({ success: true });
 }
