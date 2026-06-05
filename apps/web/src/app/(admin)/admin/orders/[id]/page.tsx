@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { ChevronLeft, Package, User, MapPin, CreditCard, Truck } from "lucide-react";
 import { OrderActions } from "./OrderActions";
+import { DeleteOrderButton } from "./DeleteOrderButton";
 import { RefundButton } from "./RefundButton";
 import { BankSlipViewer } from "@/components/admin/BankSlipViewer";
 
@@ -51,24 +52,27 @@ export default async function AdminOrderDetailPage({
   return (
     <div className="max-w-4xl space-y-5">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <Link href="/admin/orders">
-          <Button type="button" size="icon" variant="outline">
-            <ChevronLeft className="w-4 h-4" />
-          </Button>
-        </Link>
-        <div>
-          <div className="flex items-center gap-3">
-            <h2 className="text-xl font-bold font-mono">{order.orderNumber}</h2>
-            <Badge variant={STATUS_BADGE[order.status] ?? "default"}>{order.status}</Badge>
-            <Badge variant={order.paymentStatus === "paid" ? "success" : order.paymentStatus === "failed" ? "error" : "warning"}>
-              {order.paymentStatus}
-            </Badge>
+      <div className="flex items-start justify-between gap-3 flex-wrap">
+        <div className="flex items-center gap-3">
+          <Link href="/admin/orders">
+            <Button type="button" size="icon" variant="outline">
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+          </Link>
+          <div>
+            <div className="flex items-center gap-3 flex-wrap">
+              <h2 className="text-xl font-bold font-mono">{order.orderNumber}</h2>
+              <Badge variant={STATUS_BADGE[order.status] ?? "default"}>{order.status}</Badge>
+              <Badge variant={order.paymentStatus === "paid" ? "success" : order.paymentStatus === "failed" ? "error" : "warning"}>
+                {order.paymentStatus}
+              </Badge>
+            </div>
+            <p className="text-sm text-[var(--muted)] mt-0.5">
+              Placed {formatDate(order.createdAt)}
+            </p>
           </div>
-          <p className="text-sm text-[var(--muted)] mt-0.5">
-            Placed {formatDate(order.createdAt)}
-          </p>
         </div>
+        <DeleteOrderButton orderId={order.id} orderNumber={order.orderNumber} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
@@ -218,7 +222,15 @@ export default async function AdminOrderDetailPage({
               <div className="text-sm space-y-1.5">
                 <div className="flex justify-between">
                   <span className="text-[var(--muted)]">Method</span>
-                  <Badge variant={order.paymentMethod === "bank_transfer" ? "warning" : "primary"}>
+                  <Badge
+                    variant={
+                      order.paymentMethod === "bank_transfer"
+                        ? "warning"
+                        : order.paymentMethod === "cash_on_delivery"
+                          ? "success"
+                          : "primary"
+                    }
+                  >
                     {PAYMENT_LABELS[order.paymentMethod] ?? order.paymentMethod}
                   </Badge>
                 </div>

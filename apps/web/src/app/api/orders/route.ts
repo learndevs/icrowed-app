@@ -5,6 +5,7 @@ import { requireAdmin } from "@/lib/admin";
 import { generateOrderNumber } from "@/lib/utils";
 import { sendEmail } from "@/lib/email";
 import { orderConfirmationTemplate } from "@/lib/email-templates/orderConfirmation";
+import { paymentMethodLabel } from "@/lib/invoice";
 import { notifyAdmins } from "@/lib/notify";
 
 export async function GET(req: NextRequest) {
@@ -182,7 +183,7 @@ export async function POST(req: NextRequest) {
         <p><strong>Order:</strong> ${orderNumber}<br/>
         <strong>Customer:</strong> ${customerName} (${customerEmail ?? "no email"})<br/>
         <strong>Total:</strong> LKR ${Number(total).toLocaleString()}<br/>
-        <strong>Payment:</strong> ${paymentMethod}</p>
+        <strong>Payment:</strong> ${paymentMethodLabel(paymentMethod)}</p>
         <p><a href="${process.env.NEXT_PUBLIC_APP_URL ?? ""}/admin/orders/${order.id}">View order</a></p>`,
     });
 

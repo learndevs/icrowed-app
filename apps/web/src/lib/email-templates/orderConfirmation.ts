@@ -1,3 +1,4 @@
+import { paymentMethodLabel } from "@/lib/invoice";
 import { baseTemplate, button, divider, itemsTable, sectionLabel } from "./base";
 
 export type OrderConfirmationData = {
@@ -14,8 +15,7 @@ export type OrderConfirmationData = {
 };
 
 export function orderConfirmationTemplate(data: OrderConfirmationData): string {
-  const paymentLabel =
-    data.paymentMethod === "stripe" ? "Credit / Debit Card (Stripe)" : "Bank Transfer";
+  const paymentLabel = paymentMethodLabel(data.paymentMethod);
 
   const content = `
     <h1 style="margin:0 0 6px;color:#111827;font-size:22px;font-weight:700;">Thank you for your order!</h1>
@@ -65,6 +65,15 @@ export function orderConfirmationTemplate(data: OrderConfirmationData): string {
       <p style="margin:0;color:#92400e;font-size:13px;line-height:1.6;">
         Please complete your bank transfer and use <strong>${data.orderNumber}</strong> as the payment reference.
         Your order will be confirmed once payment is verified by our team.
+      </p>
+    </div>` : ""}
+    ${data.paymentMethod === "cash_on_delivery" ? `
+    ${divider()}
+    <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:8px;padding:16px 20px;">
+      <p style="margin:0 0 6px;color:#166534;font-size:14px;font-weight:600;">Cash on Delivery</p>
+      <p style="margin:0;color:#166534;font-size:13px;line-height:1.6;">
+        Please have <strong>LKR ${Number(data.total).toLocaleString()}</strong> ready when your order arrives.
+        Our delivery team will collect payment at your doorstep.
       </p>
     </div>` : ""}
 

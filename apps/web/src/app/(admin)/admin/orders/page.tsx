@@ -2,6 +2,7 @@ import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { formatPrice, formatDate } from "@/lib/utils";
+import { paymentMethodLabel } from "@/lib/invoice";
 import Link from "next/link";
 import { db, orders } from "@icrowd/database";
 import { eq, desc } from "drizzle-orm";
@@ -19,6 +20,20 @@ const STATUS_BADGE: Record<string, "default" | "primary" | "success" | "warning"
 
 const ALL_STATUSES = ["pending", "confirmed", "processing", "shipped", "delivered", "cancelled"] as const;
 type OrderStatus = (typeof ALL_STATUSES)[number];
+
+const PAYMENT_BADGE: Record<string, "default" | "primary" | "success" | "warning" | "error"> = {
+  stripe: "primary",
+  payhere: "primary",
+  bank_transfer: "warning",
+  cash_on_delivery: "success",
+};
+
+const PAYMENT_SHORT_LABEL: Record<string, string> = {
+  stripe: "Card",
+  payhere: "PayHere",
+  bank_transfer: "Bank Transfer",
+  cash_on_delivery: "COD",
+};
 
 function isValidStatus(s: string): s is OrderStatus {
   return (ALL_STATUSES as readonly string[]).includes(s);
@@ -114,8 +129,11 @@ export default async function AdminOrdersPage({
                     </td>
                     <td className="px-4 py-3 font-semibold">{formatPrice(Number(o.total))}</td>
                     <td className="px-4 py-3">
-                      <Badge variant={o.paymentMethod === "stripe" ? "primary" : "warning"}>
-                        {o.paymentMethod === "stripe" ? "Card" : "Bank"}
+                      <Badge
+                        variant={PAYMENT_BADGE[o.paymentMethod] ?? "default"}
+                        title={paymentMethodLabel(o.paymentMethod)}
+                      >
+                        {PAYMENT_SHORT_LABEL[o.paymentMethod] ?? o.paymentMethod}
                       </Badge>
                     </td>
                     <td className="px-4 py-3 font-mono text-xs text-[var(--muted)]">

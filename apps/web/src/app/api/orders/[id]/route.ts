@@ -140,3 +140,47 @@ export async function PATCH(
     return NextResponse.json({ error: "Failed to update order" }, { status: 500 });
   }
 }
+
+export async function DELETE(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const auth = await requireAdmin();
+  if (auth instanceof NextResponse) return auth;
+
+  try {
+    const { id } = await params;
+    const before = await db.query.orders.findFirst({
+      where: eq(orders.id, id),
+      with: { items: true },
+    });
+
+    if (!before) {
+      return NextResponse.json({ error: "Not found" }, { status: 404 });
+    }
+
+    await db.delete(orders).where(eq(orders.id, id));
+
+    await logAudit({
+      actor: { userId: auth.userId, email: auth.email },
+      entityType: "order",
+      entityId: id,
+      action: "delete",
+      summary: `Order ${before.orderNumber} deleted`,
+      before: {
+        orderNumber: before.orderNumber,
+        status: before.status,
+        customerName: before.customerName,
+        customerEmail: before.customerEmail,
+        total: before.total,
+        paymentMethod: before.paymentMethod,
+      },
+      after: null,
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (err) {
+    console.error("[DELETE /api/orders/[id]]", err);
+    return NextResponse.json({ error: "Failed to delete order" }, { status: 500 });
+  }
+}

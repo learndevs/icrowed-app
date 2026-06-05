@@ -1,5 +1,6 @@
 "use client";
 
+import { paymentMethodLabel } from "@/lib/invoice";
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend } from "recharts";
 
 type Slice = { method: string; count: number; total: number };
@@ -36,7 +37,10 @@ export function PaymentSplit({ data }: { data: Slice[] }) {
           <Tooltip
             formatter={(value) => `LKR ${Number(value).toLocaleString()}`}
           />
-          <Legend wrapperStyle={{ fontSize: 11 }} />
+          <Legend
+            wrapperStyle={{ fontSize: 11 }}
+            formatter={(value) => paymentMethodLabel(String(value))}
+          />
         </PieChart>
       </ResponsiveContainer>
     </div>
