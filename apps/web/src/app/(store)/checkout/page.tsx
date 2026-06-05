@@ -12,6 +12,7 @@ import {
   DEFAULT_BANK_DETAILS,
   type BankDetails,
 } from "@/lib/bank-details";
+import { SRI_LANKA_DISTRICTS } from "@/lib/sri-lanka-districts";
 import {
   CreditCard,
   Banknote,
@@ -54,7 +55,6 @@ interface AddressForm {
   addressLine2: string;
   city: string;
   district: string;
-  province: string;
   postalCode: string;
 }
 
@@ -65,7 +65,6 @@ const EMPTY_ADDRESS: AddressForm = {
   addressLine2: "",
   city: "",
   district: "",
-  province: "",
   postalCode: "",
 };
 
@@ -162,7 +161,6 @@ export default function CheckoutPage() {
       addressLine2: a.addressLine2 ?? "",
       city: a.city,
       district: a.district,
-      province: a.province ?? "",
       postalCode: a.postalCode ?? "",
     });
   }
@@ -229,7 +227,7 @@ export default function CheckoutPage() {
           shippingAddressLine2: address.addressLine2 || null,
           shippingCity: address.city,
           shippingDistrict: address.district,
-          shippingProvince: address.province || null,
+          shippingProvince: null,
           shippingPostalCode: address.postalCode || null,
           paymentMethod,
           deliveryTypeId: selectedDeliveryId,
@@ -627,16 +625,9 @@ export default function CheckoutPage() {
                         {
                           label: "District",
                           key: "district",
-                          placeholder: "Colombo",
-                          col: 1,
+                          placeholder: "Select district",
+                          col: 2,
                           required: true,
-                        },
-                        {
-                          label: "Province",
-                          key: "province",
-                          placeholder: "Western",
-                          col: 1,
-                          required: false,
                         },
                       ] as {
                         label: string;
@@ -666,6 +657,32 @@ export default function CheckoutPage() {
                             className={inputCls}
                             autoComplete="email"
                           />
+                        ) : f.key === "district" ? (
+                          <select
+                            value={address.district}
+                            onChange={(e) =>
+                              setAddress((prev) => ({
+                                ...prev,
+                                district: e.target.value,
+                              }))
+                            }
+                            className={inputCls}
+                          >
+                            <option value="">{f.placeholder}</option>
+                            {SRI_LANKA_DISTRICTS.map((d) => (
+                              <option key={d} value={d}>
+                                {d}
+                              </option>
+                            ))}
+                            {address.district &&
+                              !SRI_LANKA_DISTRICTS.includes(
+                                address.district as (typeof SRI_LANKA_DISTRICTS)[number],
+                              ) && (
+                                <option value={address.district}>
+                                  {address.district}
+                                </option>
+                              )}
+                          </select>
                         ) : (
                           <input
                             type={f.type ?? "text"}
@@ -907,10 +924,7 @@ export default function CheckoutPage() {
                       <p className="text-gray-500">{customerEmail}</p>
                       <p className="text-gray-500">{address.phone}</p>
                       <p className="text-gray-500">{address.addressLine1}</p>
-                      <p className="text-gray-500">
-                        {address.district}
-                        {address.province ? `, ${address.province}` : ""}
-                      </p>
+                      <p className="text-gray-500">{address.district}</p>
                     </div>
                     <button
                       onClick={() => setStep("address")}
