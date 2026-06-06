@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { clientEnv } from "@icrowd/env";
 
 export const SITE_NAME = "iCrowd";
+/** iCrowd mark (three “i” figures) — used for browser tab icon. */
+export const DEFAULT_FAVICON_PATH = "/icrowd-logo.svg";
 export const DEFAULT_DESCRIPTION =
   "Shop the latest smartphones, cases, chargers and accessories in Sri Lanka. Fast island-wide delivery, genuine products.";
 

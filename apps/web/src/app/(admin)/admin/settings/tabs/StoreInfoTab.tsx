@@ -136,10 +136,14 @@ export function StoreInfoTab({ initial }: { initial: Initial }) {
               onChange={(e) => update("logoUrl", e.target.value)}
             />
           </FormField>
-          <FormField label="Favicon URL">
+          <FormField
+            label="Favicon URL"
+            hint="Browser tab icon — default is /icrowd-logo.svg"
+          >
             <Input
               value={form.faviconUrl}
               onChange={(e) => update("faviconUrl", e.target.value)}
+              placeholder="/icrowd-logo.svg"
             />
           </FormField>
         </div>

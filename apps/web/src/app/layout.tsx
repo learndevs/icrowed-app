@@ -6,6 +6,7 @@ import { WishlistProvider } from "@/context/WishlistContext";
 import { clientEnv } from "@icrowd/env";
 import {
   DEFAULT_DESCRIPTION,
+  DEFAULT_FAVICON_PATH,
   SITE_NAME,
   absoluteUrl,
   siteUrl,
@@ -54,6 +55,11 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "iCrowd — Mobile Phones & Accessories in Sri Lanka",
     description: DEFAULT_DESCRIPTION,
+  },
+  icons: {
+    icon: [{ url: DEFAULT_FAVICON_PATH, type: "image/svg+xml" }],
+    shortcut: [{ url: DEFAULT_FAVICON_PATH }],
+    apple: [{ url: DEFAULT_FAVICON_PATH }],
   },
   ...(googleVerification
     ? { verification: { google: googleVerification } }
