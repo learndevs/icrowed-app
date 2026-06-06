@@ -34,13 +34,13 @@ export async function getProducts(opts?: {
   });
 }
 
-/** Home showcase — up to 6 featured products in a 5×2 desktop grid (row 1: five, row 2: one). */
+/** Home showcase — up to 10 featured products in a 5×2 desktop grid. */
 export async function getTopSellingProducts() {
   return db.query.products.findMany({
     where: and(eq(products.isActive, true), eq(products.isFeatured, true)),
     with: { images: true, category: true, brand: true },
     orderBy: [desc(products.updatedAt)],
-    limit: 6,
+    limit: 10,
   });
 }
 

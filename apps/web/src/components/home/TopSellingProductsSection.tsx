@@ -61,7 +61,7 @@ export async function TopSellingProductsSection() {
         </Link>
       </div>
 
-      {/* Mobile: 2 cols · Desktop: 5 columns × 2 rows (6 products) */}
+      {/* Mobile: 2 cols · Desktop: 5 columns × 2 rows (10 products) */}
       <div className="grid w-full max-md:grid-cols-2 max-md:gap-3 md:grid-cols-5 md:auto-rows-fr md:gap-4 md:[grid-template-columns:repeat(5,minmax(0,1fr))]">
         {products.map((product) => (
           <div key={product.id} className="min-w-0 w-full max-w-full">

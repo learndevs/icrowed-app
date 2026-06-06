@@ -45,7 +45,7 @@ function PhoneHero() {
       {/* Text */}
       <div className="relative z-10 flex flex-col items-center text-center px-6 pt-10 sm:pt-12">
         <h2 className="type-hero-title text-zinc-900">
-          Phone
+          Phones
         </h2>
         <p className="type-hero-subtitle mt-2 text-zinc-500 whitespace-nowrap">
           Premium Phones. Best Prices in Sri Lanka
@@ -98,7 +98,7 @@ function DroneHero() {
             />
           </div>
           <h2 className="type-hero-title text-zinc-900">
-            Drone
+            Dones
           </h2>
         </div>
         <p className="type-hero-subtitle mt-2 text-zinc-700 max-w-[260px]">
