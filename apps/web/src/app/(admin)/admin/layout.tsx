@@ -1,5 +1,9 @@
+import type { Metadata } from "next";
 import { ReactNode } from "react";
 import { redirect } from "next/navigation";
+import { noIndexMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = noIndexMetadata();
 import { db, profiles } from "@icrowd/database";
 import { eq } from "drizzle-orm";
 import { AdminSidebar } from "./AdminSidebar";

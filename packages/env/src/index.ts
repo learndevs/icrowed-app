@@ -40,6 +40,11 @@ const clientSchema = z.object({
       ]),
     ),
   NEXT_PUBLIC_APP_URL: z.string().url(),
+  /** Google Search Console HTML meta verification token (content value only). */
+  NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION: z
+    .string()
+    .optional()
+    .transform((s) => (s == null ? "" : s.trim())),
 });
 
 // Client env — safe to expose to the browser
@@ -48,6 +53,7 @@ export const clientEnv = clientSchema.parse({
   NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
   NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
+  NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
 });
 
 // Server env — call only in server-side code (API routes, Server Components)

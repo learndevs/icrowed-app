@@ -5,8 +5,14 @@ import type { ProductCardData } from "@/components/products/ProductCard";
 import { getBrands, getCategories, getProducts, getReviewSummariesForProducts } from "@icrowd/database/queries";
 import { queryStorefront } from "@/lib/storefront-query";
 import { normalizeProductImageUrl } from "@/lib/product-image-url";
+import { buildPageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = { title: "All Products | iCrowd" };
+export const metadata: Metadata = buildPageMetadata({
+  title: "All Products",
+  description:
+    "Browse smartphones, phone cases, chargers, earbuds and accessories at iCrowd Sri Lanka.",
+  path: "/products",
+});
 
 export const revalidate = 60;
 

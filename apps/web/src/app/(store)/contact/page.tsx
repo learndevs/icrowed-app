@@ -5,6 +5,7 @@ import {
   ContactSocialLinks,
   whatsappLink,
 } from "@/components/contact/ContactDetails";
+import { buildPageMetadata } from "@/lib/seo";
 
 export const revalidate = 60;
 
@@ -17,10 +18,11 @@ const VALUE_CLASS = "mt-3 text-base font-medium text-black leading-relaxed";
 
 export async function generateMetadata(): Promise<Metadata> {
   const info = await getStorefrontContactInfoSafe();
-  return {
-    title: `${info.heading} | iCrowd`,
+  return buildPageMetadata({
+    title: info.heading,
     description: HERO_SUBTITLE,
-  };
+    path: "/contact",
+  });
 }
 
 export default async function ContactPage() {

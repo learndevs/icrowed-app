@@ -1,5 +1,9 @@
+import type { Metadata } from "next";
 import { ReactNode } from "react";
 import Link from "next/link";
+import { noIndexMetadata } from "@/lib/seo";
+
+export const metadata: Metadata = noIndexMetadata();
 import { ClipboardList, Truck, LayoutDashboard, Smartphone } from "lucide-react";
 
 const NAV = [

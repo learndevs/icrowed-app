@@ -11,7 +11,7 @@ REPO_URL="https://github.com/learndevs/icrowd-app.git"
 BRANCH="${BRANCH:-merge}"
 PORT="${PORT:-3000}"
 DOMAIN="${DOMAIN:-icrowd.lk}"
-APP_URL="${APP_URL:-http://${DOMAIN}}"
+APP_URL="${APP_URL:-https://${DOMAIN}}"
 
 echo "==> Installing system packages..."
 dnf install -y git curl nginx firewalld

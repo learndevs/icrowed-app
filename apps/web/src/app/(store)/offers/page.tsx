@@ -4,8 +4,13 @@ import { ArrowUpRight, Megaphone } from "lucide-react";
 import { getActiveOffers } from "@icrowd/database/queries";
 import { OfferCard } from "@/components/offers/OfferCard";
 import { queryStorefront } from "@/lib/storefront-query";
+import { buildPageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = { title: "Offers & Deals | iCrowd" };
+export const metadata: Metadata = buildPageMetadata({
+  title: "Offers & Deals",
+  description: "Current deals and promotions on phones and accessories at iCrowd Sri Lanka.",
+  path: "/offers",
+});
 
 export const revalidate = 60;
 

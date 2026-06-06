@@ -2,8 +2,14 @@ import type { Metadata } from "next";
 import { getStorefrontCategories } from "@icrowd/database/queries";
 import { CategoryShowcaseGrid, categoryRowToShowcaseItem } from "@/components/home/CategoryShowcaseGrid";
 import { queryStorefront } from "@/lib/storefront-query";
+import { buildPageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = { title: "Categories | iCrowd" };
+export const metadata: Metadata = buildPageMetadata({
+  title: "Categories",
+  description:
+    "Explore phone and accessory categories at iCrowd — cases, chargers, audio, and more.",
+  path: "/categories",
+});
 
 export const revalidate = 60;
 

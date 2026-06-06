@@ -6,6 +6,7 @@ import { ProductsClient } from "../../ProductsClient";
 import type { ProductCardData } from "@/components/products/ProductCard";
 import { queryStorefront } from "@/lib/storefront-query";
 import { normalizeProductImageUrl } from "@/lib/product-image-url";
+import { buildPageMetadata } from "@/lib/seo";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -46,8 +47,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const brand = await queryStorefront("brand-meta", () => getBrandBySlug(slug)).catch(
     () => null,
   );
-  if (!brand) return { title: "Brand | iCrowd" };
-  return { title: `${brand.name} | iCrowd`, description: `Shop ${brand.name} products at iCrowd.` };
+  if (!brand) return buildPageMetadata({ title: "Brand", path: `/products/brands/${slug}` });
+  return buildPageMetadata({
+    title: brand.name,
+    description: `Shop ${brand.name} phones and accessories at iCrowd Sri Lanka.`,
+    path: `/products/brands/${slug}`,
+    image: brand.logoUrl,
+  });
 }
 
 export default async function BrandProductsPage({ params }: Props) {

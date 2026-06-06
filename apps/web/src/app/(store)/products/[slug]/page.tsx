@@ -24,6 +24,7 @@ import {
 } from "@icrowd/database/queries";
 import { queryStorefront } from "@/lib/storefront-query";
 import { normalizeProductImageUrl } from "@/lib/product-image-url";
+import { absoluteUrl, buildPageMetadata, serializeJsonLd } from "@/lib/seo";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -77,6 +78,7 @@ const getProductPageData = cache(async (slug: string) => {
     id: p.id,
     name: p.name,
     slug: p.slug,
+    sku: p.sku ?? "",
     price: Number(p.price),
     stock: p.stock,
     shortDescription,
@@ -110,11 +112,38 @@ const getProductPageData = cache(async (slug: string) => {
   };
 });
 
+function primaryProductImage(images: { url: string; isPrimary: boolean }[]): string | null {
+  const raw = images.find((i) => i.isPrimary)?.url ?? images[0]?.url ?? null;
+  return raw ? normalizeProductImageUrl(raw) : null;
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const product = await getProductPageData(slug);
   if (!product) return {};
-  return { title: `${product.name} | iCrowd` };
+  const description =
+    product.shortDescription.trim() ||
+    product.description.trim().slice(0, 160) ||
+    `Buy ${product.name} at iCrowd Sri Lanka.`;
+  return buildPageMetadata({
+    title: product.name,
+    description,
+    path: `/products/${slug}`,
+    image: primaryProductImage(product.images),
+  });
+}
+
+function productAvailability(product: {
+  stock: number;
+  variants: { stock: number }[];
+}): string {
+  const inStock =
+    product.variants.length > 0
+      ? product.variants.some((v) => v.stock > 0)
+      : product.stock > 0;
+  return inStock
+    ? "https://schema.org/InStock"
+    : "https://schema.org/OutOfStock";
 }
 
 export default async function ProductDetailPage({ params }: Props) {
@@ -122,8 +151,71 @@ export default async function ProductDetailPage({ params }: Props) {
   const product = await getProductPageData(slug);
   if (!product) notFound();
 
+  const productUrl = absoluteUrl(`/products/${slug}`);
+  const imageUrl = primaryProductImage(product.images);
+  const productDescription =
+    product.shortDescription.trim() || product.description.trim() || product.name;
+
+  const productJsonLd: Record<string, unknown> = {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: product.name,
+    description: productDescription,
+    ...(imageUrl ? { image: absoluteUrl(imageUrl) } : {}),
+    ...(product.sku ? { sku: product.sku } : {}),
+    offers: {
+      "@type": "Offer",
+      url: productUrl,
+      priceCurrency: "LKR",
+      price: product.price.toFixed(2),
+      availability: productAvailability(product),
+    },
+    ...(product.reviewCount > 0
+      ? {
+          aggregateRating: {
+            "@type": "AggregateRating",
+            ratingValue: product.rating,
+            reviewCount: product.reviewCount,
+          },
+        }
+      : {}),
+  };
+
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: absoluteUrl("/"),
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Products",
+        item: absoluteUrl("/products"),
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: product.name,
+        item: productUrl,
+      },
+    ],
+  };
+
   return (
     <div className="bento-bg min-h-screen">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(productJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbJsonLd) }}
+      />
       <ProductReviewStatsProvider
         productId={product.id}
         initialRating={product.rating}

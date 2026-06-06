@@ -102,6 +102,28 @@ export async function getProductsAdmin(opts?: {
   return { rows, total: totals[0]?.total ?? 0 };
 }
 
+/** Slug + updatedAt for sitemap generation — no relations. */
+export async function getActiveProductSitemapEntries() {
+  return db
+    .select({ slug: products.slug, updatedAt: products.updatedAt })
+    .from(products)
+    .where(eq(products.isActive, true));
+}
+
+export async function getActiveBrandSitemapEntries() {
+  return db
+    .select({ slug: brands.slug, createdAt: brands.createdAt })
+    .from(brands)
+    .where(eq(brands.isActive, true));
+}
+
+export async function getActiveCategorySitemapEntries() {
+  return db
+    .select({ slug: categories.slug, updatedAt: categories.updatedAt })
+    .from(categories)
+    .where(eq(categories.isActive, true));
+}
+
 /** Active Anker (or any brand) product with the lowest price — for storefront highlights. */
 export async function getLowestPricedProductByBrandSlug(brandSlug: string) {
   const brandRow = await db.query.brands.findFirst({
