@@ -4,8 +4,24 @@ import { clientEnv } from "@icrowd/env";
 export const SITE_NAME = "iCrowd";
 /** iCrowd mark (three “i” figures) — used for browser tab icon. */
 export const DEFAULT_FAVICON_PATH = "/icrowd-logo.svg";
+export const DEFAULT_TITLE =
+  "iCrowd — Apple iPhones, Anker & DJI Products in Sri Lanka";
 export const DEFAULT_DESCRIPTION =
-  "Shop the latest smartphones, cases, chargers and accessories in Sri Lanka. Fast island-wide delivery, genuine products.";
+  "Buy genuine Apple iPhones, iPads, MacBooks and AirPods, Anker chargers and power banks, and DJI drones and gimbals in Sri Lanka. Best prices with fast island-wide delivery.";
+export const DEFAULT_KEYWORDS = [
+  "iPhone price in Sri Lanka",
+  "Apple products Sri Lanka",
+  "Anker Sri Lanka",
+  "DJI Sri Lanka",
+  "mobile phones Sri Lanka",
+  "iPad Sri Lanka",
+  "MacBook Sri Lanka",
+  "AirPods Sri Lanka",
+  "power banks Sri Lanka",
+  "drones Sri Lanka",
+  "phone accessories Sri Lanka",
+  "iCrowd",
+];
 
 export function siteUrl(): URL {
   return new URL(clientEnv.NEXT_PUBLIC_APP_URL);

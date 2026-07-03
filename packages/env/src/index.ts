@@ -45,6 +45,11 @@ const clientSchema = z.object({
     .string()
     .optional()
     .transform((s) => (s == null ? "" : s.trim())),
+  /** GA4 measurement id (`G-XXXXXXXXXX`). Empty disables analytics. */
+  NEXT_PUBLIC_GA_MEASUREMENT_ID: z
+    .string()
+    .optional()
+    .transform((s) => (s == null ? "" : s.trim())),
 });
 
 // Client env — safe to expose to the browser
@@ -54,6 +59,7 @@ export const clientEnv = clientSchema.parse({
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
   NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
   NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
+  NEXT_PUBLIC_GA_MEASUREMENT_ID: process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID,
 });
 
 // Server env — call only in server-side code (API routes, Server Components)

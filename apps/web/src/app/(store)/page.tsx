@@ -10,6 +10,7 @@ import { getStorefrontContactInfoSafe } from "@/lib/contact-page.server";
 import { queryStorefront } from "@/lib/storefront-query";
 import {
   DEFAULT_DESCRIPTION,
+  DEFAULT_TITLE,
   absoluteUrl,
   buildPageMetadata,
   serializeJsonLd,
@@ -19,7 +20,7 @@ import {
 export const revalidate = 60;
 
 export const metadata: Metadata = buildPageMetadata({
-  title: "iCrowd — Mobile Phones & Accessories in Sri Lanka",
+  title: DEFAULT_TITLE,
   absoluteTitle: true,
   description: DEFAULT_DESCRIPTION,
   path: "/",

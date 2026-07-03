@@ -7,10 +7,13 @@ import { clientEnv } from "@icrowd/env";
 import {
   DEFAULT_DESCRIPTION,
   DEFAULT_FAVICON_PATH,
+  DEFAULT_KEYWORDS,
+  DEFAULT_TITLE,
   SITE_NAME,
   absoluteUrl,
   siteUrl,
 } from "@/lib/seo";
+import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -39,21 +42,22 @@ const googleVerification = clientEnv.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION;
 export const metadata: Metadata = {
   metadataBase: siteUrl(),
   title: {
-    default: "iCrowd — Mobile Phones & Accessories in Sri Lanka",
+    default: DEFAULT_TITLE,
     template: `%s | ${SITE_NAME}`,
   },
   description: DEFAULT_DESCRIPTION,
+  keywords: DEFAULT_KEYWORDS,
   openGraph: {
     type: "website",
     locale: "en_LK",
     siteName: SITE_NAME,
-    title: "iCrowd — Mobile Phones & Accessories in Sri Lanka",
+    title: DEFAULT_TITLE,
     description: DEFAULT_DESCRIPTION,
     url: absoluteUrl("/"),
   },
   twitter: {
     card: "summary_large_image",
-    title: "iCrowd — Mobile Phones & Accessories in Sri Lanka",
+    title: DEFAULT_TITLE,
     description: DEFAULT_DESCRIPTION,
   },
   icons: {
@@ -75,6 +79,7 @@ export default function RootLayout({
     <html lang="en" className={`h-full ${inter.variable} ${roboto.variable} ${playfair.variable}`}>
       <body className="min-h-full flex flex-col font-sans antialiased">
         <CartProvider><WishlistProvider>{children}</WishlistProvider></CartProvider>
+        <GoogleAnalytics />
       </body>
     </html>
   );
