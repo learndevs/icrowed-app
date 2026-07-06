@@ -40,6 +40,8 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# product uploads (stored on VPS disk)
+# User uploads (stored on VPS disk — never commit)
 /public/uploads/products/*
 !/public/uploads/products/.gitkeep
+/public/uploads/offers/*
+!/public/uploads/offers/.gitkeep

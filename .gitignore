@@ -35,3 +35,9 @@ yarn-error.log*
 .idea/
 *.swp
 *.swo
+
+# User uploads on VPS (never commit product/offer images)
+apps/web/public/uploads/products/*
+!apps/web/public/uploads/products/.gitkeep
+apps/web/public/uploads/offers/*
+!apps/web/public/uploads/offers/.gitkeep
