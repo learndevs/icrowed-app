@@ -211,7 +211,8 @@ export const TEMPLATE_DEFAULTS: Record<TemplateKey, TemplateDefault> = {
   /* ── New Order Admin ────────────────────────────── */
   new_order_admin: {
     subject: "New order {{orderNumber}} received – LKR {{total}}",
-    bodyText: "New order {{orderNumber}} from {{customerName}} for LKR {{total}}. View at {{appUrl}}/admin/orders",
+    bodyText:
+      "New order {{orderNumber}} from {{customerName}} ({{customerEmail}}) for LKR {{total}} via {{paymentMethod}}. View at {{orderUrl}}",
     bodyHtml: BASE(`
       <div style="background:#eef2ff;border:1px solid #c7d2fe;border-radius:10px;padding:14px 20px;margin-bottom:24px;">
         <p style="margin:0;color:#3730a3;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;">🛒 New Order Received</p>
@@ -221,9 +222,12 @@ export const TEMPLATE_DEFAULTS: Record<TemplateKey, TemplateDefault> = {
       ${ORDER_BOX("{{orderNumber}}")}
       ${LABEL("Customer")}
       <p style="margin:0;color:#374151;font-size:15px;font-weight:600;">{{customerName}}</p>
+      <p style="margin:4px 0 0;color:#6b7280;font-size:14px;">{{customerEmail}}</p>
+      ${LABEL("Payment Method")}
+      <p style="margin:0;color:#374151;font-size:14px;">{{paymentMethod}}</p>
       ${LABEL("Order Total")}
       <p style="margin:0;color:#111827;font-size:18px;font-weight:700;">LKR {{total}}</p>
-      ${BTN("View Order in Admin", "{{appUrl}}/admin/orders")}
+      ${BTN("View Order in Admin", "{{orderUrl}}")}
     `),
   },
 

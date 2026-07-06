@@ -5,7 +5,10 @@ import {
   getOrCreateShippingRates,
   getOrCreateNotificationPrefs,
   getAllDeliveryTypes,
+  db,
+  profiles,
 } from "@icrowd/database";
+import { inArray, desc } from "drizzle-orm";
 import { StoreInfoTab } from "./tabs/StoreInfoTab";
 import { ContactTab } from "./tabs/ContactTab";
 import { ShippingTab } from "./tabs/ShippingTab";
@@ -37,11 +40,20 @@ export default async function AdminSettingsPage({
   const sp = await searchParams;
   const active = sp.tab && TABS.some((t) => t.key === sp.tab) ? sp.tab : "store";
 
-  const [store, shipping, notif, deliveryTypesList] = await Promise.all([
+  const [store, shipping, notif, deliveryTypesList, adminUsers] = await Promise.all([
     getOrCreateStoreSettings(),
     getOrCreateShippingRates(),
     getOrCreateNotificationPrefs(),
     getAllDeliveryTypes(),
+    db
+      .select({
+        email: profiles.email,
+        fullName: profiles.fullName,
+        role: profiles.role,
+      })
+      .from(profiles)
+      .where(inArray(profiles.role, ["admin", "operator"]))
+      .orderBy(desc(profiles.createdAt)),
   ]);
 
   return (
@@ -92,7 +104,9 @@ export default async function AdminSettingsPage({
         )}
         {active === "tax" && <TaxTab initial={store} />}
         {active === "policies" && <PoliciesTab initial={store} />}
-        {active === "notifications" && <NotificationsTab initial={notif} />}
+        {active === "notifications" && (
+          <NotificationsTab initial={notif} adminUsers={adminUsers} />
+        )}
         {active === "bank" && (
           <BankDetailsTab initial={parseBankDetails(store.bankDetails)} />
         )}

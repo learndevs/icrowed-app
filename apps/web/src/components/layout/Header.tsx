@@ -203,7 +203,7 @@ export default function Header() {
 
     </header>
     <ProductSearchSheet open={searchOpen} onClose={() => setSearchOpen(false)} />
-    <MobileBottomNav itemCount={itemCount} onSearchClick={() => setSearchOpen(true)} />
+    <MobileBottomNav itemCount={itemCount} />
     </>
   );
 }

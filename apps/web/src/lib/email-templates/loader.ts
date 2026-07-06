@@ -49,7 +49,7 @@ export const TEMPLATE_VARIABLES: Record<TemplateKey, string[]> = {
   ],
   welcome: ["customerName", "appUrl"],
   low_stock_alert: ["productName", "currentStock", "threshold", "appUrl"],
-  new_order_admin: ["orderNumber", "customerName", "total", "appUrl"],
+  new_order_admin: ["orderNumber", "customerName", "customerEmail", "total", "paymentMethod", "appUrl", "orderUrl"],
   review_admin: ["productName", "rating", "reviewerName", "appUrl"],
 };
 

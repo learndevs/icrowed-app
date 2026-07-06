@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   getOrCreateNotificationPrefs,
   upsertNotificationPrefs,
+  parseRecipients,
 } from "@icrowd/database";
 import { requireAdmin } from "@/lib/admin";
 import { logAudit } from "@/lib/audit";
@@ -29,6 +30,20 @@ export async function PUT(req: NextRequest) {
       "recipientEmails",
     ];
     for (const k of allowed) if (k in body) safe[k] = body[k];
+
+    if (typeof safe.recipientEmails === "string") {
+      const emails = parseRecipients(safe.recipientEmails);
+      const invalid = emails.filter(
+        (email) => !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+      );
+      if (invalid.length > 0) {
+        return NextResponse.json(
+          { error: `Invalid email address(es): ${invalid.join(", ")}` },
+          { status: 400 }
+        );
+      }
+      safe.recipientEmails = emails.join(", ");
+    }
 
     const row = await upsertNotificationPrefs(safe);
 

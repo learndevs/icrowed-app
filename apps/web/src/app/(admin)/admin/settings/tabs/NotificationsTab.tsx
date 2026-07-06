@@ -7,6 +7,12 @@ import { Textarea } from "@/components/ui/Textarea";
 import { Switch } from "@/components/ui/Switch";
 import { FormField } from "@/components/ui/FormField";
 
+type AdminUser = {
+  email: string;
+  fullName: string | null;
+  role: string;
+};
+
 type Initial = {
   notifyOnNewOrder: boolean;
   notifyOnLowStock: boolean;
@@ -15,10 +21,37 @@ type Initial = {
   recipientEmails: string;
 };
 
-export function NotificationsTab({ initial }: { initial: Initial }) {
+function parseEmailList(raw: string): string[] {
+  return raw
+    .split(/[,;\s]+/)
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+function formatEmailList(emails: string[]): string {
+  return [...new Set(emails.map((e) => e.trim()).filter(Boolean))].join(", ");
+}
+
+export function NotificationsTab({
+  initial,
+  adminUsers,
+}: {
+  initial: Initial;
+  adminUsers: AdminUser[];
+}) {
   const [form, setForm] = useState(initial);
   const [saving, setSaving] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+
+  const selectedEmails = parseEmailList(form.recipientEmails);
+
+  function toggleAdminEmail(email: string) {
+    const current = parseEmailList(form.recipientEmails);
+    const next = current.includes(email)
+      ? current.filter((e) => e !== email)
+      : [...current, email];
+    setForm((f) => ({ ...f, recipientEmails: formatEmailList(next) }));
+  }
 
   async function save() {
     setSaving(true);
@@ -41,9 +74,44 @@ export function NotificationsTab({ initial }: { initial: Initial }) {
   return (
     <Card>
       <CardContent className="space-y-4 pt-6">
+        {adminUsers.length > 0 && (
+          <FormField
+            label="Admin recipients"
+            hint="Choose which admin and operator accounts receive order alerts."
+          >
+            <div className="space-y-2 rounded-xl border border-[var(--border)] p-3">
+              {adminUsers.map((user) => {
+                const checked = selectedEmails.includes(user.email);
+                return (
+                  <label
+                    key={user.email}
+                    className="flex cursor-pointer items-start gap-3 rounded-lg px-2 py-2 hover:bg-[var(--surface)]"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => toggleAdminEmail(user.email)}
+                      className="mt-0.5 h-4 w-4 rounded border-[var(--border)]"
+                    />
+                    <span className="min-w-0">
+                      <span className="block text-sm font-medium">
+                        {user.fullName?.trim() || user.email}
+                      </span>
+                      <span className="block text-xs text-[var(--muted)]">
+                        {user.email}
+                        {user.role === "operator" ? " · Operator" : " · Admin"}
+                      </span>
+                    </span>
+                  </label>
+                );
+              })}
+            </div>
+          </FormField>
+        )}
+
         <FormField
-          label="Recipient emails"
-          hint="Comma- or whitespace-separated list. These addresses receive admin alerts."
+          label="Additional recipient emails"
+          hint="Optional. Comma- or whitespace-separated list for extra addresses outside admin accounts."
         >
           <Textarea
             rows={3}
@@ -60,7 +128,7 @@ export function NotificationsTab({ initial }: { initial: Initial }) {
             checked={form.notifyOnNewOrder}
             onChange={(v) => setForm((f) => ({ ...f, notifyOnNewOrder: v }))}
             label="New order received"
-            description="Email recipients when a customer places an order."
+            description="Email selected recipients when a customer places an order."
           />
           <Switch
             checked={form.notifyOnLowStock}
