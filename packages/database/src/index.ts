@@ -46,3 +46,9 @@ export {
   type EmailTemplateRow,
   type EmailTemplateInput,
 } from "./queries/emailTemplates";
+export {
+  prepareAndReserveOrderItems,
+  OrderItemError,
+  type IncomingOrderItem,
+  type PreparedOrderItem,
+} from "./queries/orderInventory";

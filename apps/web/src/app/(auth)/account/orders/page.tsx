@@ -18,6 +18,7 @@ interface OrderItem {
   id: string;
   productName: string;
   variantName?: string | null;
+  variantId?: string | null;
   sku?: string | null;
   quantity: number;
   unitPrice: string;
@@ -101,8 +102,9 @@ export default function AccountOrdersPage() {
   function handleReorder(order: Order) {
     for (const item of order.items) {
       addItem({
-        id: item.productId ?? item.id,
+        id: item.variantId ?? item.productId ?? item.id,
         productId: item.productId ?? item.id,
+        variantId: item.variantId ?? undefined,
         name: item.productName,
         variantName: item.variantName ?? undefined,
         price: Number(item.unitPrice),

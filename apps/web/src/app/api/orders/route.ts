@@ -1,5 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db, orders, orderItems, coupons, computeDeliveryFeeForType } from "@icrowd/database";
+import {
+  db,
+  orders,
+  orderItems,
+  coupons,
+  computeDeliveryFeeForType,
+  prepareAndReserveOrderItems,
+  OrderItemError,
+} from "@icrowd/database";
 import { eq, sql } from "drizzle-orm";
 import { requireAdmin } from "@/lib/admin";
 import { generateOrderNumber } from "@/lib/utils";
@@ -26,6 +34,7 @@ export async function GET(req: NextRequest) {
 
   const allOrders = await db.query.orders.findMany({
     orderBy: (orders, { desc }) => [desc(orders.createdAt)],
+    with: { items: true },
     limit: 50,
   });
   return NextResponse.json(allOrders);
@@ -62,92 +71,92 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "A valid email address is required" }, { status: 400 });
     }
 
-    const subtotal = items.reduce(
-      (sum: number, item: { unitPrice: number; quantity: number }) =>
-        sum + item.unitPrice * item.quantity,
-      0
-    );
-
-    const deliveryResult = await computeDeliveryFeeForType(deliveryTypeId, subtotal);
-    if (!deliveryResult) {
-      return NextResponse.json({ error: "Invalid delivery type" }, { status: 400 });
+    if (!Array.isArray(items) || items.length === 0) {
+      return NextResponse.json({ error: "Order must include at least one item" }, { status: 400 });
     }
 
-    const { fee: validatedShippingCost, type: deliveryType } = deliveryResult;
-    if (Math.abs(Number(shippingCost) - validatedShippingCost) > 0.01) {
-      return NextResponse.json({ error: "Shipping cost mismatch" }, { status: 400 });
-    }
-
-    const total = subtotal + validatedShippingCost - Number(discount);
     const orderNumber = generateOrderNumber();
 
-    let order: typeof orders.$inferSelect;
-    try {
-      const [inserted] = await db
-        .insert(orders)
-        .values({
-          orderNumber,
-          userId: userId ?? null,
-          customerName,
-          customerEmail: email,
-          customerPhone,
-          shippingAddressLine1,
-          shippingAddressLine2: shippingAddressLine2 ?? null,
-          shippingCity,
-          shippingDistrict,
-          shippingProvince: shippingProvince ?? null,
-          subtotal: String(subtotal),
-          shippingCost: String(validatedShippingCost),
-          discount: String(discount),
-          couponCode: couponCode ?? null,
-          total: String(total),
-          paymentMethod,
-          deliveryTypeId: deliveryType.id,
-          deliveryTypeName: deliveryType.name,
-          customerNote: customerNote ?? null,
-        })
-        .returning();
-      order = inserted;
-    } catch (insertErr) {
-      const msg = insertErr instanceof Error ? insertErr.message : String(insertErr);
-      console.error("Order insert failed:", msg, insertErr);
-      return NextResponse.json({ error: "Failed to create order", detail: msg, step: "insert_order" }, { status: 500 });
-    }
+    const { order, preparedItems, subtotal, validatedShippingCost, deliveryType } =
+      await db.transaction(async (tx) => {
+        const preparedItems = await prepareAndReserveOrderItems(items, tx);
 
-    // Increment coupon usedCount if a coupon was applied
-    if (couponCode) {
-      await db
-        .update(coupons)
-        .set({ usedCount: sql`${coupons.usedCount} + 1` })
-        .where(eq(coupons.code, couponCode));
-    }
+        const subtotal = preparedItems.reduce(
+          (sum, item) => sum + Number(item.unitPrice) * item.quantity,
+          0,
+        );
 
-    // Insert order items
-    if (items.length > 0) {
-      await db.insert(orderItems).values(
-        items.map((item: {
-          productId?: string;
-          variantId?: string;
-          productName: string;
-          variantName?: string;
-          sku?: string;
-          quantity: number;
-          unitPrice: number;
-          imageUrl?: string;
-        }) => ({
-          orderId: order.id,
-          productId: item.productId,
-          variantId: item.variantId,
-          productName: item.productName,
-          variantName: item.variantName,
-          sku: item.sku,
-          quantity: item.quantity,
-          unitPrice: String(item.unitPrice),
-          subtotal: String(item.unitPrice * item.quantity),
-          imageUrl: item.imageUrl,
-        }))
-      );
-    }
+        const deliveryResult = await computeDeliveryFeeForType(deliveryTypeId, subtotal);
+        if (!deliveryResult) {
+          throw new OrderItemError("Invalid delivery type");
+        }
+
+        const { fee: validatedShippingCost, type: deliveryType } = deliveryResult;
+        if (Math.abs(Number(shippingCost) - validatedShippingCost) > 0.01) {
+          throw new OrderItemError("Shipping cost mismatch");
+        }
+
+        const total = subtotal + validatedShippingCost - Number(discount);
+
+        const [inserted] = await tx
+          .insert(orders)
+          .values({
+            orderNumber,
+            userId: userId ?? null,
+            customerName,
+            customerEmail: email,
+            customerPhone,
+            shippingAddressLine1,
+            shippingAddressLine2: shippingAddressLine2 ?? null,
+            shippingCity,
+            shippingDistrict,
+            shippingProvince: shippingProvince ?? null,
+            subtotal: String(subtotal),
+            shippingCost: String(validatedShippingCost),
+            discount: String(discount),
+            couponCode: couponCode ?? null,
+            total: String(total),
+            paymentMethod,
+            deliveryTypeId: deliveryType.id,
+            deliveryTypeName: deliveryType.name,
+            customerNote: customerNote ?? null,
+          })
+          .returning();
+
+        if (preparedItems.length > 0) {
+          await tx.insert(orderItems).values(
+            preparedItems.map((item) => ({
+              orderId: inserted.id,
+              productId: item.productId,
+              variantId: item.variantId,
+              productName: item.productName,
+              variantName: item.variantName,
+              sku: item.sku,
+              quantity: item.quantity,
+              unitPrice: item.unitPrice,
+              subtotal: item.subtotal,
+              imageUrl: item.imageUrl,
+            })),
+          );
+        }
+
+        if (couponCode) {
+          await tx
+            .update(coupons)
+            .set({ usedCount: sql`${coupons.usedCount} + 1` })
+            .where(eq(coupons.code, couponCode));
+        }
+
+        return {
+          order: inserted,
+          preparedItems,
+          subtotal,
+          validatedShippingCost,
+          deliveryType,
+        };
+      });
+
+    const total = subtotal + validatedShippingCost - Number(discount);
 
     // Send order confirmation email (non-blocking)
     if (customerEmail) {
@@ -157,11 +166,11 @@ export async function POST(req: NextRequest) {
         html: orderConfirmationTemplate({
           customerName,
           orderNumber,
-          items: items.map((i: { productName: string; variantName?: string; quantity: number; unitPrice: number }) => ({
+          items: preparedItems.map((i) => ({
             productName: i.productName,
             variantName: i.variantName,
             quantity: i.quantity,
-            unitPrice: i.unitPrice,
+            unitPrice: Number(i.unitPrice),
           })),
           subtotal,
           shippingCost: validatedShippingCost,
@@ -187,6 +196,9 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ order, orderNumber }, { status: 201 });
   } catch (err) {
+    if (err instanceof OrderItemError) {
+      return NextResponse.json({ error: err.message }, { status: 400 });
+    }
     const message = err instanceof Error ? err.message : String(err);
     console.error("Create order error:", err);
     return NextResponse.json({ error: "Failed to create order", detail: message }, { status: 500 });

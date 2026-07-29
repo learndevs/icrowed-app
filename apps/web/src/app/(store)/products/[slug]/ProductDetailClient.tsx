@@ -101,6 +101,11 @@ function resolveSelectedVariant(
   sel: Partial<Record<VariantOptionKey, string>>,
   dims: VariantOptionKey[],
 ): ProductVariantRow | null {
+  if (dims.length > 0) {
+    for (const d of dims) {
+      if (!sel[d]) return null;
+    }
+  }
   const candidates = variants.filter((v) => matchesCurrentSelection(v, sel, dims));
   if (candidates.length === 0) return null;
   return candidates.find((v) => Number(v.stock) > 0) ?? candidates[0] ?? null;

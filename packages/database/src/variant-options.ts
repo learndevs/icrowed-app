@@ -78,8 +78,16 @@ export function formatVariantChoiceLabel(
 ): string {
   const n = normalizeVariantOptions(options);
   const parts = VARIANT_OPTION_KEYS.map((k) => n[k]).filter(Boolean) as string[];
-  if (parts.length) return parts.join(" · ");
   const name = trimStr(nameFallback);
+  if (parts.length) {
+    const fromOptions = parts.join(" · ");
+    if (name) {
+      const nameParts = name.split(" · ").map((p) => p.trim()).filter(Boolean);
+      // Legacy rows may only store color in options while name includes storage.
+      if (nameParts.length > parts.length) return name;
+    }
+    return fromOptions;
+  }
   return name ?? "Option";
 }
 

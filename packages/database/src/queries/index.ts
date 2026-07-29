@@ -5,6 +5,12 @@ export {
   type ProductVariantInput,
 } from "./productVariants";
 export * from "./orders";
+export {
+  prepareAndReserveOrderItems,
+  OrderItemError,
+  type IncomingOrderItem,
+  type PreparedOrderItem,
+} from "./orderInventory";
 export * from "./categories";
 export * from "./profiles";
 export * from "./offers";
