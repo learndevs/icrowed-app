@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export type CategoryShowcaseItem = {
   slug: string;
-  /** Link target, e.g. `/products?category=smartphones` */
+  /** Link target, e.g. `/categories/smartphones` */
   href: string;
   /** Local `/…` or absolute image URL (stored in DB `image_url`) */
   imageSrc: string;
@@ -36,7 +36,7 @@ export function categoryRowToShowcaseItem(cat: {
 }): CategoryShowcaseItem {
   return {
     slug: cat.slug,
-    href: `/products?category=${encodeURIComponent(cat.slug)}`,
+    href: `/categories/${encodeURIComponent(cat.slug)}`,
     imageSrc: showcaseImageSrc(cat.slug, cat.imageUrl, cat.updatedAt),
     name: cat.name,
   };

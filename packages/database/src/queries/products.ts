@@ -7,7 +7,7 @@ import {
   brands,
   orderItems,
 } from "../schema";
-import { getBrandBySlug } from "./categories";
+import { getBrandBySlug, getCategoryBySlug } from "./categories";
 
 export async function getProducts(opts?: {
   categoryId?: string;
@@ -53,6 +53,20 @@ export async function getProductsByBrandSlug(
   if (!brand) return [];
   return getProducts({
     brandId: brand.id,
+    limit: opts?.limit ?? 24,
+    offset: opts?.offset ?? 0,
+  });
+}
+
+/** Active storefront products for a category identified by URL slug. */
+export async function getProductsByCategorySlug(
+  categorySlug: string,
+  opts?: { limit?: number; offset?: number }
+) {
+  const category = await getCategoryBySlug(categorySlug);
+  if (!category) return [];
+  return getProducts({
+    categoryId: category.id,
     limit: opts?.limit ?? 24,
     offset: opts?.offset ?? 0,
   });

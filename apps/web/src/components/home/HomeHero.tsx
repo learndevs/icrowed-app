@@ -50,7 +50,7 @@ function PhoneHero() {
         <p className="type-hero-subtitle mt-2 text-zinc-500 whitespace-nowrap">
           Premium Phones. Best Prices in Sri Lanka
         </p>
-        <HeroButtons contactHref="/contact" buyHref="/products?category=phones" />
+        <HeroButtons contactHref="/contact" buyHref="/categories/phones" />
       </div>
 
       {/* iPhone image at bottom */}
@@ -106,7 +106,7 @@ function DroneHero() {
         </p>
         <HeroButtons
           contactHref="/contact"
-          buyHref="/products?category=drones"
+          buyHref="/categories/drones"
           buyVariant="outline-light"
         />
       </div>

@@ -37,17 +37,19 @@ const ACCORDION_SECTIONS = [
     label: "Products",
     links: [
       { label: "All Products", href: "/products" },
-      { label: "Phones", href: "/products?category=phones" },
-      { label: "Earbuds", href: "/products?category=earbuds" },
-      { label: "iPads", href: "/products?category=ipads" },
-      { label: "Macbooks", href: "/products?category=macbooks" },
+      { label: "Phones", href: "/categories/phones" },
+      { label: "Earbuds", href: "/categories/earbuds" },
+      { label: "iPads", href: "/categories/ipads" },
+      { label: "Macbooks", href: "/categories/macbooks" },
     ],
   },
   {
-    label: "Top collection",
+    label: "Locations & Guides",
     links: [
+      { label: "Our Locations", href: "/locations" },
+      { label: "Kandy Shop", href: "/locations/kandy" },
+      { label: "Buying Guides", href: "/guides" },
       { label: "Featured", href: "/products?featured=true" },
-      { label: "Top Selling", href: "/products" },
     ],
   },
 ];

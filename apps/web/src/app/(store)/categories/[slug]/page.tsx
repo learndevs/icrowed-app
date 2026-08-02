@@ -4,13 +4,13 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { ChevronRight } from "lucide-react";
 import {
-  getBrandBySlug,
   getBrands,
   getCategories,
-  getProductsByBrandSlug,
+  getCategoryBySlug,
+  getProductsByCategorySlug,
   getReviewSummariesForProducts,
 } from "@icrowd/database/queries";
-import { ProductsClient } from "../../ProductsClient";
+import { ProductsClient } from "@/app/(store)/products/ProductsClient";
 import { queryStorefront } from "@/lib/storefront-query";
 import { mapProductToCardData } from "@/lib/product-card-map";
 import { absoluteUrl, buildPageMetadata, serializeJsonLd } from "@/lib/seo";
@@ -23,28 +23,32 @@ export const revalidate = 60;
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
-  const brand = await queryStorefront("brand-meta", () => getBrandBySlug(slug)).catch(
+  const category = await queryStorefront("category-meta", () => getCategoryBySlug(slug)).catch(
     () => null,
   );
-  if (!brand) return buildPageMetadata({ title: "Brand", path: `/products/brands/${slug}` });
+  if (!category) {
+    return buildPageMetadata({ title: "Category", path: `/categories/${slug}` });
+  }
   const description =
-    brand.description?.trim() ||
-    `Buy ${brand.name} in Sri Lanka — prices, warranty, island-wide delivery, and pickup in Kandy, Kottawa & Matara at iCrowd.`;
+    category.description?.trim() ||
+    `Shop ${category.name} in Sri Lanka at iCrowd — genuine products, island-wide delivery, and pickup in Kandy, Kottawa & Matara.`;
   return buildPageMetadata({
-    title: `Buy ${brand.name} in Sri Lanka`,
+    title: `${category.name} in Sri Lanka`,
     description,
-    path: `/products/brands/${slug}`,
-    image: brand.logoUrl,
+    path: `/categories/${slug}`,
+    image: category.imageUrl,
   });
 }
 
-export default async function BrandProductsPage({ params }: Props) {
+export default async function CategoryLandingPage({ params }: Props) {
   const { slug } = await params;
-  const brand = await queryStorefront("brand", () => getBrandBySlug(slug));
-  if (!brand) notFound();
+  const category = await queryStorefront("category", () => getCategoryBySlug(slug));
+  if (!category) notFound();
 
   const [dbProducts, brandRows, categoryRows] = await Promise.all([
-    queryStorefront("brand-products", () => getProductsByBrandSlug(slug, { limit: 200 })),
+    queryStorefront("category-products", () =>
+      getProductsByCategorySlug(slug, { limit: 200 }),
+    ),
     queryStorefront("brands", () => getBrands()),
     queryStorefront("categories", () => getCategories()),
   ]);
@@ -70,13 +74,13 @@ export default async function BrandProductsPage({ params }: Props) {
   );
 
   const intro =
-    brand.description?.trim() ||
-    `Shop genuine ${brand.name} products at iCrowd Sri Lanka. Compare prices in LKR, check warranty on each product page, and choose island-wide delivery or pickup in Kandy, Kottawa, and Matara.`;
+    category.description?.trim() ||
+    `Browse ${category.name} at iCrowd Sri Lanka. Island-wide delivery and pickup available in Kandy, Kottawa, and Matara.`;
 
   const itemListJsonLd = {
     "@context": "https://schema.org",
     "@type": "ItemList",
-    name: `${brand.name} products — iCrowd Sri Lanka`,
+    name: `${category.name} — iCrowd Sri Lanka`,
     description: intro,
     numberOfItems: products.length,
     itemListElement: products.slice(0, 30).map((p, index) => ({
@@ -87,11 +91,40 @@ export default async function BrandProductsPage({ params }: Props) {
     })),
   };
 
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: absoluteUrl("/"),
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Categories",
+        item: absoluteUrl("/categories"),
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: category.name,
+        item: absoluteUrl(`/categories/${slug}`),
+      },
+    ],
+  };
+
   return (
     <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(itemListJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbJsonLd) }}
       />
       <div className="bento-bg">
         <div className="max-w-[1400px] mx-auto px-3 sm:px-5 lg:px-8 pt-6">
@@ -100,11 +133,11 @@ export default async function BrandProductsPage({ params }: Props) {
               Home
             </Link>
             <ChevronRight className="w-3 h-3" />
-            <Link href="/products" className="hover:text-gray-700 transition-colors">
-              Products
+            <Link href="/categories" className="hover:text-gray-700 transition-colors">
+              Categories
             </Link>
             <ChevronRight className="w-3 h-3" />
-            <span className="text-gray-700 font-medium">{brand.name}</span>
+            <span className="text-gray-700 font-medium">{category.name}</span>
           </nav>
           <p className="text-sm text-gray-500 max-w-3xl mb-2 leading-relaxed">{intro}</p>
         </div>
@@ -115,8 +148,9 @@ export default async function BrandProductsPage({ params }: Props) {
           brandFilterNames={brandFilterNames}
           brandFilterOptions={brandFilterOptions}
           categoryFilterOptions={categoryFilterOptions}
-          initialBrand={brand.name}
-          listTitle={`Buy ${brand.name} in Sri Lanka`}
+          listTitle={`${category.name} in Sri Lanka`}
+          listDescription={category.highlight?.trim() || undefined}
+          lockCategorySlug={slug}
         />
       </Suspense>
     </>

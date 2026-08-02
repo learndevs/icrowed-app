@@ -19,6 +19,7 @@ export * from "./siteReviews";
 export * from "./shippingRates";
 export * from "./deliveryTypes";
 export * from "./storeSettings";
+export * from "./storeLocations";
 export * from "./notifications";
 export * from "./auditLogs";
 export * from "./emailTemplates";

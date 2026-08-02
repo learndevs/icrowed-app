@@ -16,4 +16,5 @@ export * from "./delivery_types";
 export * from "./audit_logs";
 export * from "./email_templates";
 export * from "./store_settings";
+export * from "./store_locations";
 export * from "./notifications";

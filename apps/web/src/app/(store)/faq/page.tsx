@@ -52,6 +52,21 @@ const FAQS: { question: string; answer: string }[] = [
     answer:
       "Message us on WhatsApp or use our contact page — our team is happy to recommend the right DJI drone, gimbal, Anker charger or power bank for your needs and budget.",
   },
+  {
+    question: "Where are your shops and pickup points?",
+    answer:
+      "We have a full shop in Kandy, plus pickup points in Kottawa and Matara. You can also order for island-wide delivery. See all locations on our Locations page.",
+  },
+  {
+    question: "Can I pick up an order in Kottawa or Matara?",
+    answer:
+      "Yes. Place your order online, choose pickup, and collect at the Kottawa or Matara pickup point. Confirm timing via WhatsApp or the contact page before you visit.",
+  },
+  {
+    question: "Do you sell Anker earbuds and show prices in Sri Lanka?",
+    answer:
+      "Yes. Browse Anker and earbuds on the storefront for live LKR prices. Our buying guides also explain Anker earbuds pricing and pickup options in Sri Lanka.",
+  },
 ];
 
 export default function FaqPage() {
@@ -109,7 +124,16 @@ export default function FaqPage() {
           Still have a question?{" "}
           <Link href="/contact" className="font-semibold text-black underline hover:opacity-70">
             Contact us
-          </Link>{" "}
+          </Link>
+          {" · "}
+          <Link href="/locations" className="font-semibold text-black underline hover:opacity-70">
+            Locations
+          </Link>
+          {" · "}
+          <Link href="/guides" className="font-semibold text-black underline hover:opacity-70">
+            Buying guides
+          </Link>
+          {" "}
           — we usually reply within a few hours.
         </p>
       </section>

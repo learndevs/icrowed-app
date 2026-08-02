@@ -67,6 +67,8 @@ export function ProductsClient({
   products,
   initialBrand,
   listTitle,
+  listDescription,
+  lockCategorySlug,
   brandFilterNames,
   brandFilterOptions = [],
   categoryFilterOptions = [],
@@ -76,6 +78,10 @@ export function ProductsClient({
   initialBrand?: string | null;
   /** Override the main heading (e.g. brand name on `/products/brands/apple`) */
   listTitle?: string;
+  /** Optional subtitle under the product count */
+  listDescription?: string;
+  /** Keep this category selected (category landing pages) */
+  lockCategorySlug?: string;
   /** Active brands from DB — merged into the Brand filter so names always match the catalog */
   brandFilterNames?: readonly string[];
   /** Brands with logos for the catalog brand dropdown */
@@ -135,16 +141,18 @@ export function ProductsClient({
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [page, setPage]             = useState(1);
   const [categorySlug, setCategorySlug] = useState(() =>
-    (searchParams.get("category") ?? "").toLowerCase().trim(),
+    (lockCategorySlug || searchParams.get("category") || "").toLowerCase().trim(),
   );
   const [featuredOnly, setFeaturedOnly] = useState(
     () => searchParams.get("featured") === "true",
   );
 
   useEffect(() => {
-    setCategorySlug((searchParams.get("category") ?? "").toLowerCase().trim());
+    setCategorySlug(
+      (lockCategorySlug || searchParams.get("category") || "").toLowerCase().trim(),
+    );
     setFeaturedOnly(searchParams.get("featured") === "true");
-  }, [searchParams]);
+  }, [searchParams, lockCategorySlug]);
 
   // ── Sync state → URL (skip initial mount) ──────────────────────────────────
   useEffect(() => {
@@ -460,6 +468,9 @@ export function ProductsClient({
               <p className="text-sm text-gray-400 mt-0.5">
                 {filtered.length} {filtered.length === 1 ? "product" : "products"} found
               </p>
+              {listDescription ? (
+                <p className="text-sm text-gray-500 mt-1 max-w-2xl">{listDescription}</p>
+              ) : null}
             </div>
             {/* Mobile filter button */}
             <button

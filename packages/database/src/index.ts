@@ -26,6 +26,16 @@ export {
   type StoreSettingsInput,
 } from "./queries/storeSettings";
 export {
+  getActiveStoreLocations,
+  getAllStoreLocations,
+  getStoreLocationBySlug,
+  getStoreLocationById,
+  createStoreLocation,
+  updateStoreLocation,
+  deleteStoreLocation,
+  ensureDefaultStoreLocations,
+} from "./queries/storeLocations";
+export {
   getOrCreateNotificationPrefs,
   upsertNotificationPrefs,
   parseRecipients,

@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { Suspense } from "react";
 import { ProductsClient } from "./ProductsClient";
-import type { ProductCardData } from "@/components/products/ProductCard";
 import { getBrands, getCategories, getProducts, getReviewSummariesForProducts } from "@icrowd/database/queries";
 import { queryStorefront } from "@/lib/storefront-query";
-import { normalizeProductImageUrl } from "@/lib/product-image-url";
+import { mapProductToCardData } from "@/lib/product-card-map";
 import { buildPageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildPageMetadata({
@@ -16,35 +16,17 @@ export const metadata: Metadata = buildPageMetadata({
 
 export const revalidate = 60;
 
-const CARD_GRADIENTS = [
-  "from-sky-400 to-sky-600",
-  "from-gray-700 to-gray-900",
-  "from-teal-500 to-emerald-600",
-  "from-rose-500 to-red-600",
-  "from-orange-500 to-amber-600",
-  "from-cyan-400 to-sky-600",
-  "from-sky-500 to-cyan-500",
-  "from-pink-500 to-rose-600",
-] as const;
+export default async function ProductsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ category?: string }>;
+}) {
+  const sp = await searchParams;
+  const categorySlug = sp.category?.trim().toLowerCase();
+  if (categorySlug) {
+    redirect(`/categories/${encodeURIComponent(categorySlug)}`);
+  }
 
-function productColor(id: string): string {
-  const hash = id.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
-  return CARD_GRADIENTS[hash % CARD_GRADIENTS.length];
-}
-
-function primaryImageUrl(images: unknown): string | undefined {
-  if (!Array.isArray(images)) return undefined;
-  const rows = images as { url?: string; sortOrder?: number; isPrimary?: boolean }[];
-  const valid = rows.filter((img) => typeof img?.url === "string" && img.url.length > 0);
-  if (valid.length === 0) return undefined;
-  const primary = valid.find((img) => img.isPrimary);
-  if (primary?.url) return normalizeProductImageUrl(primary.url);
-  const sorted = [...valid].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0));
-  const url = sorted[0]?.url;
-  return url ? normalizeProductImageUrl(url) : undefined;
-}
-
-export default async function ProductsPage() {
   const [dbProducts, brandRows, categoryRows] = await Promise.all([
     queryStorefront("products-list", () => getProducts({ limit: 500 })),
     queryStorefront("brands", () => getBrands()),
@@ -64,33 +46,12 @@ export default async function ProductsPage() {
     () => new Map<string, { rating: number; reviewCount: number }>(),
   );
 
-  const products: ProductCardData[] = dbProducts.map((p) => {
-    const row = p as {
-      brand?: { name?: string } | null;
-      brandId?: string | null;
-      category?: { slug?: string } | null;
-    };
-    const brandName =
-      row.brand?.name ?? (row.brandId ? brandById.get(row.brandId) : undefined);
-    const reviewStats = reviewSummaries.get(p.id);
-    return {
-      id: p.id,
-      name: p.name,
-      slug: p.slug,
-      price: Number(p.price),
-      comparePrice: p.comparePrice ? Number(p.comparePrice) : undefined,
-      imageUrl: primaryImageUrl(p.images),
-      stock: p.stock,
-      color: productColor(p.id),
-      badge: p.comparePrice ? "Sale" : undefined,
-      brand: brandName,
-      categorySlug: row.category?.slug,
-      isFeatured: p.isFeatured,
-      rating: reviewStats?.rating ?? 0,
-      reviewCount: reviewStats?.reviewCount ?? 0,
-      warranty: p.warranty ?? null,
-    };
-  });
+  const products = dbProducts.map((p) =>
+    mapProductToCardData(p, {
+      brandById,
+      reviewStats: reviewSummaries.get(p.id),
+    }),
+  );
 
   return (
     <Suspense fallback={<div className="bento-bg min-h-screen" />}>

@@ -74,7 +74,17 @@ export default async function AboutPage() {
               <p>
                 We deliver island-wide, accept convenient payment options
                 including bank deposit, and our support team is a message away
-                on WhatsApp if you need help choosing the right product.
+                on WhatsApp if you need help choosing the right product. Visit
+                our full shop in Kandy, or pick up orders in Kottawa and Matara.
+              </p>
+              <p>
+                <Link href="/locations" className="underline hover:opacity-70 font-medium">
+                  See all locations
+                </Link>
+                {" · "}
+                <Link href="/guides" className="underline hover:opacity-70 font-medium">
+                  Buying guides
+                </Link>
               </p>
             </div>
           </div>
@@ -129,6 +139,19 @@ export default async function AboutPage() {
                 <p>
                   <Link href="/contact" className="underline hover:opacity-70">
                     Contact page
+                  </Link>
+                </p>
+                <p>
+                  <Link href="/locations/kandy" className="underline hover:opacity-70">
+                    Kandy shop
+                  </Link>
+                  {" · "}
+                  <Link href="/locations/kottawa" className="underline hover:opacity-70">
+                    Kottawa
+                  </Link>
+                  {" · "}
+                  <Link href="/locations/matara" className="underline hover:opacity-70">
+                    Matara
                   </Link>
                 </p>
               </div>

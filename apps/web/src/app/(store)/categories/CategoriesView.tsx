@@ -41,7 +41,7 @@ function categoryIcon(slug: string) {
 }
 
 function productsHrefForCategory(name: string) {
-  return `/products?category=${encodeURIComponent(name)}`;
+  return `/categories/${encodeURIComponent(name.toLowerCase().replace(/\s+/g, "-"))}`;
 }
 
 function productsHrefForBrand(name: string) {

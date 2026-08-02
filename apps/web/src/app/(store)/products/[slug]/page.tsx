@@ -24,7 +24,13 @@ import {
 } from "@icrowd/database/queries";
 import { queryStorefront } from "@/lib/storefront-query";
 import { normalizeProductImageUrl } from "@/lib/product-image-url";
-import { absoluteUrl, buildPageMetadata, serializeJsonLd } from "@/lib/seo";
+import {
+  SITE_NAME,
+  absoluteUrl,
+  buildPageMetadata,
+  buildProductSeoCopy,
+  serializeJsonLd,
+} from "@/lib/seo";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -73,6 +79,12 @@ const getProductPageData = cache(async (slug: string) => {
 
   const shortDescription = p.shortDescription ?? "";
   const description = p.description ?? "";
+  const brand = p.brand
+    ? { id: p.brand.id, name: p.brand.name, slug: p.brand.slug }
+    : null;
+  const category = p.category
+    ? { id: p.category.id, name: p.category.name, slug: p.category.slug }
+    : null;
 
   return {
     id: p.id,
@@ -84,6 +96,8 @@ const getProductPageData = cache(async (slug: string) => {
     shortDescription,
     description,
     warranty: p.warranty ?? "",
+    brand,
+    category,
     /** Features for bullet list — short desc first, else legacy full desc */
     featureBullets: shortDescription.trim() || description.trim(),
     showFullDescription: Boolean(
@@ -121,12 +135,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const product = await getProductPageData(slug);
   if (!product) return {};
-  const description =
-    product.shortDescription.trim() ||
-    product.description.trim().slice(0, 160) ||
-    `Buy ${product.name} at iCrowd Sri Lanka.`;
+  const { title, description } = buildProductSeoCopy({
+    name: product.name,
+    brandName: product.brand?.name,
+    categoryName: product.category?.name,
+    price: product.price,
+    shortDescription: product.shortDescription,
+    description: product.description,
+  });
   return buildPageMetadata({
-    title: product.name,
+    title,
     description,
     path: `/products/${slug}`,
     image: primaryProductImage(product.images),
@@ -163,12 +181,25 @@ export default async function ProductDetailPage({ params }: Props) {
     description: productDescription,
     ...(imageUrl ? { image: absoluteUrl(imageUrl) } : {}),
     ...(product.sku ? { sku: product.sku } : {}),
+    ...(product.brand
+      ? { brand: { "@type": "Brand", name: product.brand.name } }
+      : {}),
+    ...(product.category ? { category: product.category.name } : {}),
     offers: {
       "@type": "Offer",
       url: productUrl,
       priceCurrency: "LKR",
       price: product.price.toFixed(2),
       availability: productAvailability(product),
+      seller: {
+        "@type": "Organization",
+        name: SITE_NAME,
+        url: absoluteUrl("/"),
+      },
+      areaServed: {
+        "@type": "Country",
+        name: "Sri Lanka",
+      },
     },
     ...(product.reviewCount > 0
       ? {
@@ -181,29 +212,54 @@ export default async function ProductDetailPage({ params }: Props) {
       : {}),
   };
 
+  const breadcrumbItems: {
+    "@type": "ListItem";
+    position: number;
+    name: string;
+    item: string;
+  }[] = [
+    {
+      "@type": "ListItem",
+      position: 1,
+      name: "Home",
+      item: absoluteUrl("/"),
+    },
+  ];
+
+  if (product.category) {
+    breadcrumbItems.push({
+      "@type": "ListItem",
+      position: breadcrumbItems.length + 1,
+      name: product.category.name,
+      item: absoluteUrl(`/categories/${product.category.slug}`),
+    });
+  } else if (product.brand) {
+    breadcrumbItems.push({
+      "@type": "ListItem",
+      position: breadcrumbItems.length + 1,
+      name: product.brand.name,
+      item: absoluteUrl(`/products/brands/${product.brand.slug}`),
+    });
+  } else {
+    breadcrumbItems.push({
+      "@type": "ListItem",
+      position: 2,
+      name: "Products",
+      item: absoluteUrl("/products"),
+    });
+  }
+
+  breadcrumbItems.push({
+    "@type": "ListItem",
+    position: breadcrumbItems.length + 1,
+    name: product.name,
+    item: productUrl,
+  });
+
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
-    itemListElement: [
-      {
-        "@type": "ListItem",
-        position: 1,
-        name: "Home",
-        item: absoluteUrl("/"),
-      },
-      {
-        "@type": "ListItem",
-        position: 2,
-        name: "Products",
-        item: absoluteUrl("/products"),
-      },
-      {
-        "@type": "ListItem",
-        position: 3,
-        name: product.name,
-        item: productUrl,
-      },
-    ],
+    itemListElement: breadcrumbItems,
   };
 
   return (
@@ -227,8 +283,32 @@ export default async function ProductDetailPage({ params }: Props) {
         <nav className="flex items-center gap-1.5 text-xs text-gray-400 mb-5">
           <Link href="/" className="hover:text-gray-700 transition-colors">Home</Link>
           <ChevronRight className="w-3 h-3" />
-          <Link href="/products" className="hover:text-gray-700 transition-colors">Products</Link>
-          <ChevronRight className="w-3 h-3" />
+          {product.category ? (
+            <>
+              <Link
+                href={`/categories/${product.category.slug}`}
+                className="hover:text-gray-700 transition-colors"
+              >
+                {product.category.name}
+              </Link>
+              <ChevronRight className="w-3 h-3" />
+            </>
+          ) : product.brand ? (
+            <>
+              <Link
+                href={`/products/brands/${product.brand.slug}`}
+                className="hover:text-gray-700 transition-colors"
+              >
+                {product.brand.name}
+              </Link>
+              <ChevronRight className="w-3 h-3" />
+            </>
+          ) : (
+            <>
+              <Link href="/products" className="hover:text-gray-700 transition-colors">Products</Link>
+              <ChevronRight className="w-3 h-3" />
+            </>
+          )}
           <span className="text-gray-700 font-medium line-clamp-1">{product.name}</span>
         </nav>
 
@@ -263,13 +343,25 @@ export default async function ProductDetailPage({ params }: Props) {
                 </div>
               ) : null)}
 
-            {/* Name */}
+            {/* Name + brand */}
             <div>
-              <h1 className="text-2xl sm:text-3xl font-black text-gray-900 leading-tight">
+              {product.brand && (
+                <Link
+                  href={`/products/brands/${product.brand.slug}`}
+                  className="text-xs font-semibold uppercase tracking-wide text-sky-700 hover:text-sky-900"
+                >
+                  {product.brand.name}
+                </Link>
+              )}
+              <h1 className="text-2xl sm:text-3xl font-black text-gray-900 leading-tight mt-1">
                 {product.name}
               </h1>
 
               <ProductRatingSummary />
+
+              <p className="mt-2 text-xs text-gray-500">
+                Price in Sri Lanka · Island-wide delivery · Pickup in Kandy, Kottawa &amp; Matara
+              </p>
             </div>
 
             <ProductDetailClient

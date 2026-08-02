@@ -144,3 +144,56 @@ export function noIndexMetadata(title?: string): Metadata {
 export function serializeJsonLd(data: unknown): string {
   return JSON.stringify(data).replace(/</g, "\\u003c");
 }
+
+/** Format LKR for meta descriptions (no currency symbol quirks in SERP snippets). */
+export function formatLkrForSeo(amount: number): string {
+  return `LKR ${Math.round(amount).toLocaleString("en-LK")}`;
+}
+
+/** Build product title/description for Sri Lanka commercial intent. */
+export function buildProductSeoCopy(opts: {
+  name: string;
+  brandName?: string | null;
+  categoryName?: string | null;
+  price: number;
+  shortDescription?: string | null;
+  description?: string | null;
+}): { title: string; description: string } {
+  const title = `${opts.name} Price in Sri Lanka`;
+  const priceLabel = formatLkrForSeo(opts.price);
+  const brandBit = opts.brandName?.trim() ? `${opts.brandName.trim()} ` : "";
+  const categoryBit = opts.categoryName?.trim()
+    ? ` ${opts.categoryName.trim().toLowerCase()}`
+    : " product";
+  const base =
+    opts.shortDescription?.trim() ||
+    opts.description?.trim().slice(0, 120) ||
+    `Buy genuine ${brandBit}${opts.name}${categoryBit} at iCrowd.`;
+  const description = `${base} ${priceLabel}. Island-wide delivery · Pickup in Kandy, Kottawa & Matara.`
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 320);
+  return { title, description };
+}
+
+/** Collect absolute social profile URLs for Organization/LocalBusiness sameAs. */
+export function socialSameAs(social?: {
+  facebook?: string;
+  instagram?: string;
+  twitter?: string;
+  tiktok?: string;
+  youtube?: string;
+  whatsapp?: string;
+} | null): string[] {
+  if (!social) return [];
+  const urls = [
+    social.facebook,
+    social.instagram,
+    social.twitter,
+    social.tiktok,
+    social.youtube,
+  ];
+  return urls
+    .map((u) => u?.trim())
+    .filter((u): u is string => Boolean(u && /^https?:\/\//i.test(u)));
+}

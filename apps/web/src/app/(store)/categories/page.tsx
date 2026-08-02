@@ -5,9 +5,9 @@ import { queryStorefront } from "@/lib/storefront-query";
 import { buildPageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildPageMetadata({
-  title: "Categories",
+  title: "Product Categories in Sri Lanka",
   description:
-    "Explore phone and accessory categories at iCrowd — cases, chargers, audio, and more.",
+    "Explore iPhone, earbuds, Anker chargers, DJI drones and more at iCrowd Sri Lanka — island-wide delivery and pickup in Kandy, Kottawa & Matara.",
   path: "/categories",
 });
 

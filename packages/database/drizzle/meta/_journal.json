@@ -15,6 +15,13 @@
       "when": 1778250000000,
       "tag": "0001_offer_instagram_url",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1778251000000,
+      "tag": "0002_seo_locations_brand_desc",
+      "breakpoints": true
     }
   ]
 }

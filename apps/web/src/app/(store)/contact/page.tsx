@@ -1,10 +1,16 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import {
+  ensureDefaultStoreLocations,
+  getActiveStoreLocations,
+} from "@icrowd/database";
 import { getStorefrontContactInfoSafe } from "@/lib/contact-page.server";
 import {
   ContactDetails,
   ContactSocialLinks,
   whatsappLink,
 } from "@/components/contact/ContactDetails";
+import { queryStorefront } from "@/lib/storefront-query";
 import { buildPageMetadata } from "@/lib/seo";
 
 export const revalidate = 60;
@@ -26,7 +32,13 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function ContactPage() {
-  const info = await getStorefrontContactInfoSafe();
+  const [info, locations] = await Promise.all([
+    getStorefrontContactInfoSafe(),
+    queryStorefront("contact-locations", async () => {
+      await ensureDefaultStoreLocations().catch(() => null);
+      return getActiveStoreLocations();
+    }).catch(() => []),
+  ]);
   const waHref = whatsappLink(info.social.whatsapp);
   const heading = info.heading?.trim() || "Contact Us";
 
@@ -54,6 +66,7 @@ export default async function ContactPage() {
             </h2>
             <p className="mt-3 text-sm text-zinc-600 leading-relaxed">
               Connect with us on social media for updates, offers, and support.
+              Keep the same business name, phone, and addresses as on Google Business.
             </p>
             <ContactSocialLinks
               info={info}
@@ -91,6 +104,30 @@ export default async function ContactPage() {
               labelClass={LABEL_CLASS}
               valueClass={VALUE_CLASS}
             />
+
+            {locations.length > 0 ? (
+              <div className="mt-10">
+                <h2 className="text-sm font-semibold uppercase tracking-widest text-black">
+                  Shop & pickup
+                </h2>
+                <ul className="mt-4 space-y-2">
+                  {locations.map((loc) => (
+                    <li key={loc.id}>
+                      <Link
+                        href={`/locations/${loc.slug}`}
+                        className="text-sm font-medium text-sky-700 hover:underline"
+                      >
+                        {loc.name}
+                        <span className="text-zinc-500 font-normal">
+                          {" "}
+                          — {loc.type === "store" ? "shop" : "pickup"} in {loc.city}
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
           </div>
         </div>
       </section>

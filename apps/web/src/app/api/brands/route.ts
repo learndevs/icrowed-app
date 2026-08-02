@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { name, slug: slugInput, logoUrl, isActive } = body;
+    const { name, slug: slugInput, logoUrl, description, isActive } = body;
 
     if (!name) {
       return NextResponse.json({ error: "name is required" }, { status: 400 });
@@ -41,6 +41,10 @@ export async function POST(req: NextRequest) {
       name,
       slug,
       logoUrl: logoUrl ?? null,
+      description:
+        typeof description === "string" && description.trim()
+          ? description.trim()
+          : null,
       isActive: isActive ?? true,
     });
 

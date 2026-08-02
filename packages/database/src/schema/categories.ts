@@ -32,6 +32,8 @@ export const brands = pgTable("brands", {
   name: varchar("name", { length: 100 }).notNull(),
   slug: varchar("slug", { length: 100 }).notNull().unique(),
   logoUrl: text("logo_url"),
+  /** Storefront / SEO intro copy for brand hub pages */
+  description: text("description"),
   isActive: boolean("is_active").default(true).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });

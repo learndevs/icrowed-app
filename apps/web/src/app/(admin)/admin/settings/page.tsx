@@ -17,6 +17,7 @@ import { PoliciesTab } from "./tabs/PoliciesTab";
 import { NotificationsTab } from "./tabs/NotificationsTab";
 import { BankDetailsTab } from "./tabs/BankDetailsTab";
 import { PaymentTab } from "./tabs/PaymentTab";
+import { LocationsTab } from "./tabs/LocationsTab";
 import { parseBankDetails } from "@/lib/bank-details";
 
 export const dynamic = "force-dynamic";
@@ -24,6 +25,7 @@ export const dynamic = "force-dynamic";
 const TABS = [
   { key: "store", label: "Store Info" },
   { key: "contact", label: "Contact Page" },
+  { key: "locations", label: "Locations" },
   { key: "shipping", label: "Shipping" },
   { key: "tax", label: "Tax" },
   { key: "policies", label: "Policies" },
@@ -85,6 +87,7 @@ export default async function AdminSettingsPage({
       <div className="max-w-3xl">
         {active === "store" && <StoreInfoTab initial={store} />}
         {active === "contact" && <ContactTab initial={store} />}
+        {active === "locations" && <LocationsTab />}
         {active === "shipping" && (
           <ShippingTab
             initialFreeShippingMin={Number(shipping.freeShippingMinSubtotal)}

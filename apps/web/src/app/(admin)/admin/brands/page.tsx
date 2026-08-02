@@ -22,16 +22,18 @@ interface Brand {
   name: string;
   slug: string;
   logoUrl: string | null;
+  description: string | null;
   isActive: boolean;
 }
 
 interface FormState {
   name: string;
   logoUrl: string;
+  description: string;
   isActive: boolean;
 }
 
-const EMPTY: FormState = { name: "", logoUrl: "", isActive: true };
+const EMPTY: FormState = { name: "", logoUrl: "", description: "", isActive: true };
 
 /* ─── Shared input style (matches product pages) ── */
 const INPUT =
@@ -110,6 +112,20 @@ function BrandForm({
         <p className="mt-1.5 text-xs text-gray-400">Paste a direct image URL. Leave blank if no logo.</p>
       </div>
 
+      {/* SEO / storefront description */}
+      <div>
+        <FieldLabel>Brand description (SEO)</FieldLabel>
+        <textarea
+          className={cn(INPUT, "h-24 py-3 resize-none")}
+          placeholder="Buy Anker in Sri Lanka — chargers, power banks, earbuds…"
+          value={form.description}
+          onChange={(e) => onChange({ ...form, description: e.target.value })}
+        />
+        <p className="mt-1.5 text-xs text-gray-400">
+          Shown on the brand hub page and used in meta description.
+        </p>
+      </div>
+
       {/* Active toggle */}
       <div className="flex items-center justify-between p-4 rounded-xl bg-gray-50 border border-gray-100">
         <div>
@@ -185,6 +201,7 @@ export default function AdminBrandsPage() {
         body: JSON.stringify({
           name: addForm.name,
           logoUrl: addForm.logoUrl || null,
+          description: addForm.description || null,
           isActive: addForm.isActive,
         }),
       });
@@ -211,6 +228,7 @@ export default function AdminBrandsPage() {
         body: JSON.stringify({
           name: editForm.name,
           logoUrl: editForm.logoUrl || null,
+          description: editForm.description || null,
           isActive: editForm.isActive,
         }),
       });
@@ -334,7 +352,12 @@ export default function AdminBrandsPage() {
                         <button
                           onClick={() => {
                             setEditingBrand(brand);
-                            setEditForm({ name: brand.name, logoUrl: brand.logoUrl ?? "", isActive: brand.isActive });
+                            setEditForm({
+                              name: brand.name,
+                              logoUrl: brand.logoUrl ?? "",
+                              description: brand.description ?? "",
+                              isActive: brand.isActive,
+                            });
                             setError(null);
                           }}
                           className="h-8 px-3 rounded-lg border border-gray-200 text-xs font-medium text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-colors flex items-center gap-1.5"
