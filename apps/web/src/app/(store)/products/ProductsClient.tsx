@@ -67,7 +67,6 @@ export function ProductsClient({
   products,
   initialBrand,
   listTitle,
-  listDescription,
   lockCategorySlug,
   brandFilterNames,
   brandFilterOptions = [],
@@ -78,8 +77,6 @@ export function ProductsClient({
   initialBrand?: string | null;
   /** Override the main heading (e.g. brand name on `/products/brands/apple`) */
   listTitle?: string;
-  /** Optional subtitle under the product count */
-  listDescription?: string;
   /** Keep this category selected (category landing pages) */
   lockCategorySlug?: string;
   /** Active brands from DB — merged into the Brand filter so names always match the catalog */
@@ -468,9 +465,6 @@ export function ProductsClient({
               <p className="text-sm text-gray-400 mt-0.5">
                 {filtered.length} {filtered.length === 1 ? "product" : "products"} found
               </p>
-              {listDescription ? (
-                <p className="text-sm text-gray-500 mt-1 max-w-2xl">{listDescription}</p>
-              ) : null}
             </div>
             {/* Mobile filter button */}
             <button

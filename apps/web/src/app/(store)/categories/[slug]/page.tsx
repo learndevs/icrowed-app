@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
-import { ChevronRight } from "lucide-react";
 import {
   getBrands,
   getCategories,
@@ -126,30 +124,13 @@ export default async function CategoryLandingPage({ params }: Props) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: serializeJsonLd(breadcrumbJsonLd) }}
       />
-      <div className="bento-bg">
-        <div className="max-w-[1400px] mx-auto px-3 sm:px-5 lg:px-8 pt-6">
-          <nav className="flex items-center gap-1.5 text-xs text-gray-400 mb-3">
-            <Link href="/" className="hover:text-gray-700 transition-colors">
-              Home
-            </Link>
-            <ChevronRight className="w-3 h-3" />
-            <Link href="/categories" className="hover:text-gray-700 transition-colors">
-              Categories
-            </Link>
-            <ChevronRight className="w-3 h-3" />
-            <span className="text-gray-700 font-medium">{category.name}</span>
-          </nav>
-          <p className="text-sm text-gray-500 max-w-3xl mb-2 leading-relaxed">{intro}</p>
-        </div>
-      </div>
       <Suspense fallback={<div className="bento-bg min-h-screen" />}>
         <ProductsClient
           products={products}
           brandFilterNames={brandFilterNames}
           brandFilterOptions={brandFilterOptions}
           categoryFilterOptions={categoryFilterOptions}
-          listTitle={`${category.name} in Sri Lanka`}
-          listDescription={category.highlight?.trim() || undefined}
+          listTitle={category.name}
           lockCategorySlug={slug}
         />
       </Suspense>
