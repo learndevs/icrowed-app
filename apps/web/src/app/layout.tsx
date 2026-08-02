@@ -6,11 +6,11 @@ import { WishlistProvider } from "@/context/WishlistContext";
 import { clientEnv } from "@icrowd/env";
 import {
   DEFAULT_DESCRIPTION,
-  DEFAULT_FAVICON_PATH,
   DEFAULT_KEYWORDS,
   DEFAULT_TITLE,
   SITE_NAME,
   absoluteUrl,
+  buildIconsMetadata,
   siteUrl,
 } from "@/lib/seo";
 import { GoogleAnalytics } from "@/components/analytics/GoogleAnalytics";
@@ -60,11 +60,7 @@ export const metadata: Metadata = {
     title: DEFAULT_TITLE,
     description: DEFAULT_DESCRIPTION,
   },
-  icons: {
-    icon: [{ url: DEFAULT_FAVICON_PATH, type: "image/svg+xml" }],
-    shortcut: [{ url: DEFAULT_FAVICON_PATH }],
-    apple: [{ url: DEFAULT_FAVICON_PATH }],
-  },
+  icons: buildIconsMetadata(),
   ...(googleVerification
     ? { verification: { google: googleVerification } }
     : {}),

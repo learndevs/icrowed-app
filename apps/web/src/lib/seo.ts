@@ -2,8 +2,11 @@ import type { Metadata } from "next";
 import { clientEnv } from "@icrowd/env";
 
 export const SITE_NAME = "iCrowd";
-/** iCrowd mark (three “i” figures) — used for browser tab icon. */
-export const DEFAULT_FAVICON_PATH = "/icrowd-logo.svg";
+/** Square PNG (≥48px) — preferred by Google Search favicon crawl. */
+export const DEFAULT_FAVICON_PATH = "/icrowd-favicon.png";
+/** SVG brand mark — sharp in browser tabs. */
+export const DEFAULT_FAVICON_SVG_PATH = "/icrowd-logo.svg";
+export const DEFAULT_APPLE_TOUCH_ICON_PATH = "/apple-touch-icon.png";
 export const DEFAULT_TITLE =
   "iCrowd — Apple iPhones, Anker & DJI Products in Sri Lanka";
 export const DEFAULT_DESCRIPTION =
@@ -32,6 +35,56 @@ export function absoluteUrl(path: string): string {
   if (!trimmed) return siteUrl().toString();
   if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) return trimmed;
   return new URL(trimmed.startsWith("/") ? trimmed : `/${trimmed}`, siteUrl()).toString();
+}
+
+function iconMimeType(url: string): string | undefined {
+  const lower = url.toLowerCase();
+  if (lower.endsWith(".svg")) return "image/svg+xml";
+  if (lower.endsWith(".png")) return "image/png";
+  if (lower.endsWith(".ico")) return "image/x-icon";
+  if (lower.endsWith(".webp")) return "image/webp";
+  return undefined;
+}
+
+/** Default / overridden favicon set for `<link rel="icon">` metadata. */
+export function buildIconsMetadata(faviconUrl?: string | null): NonNullable<Metadata["icons"]> {
+  const custom = faviconUrl?.trim();
+  if (custom) {
+    const url = absoluteUrl(custom);
+    const type = iconMimeType(custom);
+    return {
+      icon: [{ url, ...(type ? { type } : {}) }],
+      shortcut: [{ url }],
+      apple: [{ url }],
+    };
+  }
+
+  return {
+    icon: [
+      {
+        url: absoluteUrl(DEFAULT_FAVICON_PATH),
+        sizes: "192x192",
+        type: "image/png",
+      },
+      {
+        url: absoluteUrl("/icrowd-favicon-96.png"),
+        sizes: "96x96",
+        type: "image/png",
+      },
+      {
+        url: absoluteUrl(DEFAULT_FAVICON_SVG_PATH),
+        type: "image/svg+xml",
+      },
+    ],
+    shortcut: [{ url: absoluteUrl(DEFAULT_FAVICON_PATH) }],
+    apple: [
+      {
+        url: absoluteUrl(DEFAULT_APPLE_TOUCH_ICON_PATH),
+        sizes: "180x180",
+        type: "image/png",
+      },
+    ],
+  };
 }
 
 type BuildPageMetadataOpts = {

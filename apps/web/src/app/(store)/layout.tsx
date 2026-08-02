@@ -4,7 +4,7 @@ import Footer from "@/components/layout/Footer";
 import { getStorefrontContactInfoSafe } from "@/lib/contact-page.server";
 import { getOrCreateStoreSettings } from "@icrowd/database";
 import { queryStorefront } from "@/lib/storefront-query";
-import { DEFAULT_FAVICON_PATH, SITE_NAME, absoluteUrl } from "@/lib/seo";
+import { SITE_NAME, absoluteUrl, buildIconsMetadata } from "@/lib/seo";
 import { ReactNode } from "react";
 
 /** ISR: cache footer contact + shell for 60s (Next.js requires a literal here). */
@@ -22,22 +22,7 @@ export async function generateMetadata(): Promise<Metadata> {
           ? { images: [{ url: absoluteUrl(settings.logoUrl) }] }
           : {}),
       },
-      icons: {
-        icon: [
-          {
-            url: absoluteUrl(settings.faviconUrl?.trim() || DEFAULT_FAVICON_PATH),
-            type: settings.faviconUrl?.trim()?.endsWith(".svg")
-              ? "image/svg+xml"
-              : undefined,
-          },
-        ],
-        shortcut: [
-          { url: absoluteUrl(settings.faviconUrl?.trim() || DEFAULT_FAVICON_PATH) },
-        ],
-        apple: [
-          { url: absoluteUrl(settings.faviconUrl?.trim() || DEFAULT_FAVICON_PATH) },
-        ],
-      },
+      icons: buildIconsMetadata(settings.faviconUrl),
     };
   } catch {
     return {};
