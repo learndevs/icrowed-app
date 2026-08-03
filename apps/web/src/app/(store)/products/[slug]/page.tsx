@@ -31,6 +31,8 @@ import {
   buildProductSeoCopy,
   serializeJsonLd,
 } from "@/lib/seo";
+import { buildProductTagChips, formatFreshDate, formatLkr } from "@/lib/price-list";
+import { TagChips } from "@/components/seo/TagChips";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -93,6 +95,8 @@ const getProductPageData = cache(async (slug: string) => {
     sku: p.sku ?? "",
     price: Number(p.price),
     stock: p.stock,
+    updatedAt: p.updatedAt,
+    tags: p.tags ?? [],
     shortDescription,
     description,
     warranty: p.warranty ?? "",
@@ -362,6 +366,10 @@ export default async function ProductDetailPage({ params }: Props) {
               <p className="mt-2 text-xs text-gray-500">
                 Price in Sri Lanka · Island-wide delivery · Pickup in Kandy, Kottawa &amp; Matara
               </p>
+              <p className="mt-1 text-xs text-gray-400">
+                {product.name} is available in Sri Lanka for {formatLkr(product.price)}, updated
+                on {formatFreshDate(product.updatedAt)}.
+              </p>
             </div>
 
             <ProductDetailClient
@@ -394,6 +402,14 @@ export default async function ProductDetailPage({ params }: Props) {
             {product.warranty.trim() && (
               <ProductWarranty text={product.warranty} />
             )}
+
+            <TagChips
+              tags={buildProductTagChips({
+                tags: product.tags,
+                brand: product.brand,
+                category: product.category,
+              })}
+            />
           </div>
         </div>
 

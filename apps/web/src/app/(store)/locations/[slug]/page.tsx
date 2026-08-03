@@ -8,6 +8,11 @@ import {
   getOrCreateStoreSettings,
   getStoreLocationBySlug,
 } from "@icrowd/database";
+import {
+  getProductsByCategorySlug,
+  getProductsByBrandSlug,
+  getTopSellingProducts,
+} from "@icrowd/database/queries";
 import { getStorefrontContactInfoSafe } from "@/lib/contact-page.server";
 import { queryStorefront } from "@/lib/storefront-query";
 import {
@@ -17,6 +22,8 @@ import {
   socialSameAs,
   SITE_NAME,
 } from "@/lib/seo";
+import { buildPriceListData } from "@/lib/price-list";
+import { PriceListBlock } from "@/components/seo/PriceListBlock";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -29,6 +36,31 @@ const CITY_TITLE: Record<string, string> = {
   kottawa: "Anker Pickup in Kottawa",
   matara: "Earbuds & Anker Pickup Matara",
 };
+
+/** Product lines highlighted per location — feeds the on-page mini price list. */
+const LOCATION_PRODUCT_SOURCES: Record<
+  string,
+  { categorySlug?: string; brandSlug?: string }[]
+> = {
+  kandy: [{ categorySlug: "phones" }, { categorySlug: "earbuds" }],
+  kottawa: [{ brandSlug: "anker" }],
+  matara: [{ categorySlug: "earbuds" }],
+};
+
+async function getLocationProducts(slug: string) {
+  const sources = LOCATION_PRODUCT_SOURCES[slug] ?? [];
+  const results = await Promise.all(
+    sources.map((src) =>
+      src.categorySlug
+        ? getProductsByCategorySlug(src.categorySlug, { limit: 20 })
+        : src.brandSlug
+          ? getProductsByBrandSlug(src.brandSlug, { limit: 20 })
+          : Promise.resolve([]),
+    ),
+  );
+  const merged = results.flat();
+  return merged.length > 0 ? merged : getTopSellingProducts();
+}
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
@@ -59,7 +91,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function LocationDetailPage({ params }: Props) {
   const { slug } = await params;
-  const [location, allLocations, contactInfo, settings] = await Promise.all([
+  const [location, allLocations, contactInfo, settings, locationProducts] = await Promise.all([
     queryStorefront("location", async () => {
       await ensureDefaultStoreLocations().catch(() => null);
       return getStoreLocationBySlug(slug);
@@ -67,9 +99,12 @@ export default async function LocationDetailPage({ params }: Props) {
     queryStorefront("locations-all", () => getActiveStoreLocations()).catch(() => []),
     getStorefrontContactInfoSafe(),
     queryStorefront("location-settings", () => getOrCreateStoreSettings()).catch(() => null),
+    queryStorefront("location-products", () => getLocationProducts(slug)).catch(() => []),
   ]);
 
   if (!location) notFound();
+
+  const priceList = buildPriceListData(locationProducts, { limit: 8 });
 
   const social = (settings?.socialLinks ?? {}) as Record<string, string>;
   const sameAs = socialSameAs({
@@ -207,6 +242,13 @@ export default async function LocationDetailPage({ params }: Props) {
               ? `Browse iPhones, Anker chargers & power banks, DJI drones, earbuds and more at our ${location.city} shop — or order online for delivery.`
               : `Order online and pick up in ${location.city}, or choose island-wide delivery.`}
           </p>
+          {priceList ? (
+            <PriceListBlock
+              heading={`Prices in ${location.city}`}
+              priceList={priceList}
+              note={`Same price whether you buy online, in-store, or for ${location.city} pickup.`}
+            />
+          ) : null}
           <div className="flex flex-wrap gap-2">
             <Link
               href="/categories/phones"

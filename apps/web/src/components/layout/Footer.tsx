@@ -38,6 +38,7 @@ const ACCORDION_SECTIONS = [
     links: [
       { label: "All Products", href: "/products" },
       { label: "Phones", href: "/categories/phones" },
+      { label: "iPhone Prices", href: "/iphone-price-sri-lanka" },
       { label: "Earbuds", href: "/categories/earbuds" },
       { label: "iPads", href: "/categories/ipads" },
       { label: "Macbooks", href: "/categories/macbooks" },

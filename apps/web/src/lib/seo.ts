@@ -176,6 +176,19 @@ export function buildProductSeoCopy(opts: {
   return { title, description };
 }
 
+/** FAQPage JSON-LD for a small on-page Q&A block (People-Also-Ask style). */
+export function buildFaqJsonLd(faqs: { question: string; answer: string }[]): Record<string, unknown> {
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((faq) => ({
+      "@type": "Question",
+      name: faq.question,
+      acceptedAnswer: { "@type": "Answer", text: faq.answer },
+    })),
+  };
+}
+
 /** Collect absolute social profile URLs for Organization/LocalBusiness sameAs. */
 export function socialSameAs(social?: {
   facebook?: string;

@@ -51,6 +51,12 @@ function PhoneHero() {
           Premium Phones. Best Prices in Sri Lanka
         </p>
         <HeroButtons contactHref="/contact" buyHref="/categories/phones" />
+        <Link
+          href="/iphone-price-sri-lanka"
+          className="mt-3 text-xs font-medium text-zinc-500 underline hover:text-zinc-800"
+        >
+          See iPhone prices in Sri Lanka
+        </Link>
       </div>
 
       {/* iPhone image at bottom */}
