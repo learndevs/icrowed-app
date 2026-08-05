@@ -243,7 +243,7 @@ function FooterBottom({
 
 export default function Footer({ contactInfo }: { contactInfo: StoreContactInfo }) {
   return (
-    <footer className="mt-6 bg-[#E6E6E6]" style={{ fontFamily: inter.style.fontFamily }}>
+    <footer className="bg-[#E6E6E6]" style={{ fontFamily: inter.style.fontFamily }}>
       <div className="mx-auto max-w-[1400px] px-4 pb-10 pt-8 sm:px-5 lg:px-8">
 
         {/* ── Mobile ─────────────────────────────────────────────────── */}
