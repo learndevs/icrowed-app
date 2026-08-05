@@ -54,13 +54,23 @@ export function CategoryShowcaseGrid({ items }: Readonly<{ items: CategoryShowca
         <Link
           key={cat.slug}
           href={cat.href}
-          className="group flex flex-col items-center rounded-[10px] bg-[#E6E6E6] p-6 sm:p-8 text-center transition-opacity hover:opacity-95"
+          className="group relative flex flex-col items-center overflow-hidden rounded-[10px] bg-[#E6E6E6] p-6 sm:p-8 text-center transition-[box-shadow,transform] duration-300 hover:shadow-[0_0_28px_rgba(255,255,255,0.85),0_0_56px_rgba(147,197,253,0.45)] hover:-translate-y-0.5"
         >
-          <p className="mb-5 sm:mb-7 w-full text-sm sm:text-base font-bold uppercase tracking-wide text-[#333333] leading-snug line-clamp-2">
+          {/* Soft glow bloom on hover — CSS only, no assets */}
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+            style={{
+              background:
+                "radial-gradient(ellipse 70% 55% at 50% 58%, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0.35) 35%, rgba(255,255,255,0) 70%)",
+            }}
+          />
+
+          <p className="relative z-[1] mb-5 sm:mb-7 w-full text-sm sm:text-base font-bold uppercase tracking-wide text-[#333333] leading-snug line-clamp-2">
             {cat.name}
           </p>
 
-          <div className="relative w-full min-h-[9rem] sm:min-h-[11rem] lg:min-h-[12.5rem] flex-1">
+          <div className="relative z-[1] w-full min-h-[9rem] sm:min-h-[11rem] lg:min-h-[12.5rem] flex-1">
             <Image
               src={cat.imageSrc}
               alt={cat.name}
