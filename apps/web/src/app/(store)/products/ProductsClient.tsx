@@ -196,7 +196,7 @@ export function ProductsClient({
 
   const activeCount =
     filters.brands.length +
-    (categorySlug ? 1 : 0) +
+    (categorySlug && !(lockCategorySlug ?? "").toLowerCase().trim() ? 1 : 0) +
     (featuredOnly ? 1 : 0) +
     (filters.minPrice ? 1 : 0) +
     (filters.maxPrice ? 1 : 0) +
@@ -225,16 +225,23 @@ export function ProductsClient({
     resetPage();
   }
 
-  function toggleCategory(slug: string) {
-    setCategorySlug((current) => (current === slug ? "" : slug));
-    resetPage();
+  function selectCategory(slug: string) {
+    const locked = (lockCategorySlug ?? "").toLowerCase().trim();
+    if (locked && locked === slug) return;
+    // Category landings are server-scoped; navigate instead of client-only toggle.
+    router.push(`/categories/${encodeURIComponent(slug)}`);
   }
 
+  const lockedCategory = (lockCategorySlug ?? "").toLowerCase().trim();
   const activeCategoryName = categoryFilterOptions.find(
     (c) => c.slug.toLowerCase() === categorySlug,
   )?.name;
 
   function clearFilters() {
+    if (lockedCategory) {
+      router.push("/products");
+      return;
+    }
     setFilters(DEFAULT_FILTERS);
     setSearch("");
     setCategorySlug("");
@@ -250,7 +257,7 @@ export function ProductsClient({
           onRemove: () => { setFeaturedOnly(false); resetPage(); },
         }]
       : []),
-    ...(categorySlug
+    ...(categorySlug && !lockedCategory
       ? [{
           label: `Category: ${activeCategoryName ?? categorySlug}`,
           onRemove: () => { setCategorySlug(""); resetPage(); },
@@ -302,7 +309,6 @@ export function ProductsClient({
                         ? "bg-sky-600 border-sky-600"
                         : "border-gray-300 group-hover:border-sky-400"
                     }`}
-                    onClick={() => toggleCategory(slug)}
                   >
                     {active && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
                   </div>
@@ -311,7 +317,7 @@ export function ProductsClient({
                     className="sr-only"
                     name="category-filter"
                     checked={active}
-                    onChange={() => toggleCategory(slug)}
+                    onChange={() => selectCategory(slug)}
                   />
                   <span className={`text-sm transition-colors ${active ? "text-gray-900 font-semibold" : "text-gray-600 group-hover:text-gray-900"}`}>
                     {category.name}
@@ -335,7 +341,6 @@ export function ProductsClient({
                     ? "bg-sky-600 border-sky-600"
                     : "border-gray-300 group-hover:border-sky-400"
                 }`}
-                onClick={() => toggleBrand(brand)}
               >
                 {filters.brands.includes(brand) && (
                   <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 10 8" fill="none">

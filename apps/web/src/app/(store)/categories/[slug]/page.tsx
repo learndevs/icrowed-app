@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import {
@@ -13,11 +12,7 @@ import { ProductsClient } from "@/app/(store)/products/ProductsClient";
 import { queryStorefront } from "@/lib/storefront-query";
 import { mapProductToCardData } from "@/lib/product-card-map";
 import { absoluteUrl, buildFaqJsonLd, buildPageMetadata, serializeJsonLd } from "@/lib/seo";
-import { buildBudgetTiers, buildListingTagChips, buildPriceListData, formatLkr } from "@/lib/price-list";
-import { PriceListBlock } from "@/components/seo/PriceListBlock";
-import { BudgetShelf } from "@/components/seo/BudgetShelf";
-import { SeoFaqBlock } from "@/components/seo/SeoFaqBlock";
-import { TagChips } from "@/components/seo/TagChips";
+import { buildPriceListData, formatLkr } from "@/lib/price-list";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -66,10 +61,6 @@ export default async function CategoryLandingPage({ params }: Props) {
   const categoryFilterOptions = categoryRows.map((c) => ({ slug: c.slug, name: c.name }));
   const brandById = new Map(brandRows.map((b) => [b.id, b.name]));
 
-  const brandsInCategory = brandRows.filter((b) =>
-    dbProducts.some((p) => p.brandId === b.id),
-  );
-
   const reviewSummaries = await getReviewSummariesForProducts(dbProducts.map((p) => p.id)).catch(
     () => new Map<string, { rating: number; reviewCount: number }>(),
   );
@@ -86,7 +77,6 @@ export default async function CategoryLandingPage({ params }: Props) {
     `Browse ${category.name} at iCrowd Sri Lanka. Island-wide delivery and pickup available in Kandy, Kottawa, and Matara.`;
 
   const priceList = buildPriceListData(dbProducts);
-  const budgetTiers = buildBudgetTiers(dbProducts.map((p) => Number(p.price)));
   const faqs = priceList
     ? [
         {
@@ -169,37 +159,6 @@ export default async function CategoryLandingPage({ params }: Props) {
           lockCategorySlug={slug}
         />
       </Suspense>
-      <div className="bento-bg">
-        <div className="max-w-350 mx-auto px-3 pb-10 sm:px-5 lg:px-8">
-          <p className="mb-6 max-w-3xl text-sm leading-relaxed text-zinc-600">
-            {intro}
-            {slug === "phones" ? (
-              <>
-                {" "}
-                See our dedicated{" "}
-                <Link href="/iphone-price-sri-lanka" className="font-medium text-black underline hover:opacity-70">
-                  iPhone price guide
-                </Link>{" "}
-                for detailed buying advice.
-              </>
-            ) : null}
-          </p>
-          {priceList ? (
-            <PriceListBlock heading={`${category.name} Price List in Sri Lanka`} priceList={priceList} />
-          ) : null}
-          <BudgetShelf tiers={budgetTiers} basePath={`/categories/${slug}`} />
-          <SeoFaqBlock faqs={faqs} />
-          <TagChips
-            tags={buildListingTagChips({
-              listingName: category.name,
-              related: brandsInCategory.map((b) => ({
-                label: `${b.name} ${category.name}`,
-                href: `/products/brands/${b.slug}`,
-              })),
-            })}
-          />
-        </div>
-      </div>
     </>
   );
 }
