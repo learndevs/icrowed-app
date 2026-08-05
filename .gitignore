@@ -36,8 +36,10 @@ yarn-error.log*
 *.swp
 *.swo
 
-# User uploads on VPS (never commit product/offer images)
+# User uploads on VPS (never commit product/offer/bank-slip images)
 apps/web/public/uploads/products/*
 !apps/web/public/uploads/products/.gitkeep
 apps/web/public/uploads/offers/*
 !apps/web/public/uploads/offers/.gitkeep
+apps/web/public/uploads/bank-slips/*
+!apps/web/public/uploads/bank-slips/.gitkeep
