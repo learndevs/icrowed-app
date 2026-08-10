@@ -28,7 +28,7 @@ export async function generateMetadata(): Promise<Metadata> {
   return buildPageMetadata({
     title: `iPhone Price in Sri Lanka — ${monthYear}`,
     description:
-      "Current iPhone prices in Sri Lanka at iCrowd — genuine Apple iPhones with island-wide delivery and a full shop in Kandy. Updated pricing, storage options and warranty.",
+      "Current iPhone price in Sri Lanka at iCrowd — iPhone 17 Pro Max, iPhone 16 Pro Max, iPhone 17 and more with live LKR pricing. Genuine Apple, island-wide delivery, and an iPhone shop in Kandy.",
     path: PATH,
   });
 }
@@ -247,10 +247,10 @@ export default async function IphonePriceSriLankaPage() {
               Apple brand page
             </Link>
             <Link
-              href="/guides/iphone-price-sri-lanka"
+              href="/guides/iphone-17-price-sri-lanka-update"
               className="rounded-full border border-zinc-300 bg-white px-4 py-2 text-sm font-medium hover:bg-zinc-50"
             >
-              iPhone buying guide
+              iPhone 17 price update
             </Link>
             <Link
               href="/guides/buy-iphone-kandy"

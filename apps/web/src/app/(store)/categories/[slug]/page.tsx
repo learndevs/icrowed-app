@@ -30,9 +30,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
   const description =
     category.description?.trim() ||
-    `Shop ${category.name} in Sri Lanka at iCrowd — genuine products, island-wide delivery, and pickup in Kandy, Kottawa & Matara.`;
+    (slug === "phones"
+      ? "iPhone price in Sri Lanka — shop iPhone 17 Pro Max, 16 Pro Max and more at iCrowd. Genuine Apple phones, live LKR pricing, Kandy shop and island-wide delivery."
+      : `Shop ${category.name} in Sri Lanka at iCrowd — genuine products, island-wide delivery, and pickup in Kandy, Kottawa & Matara.`);
   return buildPageMetadata({
-    title: `${category.name} in Sri Lanka`,
+    title:
+      slug === "phones" ? "iPhones & Phones Price in Sri Lanka" : `${category.name} in Sri Lanka`,
     description,
     path: `/categories/${slug}`,
     image: category.imageUrl,

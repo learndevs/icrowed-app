@@ -28,9 +28,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!brand) return buildPageMetadata({ title: "Brand", path: `/products/brands/${slug}` });
   const description =
     brand.description?.trim() ||
-    `Buy ${brand.name} in Sri Lanka — prices, warranty, island-wide delivery, and pickup in Kandy, Kottawa & Matara at iCrowd.`;
+    (slug === "apple"
+      ? "Buy Apple in Sri Lanka at iCrowd — iPhone 17 Pro Max, 16 Pro Max, AirPods and more with live LKR prices, Kandy shop and island-wide delivery."
+      : slug === "anker"
+        ? "Buy Anker in Sri Lanka — Soundcore earbuds, chargers and power banks with live LKR prices, Kottawa pickup and island-wide delivery at iCrowd."
+        : `Buy ${brand.name} in Sri Lanka — prices, warranty, island-wide delivery, and pickup in Kandy, Kottawa & Matara at iCrowd.`);
   return buildPageMetadata({
-    title: `Buy ${brand.name} in Sri Lanka`,
+    title:
+      slug === "apple"
+        ? "Buy Apple iPhone in Sri Lanka — Price & Shop"
+        : `Buy ${brand.name} in Sri Lanka`,
     description,
     path: `/products/brands/${slug}`,
     image: brand.logoUrl,

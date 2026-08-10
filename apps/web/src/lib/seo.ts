@@ -8,20 +8,24 @@ export const DEFAULT_FAVICON_PATH = "/icrowd-favicon.png";
 export const DEFAULT_FAVICON_SVG_PATH = "/icrowd-logo.svg";
 export const DEFAULT_APPLE_TOUCH_ICON_PATH = "/apple-touch-icon.png";
 export const DEFAULT_TITLE =
-  "iCrowd — Apple iPhones, Anker & DJI Products in Sri Lanka";
+  "iCrowd — iPhone Price in Sri Lanka | Apple, Anker & DJI";
 export const DEFAULT_DESCRIPTION =
-  "Buy genuine Apple iPhones, iPads, MacBooks and AirPods, Anker chargers and power banks, and DJI drones and gimbals in Sri Lanka. Best prices with fast island-wide delivery.";
+  "iPhone price in Sri Lanka at iCrowd — iPhone 17, 17 Pro Max, 16 Pro Max and more. Genuine Apple, Anker and DJI with island-wide delivery and an iPhone shop in Kandy.";
 export const DEFAULT_KEYWORDS = [
   "iPhone price in Sri Lanka",
+  "iPhone 17 Pro Max price in Sri Lanka",
+  "iPhone 16 Pro Max price in Sri Lanka",
+  "iPhone 17 price Sri Lanka",
+  "phone price in Sri Lanka",
+  "iPhone shop Kandy",
+  "buy iPhone Kandy",
   "Apple products Sri Lanka",
   "Anker Sri Lanka",
-  "DJI Sri Lanka",
-  "mobile phones Sri Lanka",
-  "iPad Sri Lanka",
-  "MacBook Sri Lanka",
-  "AirPods Sri Lanka",
+  "Anker earbuds Sri Lanka",
+  "AirPods Pro price Sri Lanka",
   "power banks Sri Lanka",
-  "drones Sri Lanka",
+  "DJI drone Sri Lanka",
+  "DJI Mini price Sri Lanka",
   "phone accessories Sri Lanka",
   "iCrowd",
 ];
@@ -169,7 +173,7 @@ export function buildProductSeoCopy(opts: {
     opts.shortDescription?.trim() ||
     opts.description?.trim().slice(0, 120) ||
     `Buy genuine ${brandBit}${opts.name}${categoryBit} at iCrowd.`;
-  const description = `${base} ${priceLabel}. Island-wide delivery · Pickup in Kandy, Kottawa & Matara.`
+  const description = `${base} ${priceLabel}. Island-wide delivery · Buy in Kandy or pickup in Kottawa & Matara.`
     .replace(/\s+/g, " ")
     .trim()
     .slice(0, 320);

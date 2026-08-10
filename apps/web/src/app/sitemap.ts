@@ -22,7 +22,7 @@ const STATIC_ROUTES: { path: string; priority: number; changeFrequency: Metadata
   { path: "/privacy", priority: 0.5, changeFrequency: "monthly" },
   { path: "/locations", priority: 0.8, changeFrequency: "monthly" },
   { path: "/guides", priority: 0.8, changeFrequency: "weekly" },
-  { path: "/iphone-price-sri-lanka", priority: 0.85, changeFrequency: "weekly" },
+  { path: "/iphone-price-sri-lanka", priority: 0.95, changeFrequency: "daily" },
 ];
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
@@ -75,8 +75,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     const locationEntries: MetadataRoute.Sitemap = locations.map((row) => ({
       url: `${base}/locations/${row.slug}`,
       lastModified: row.updatedAt,
-      changeFrequency: "monthly",
-      priority: 0.8,
+      changeFrequency: "weekly" as const,
+      priority: row.slug === "kandy" ? 0.9 : 0.8,
     }));
 
     return [

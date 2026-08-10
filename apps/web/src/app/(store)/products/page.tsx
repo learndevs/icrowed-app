@@ -8,9 +8,9 @@ import { mapProductToCardData } from "@/lib/product-card-map";
 import { buildPageMetadata } from "@/lib/seo";
 
 export const metadata: Metadata = buildPageMetadata({
-  title: "All Products",
+  title: "All Products — Phones & Accessories Sri Lanka",
   description:
-    "Browse smartphones, phone cases, chargers, earbuds and accessories at iCrowd Sri Lanka.",
+    "Browse iPhone price in Sri Lanka, Anker earbuds, chargers, power banks and accessories at iCrowd — genuine stock, Kandy shop, island-wide delivery.",
   path: "/products",
 });
 

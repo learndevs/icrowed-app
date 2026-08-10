@@ -22,6 +22,16 @@ const appHost = (() => {
 
 const nextConfig: NextConfig = {
   transpilePackages: ["@icrowd/database", "@icrowd/env", "@icrowd/types"],
+  async redirects() {
+    return [
+      {
+        // Canonical iPhone price pillar — avoid competing with /guides/iphone-price-sri-lanka
+        source: "/guides/iphone-price-sri-lanka",
+        destination: "/iphone-price-sri-lanka",
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {

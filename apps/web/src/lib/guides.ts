@@ -133,10 +133,10 @@ export const GUIDES: Guide[] = [
   },
   {
     slug: "buy-iphone-kandy",
-    title: "Buy iPhone in Kandy — iCrowd Shop",
+    title: "Buy iPhone in Kandy — iPhone Shop Kandy | iCrowd",
     description:
-      "Buy iPhones in Kandy at the iCrowd shop. Genuine Apple products, expert help, and island-wide delivery across Sri Lanka.",
-    updatedAt: "2026-08-03",
+      "iPhone shop in Kandy at iCrowd — buy iPhone 17, 17 Pro Max, 16 Pro Max and more. Genuine Apple, live LKR prices, same-day pickup when in stock, island-wide delivery.",
+    updatedAt: "2026-08-09",
     links: [
       { label: "Kandy location", href: "/locations/kandy" },
       { label: "iPhone price list", href: "/iphone-price-sri-lanka" },
@@ -273,10 +273,10 @@ export const GUIDES: Guide[] = [
   },
   {
     slug: "iphone-17-price-sri-lanka-update",
-    title: "iPhone 17 Price in Sri Lanka — August 2026 Update",
+    title: "iPhone 17 Pro Max Price in Sri Lanka — 2026 Update",
     description:
-      "Latest iPhone 17 series pricing in Sri Lanka at iCrowd — iPhone 17, 17 Pro and 17 Pro Max compared, with storage options and delivery.",
-    updatedAt: "2026-08-03",
+      "iPhone 17 Pro Max price in Sri Lanka plus iPhone 17 and 17 Pro — live LKR pricing at iCrowd, storage options, Kandy shop pickup and island-wide delivery.",
+    updatedAt: "2026-08-09",
     links: [
       { label: "iPhone price list", href: "/iphone-price-sri-lanka" },
       { label: "Apple brand", href: "/products/brands/apple" },
@@ -284,8 +284,8 @@ export const GUIDES: Guide[] = [
     ],
     sections: [
       {
-        heading: "iPhone 17 series pricing this month",
-        body: "This update covers current iPhone 17, iPhone 17 Pro and iPhone 17 Pro Max pricing in Sri Lanka at iCrowd. As with every generation, the base iPhone 17 targets everyday buyers who want the newest chip and camera without paying Pro pricing, while the Pro and Pro Max models add a telephoto lens, brighter display, and higher-end build materials. Check the live iPhone price list for the exact current price of each storage tier, since pricing can shift with stock and promotions through the month.",
+        heading: "iPhone 17 Pro Max price in Sri Lanka",
+        body: "Searches for iPhone 17 Pro Max price in Sri Lanka and iPhone 16 Pro Max price in Sri Lanka are rising fast. This update covers current iPhone 17, iPhone 17 Pro and iPhone 17 Pro Max pricing in Sri Lanka at iCrowd, plus how they compare to the 16 series. Check the live iPhone price list for the exact current LKR price of each storage tier, since pricing can shift with stock and promotions through the month.",
       },
       {
         heading: "iPhone 17 vs iPhone 17 Pro vs iPhone 17 Pro Max — what actually changes",
@@ -308,5 +308,6 @@ export function getGuideBySlug(slug: string): Guide | undefined {
 }
 
 export function listGuides(): Guide[] {
-  return GUIDES;
+  // Cannibalizing slug permanently redirects to /iphone-price-sri-lanka — omit from hub/sitemap.
+  return GUIDES.filter((g) => g.slug !== "iphone-price-sri-lanka");
 }

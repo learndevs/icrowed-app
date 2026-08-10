@@ -32,9 +32,18 @@ interface Props {
 export const revalidate = 300;
 
 const CITY_TITLE: Record<string, string> = {
-  kandy: "iPhone Shop in Kandy",
+  kandy: "iPhone Shop in Kandy — Buy iPhone Kandy",
   kottawa: "Anker Pickup in Kottawa",
   matara: "Earbuds & Anker Pickup Matara",
+};
+
+const CITY_DESCRIPTION: Record<string, string> = {
+  kandy:
+    "Buy iPhone in Kandy at the iCrowd shop — iPhone 17 Pro Max, 16 Pro Max and more with live LKR prices. Genuine Apple, same-day pickup when in stock, bank transfer & COD options, island-wide delivery.",
+  kottawa:
+    "Order Anker chargers, earbuds and power banks online and pick up in Kottawa — genuine products, live Sri Lanka prices at iCrowd.",
+  matara:
+    "Buy earbuds in Matara via iCrowd pickup — Anker Soundcore and more with island-wide delivery across Sri Lanka.",
 };
 
 /** Product lines highlighted per location — feeds the on-page mini price list. */
@@ -77,6 +86,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     CITY_TITLE[slug] ||
     `${location.name} — ${location.type === "store" ? "Shop" : "Pickup"} in ${location.city}`;
   const description =
+    CITY_DESCRIPTION[slug] ||
     location.description?.trim() ||
     `${location.name}: buy Apple, Anker and DJI products with ${
       location.type === "store" ? "in-store shopping" : "order pickup"
