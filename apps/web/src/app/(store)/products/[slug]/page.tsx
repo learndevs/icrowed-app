@@ -8,6 +8,7 @@ import {
 import { ProductDetailClient } from "./ProductDetailClient";
 import { ProductImages } from "./ProductImages";
 import { ProductReviews, type ProductReviewItem } from "./ProductReviews";
+import { ProductTopLayout } from "./ProductTopLayout";
 import {
   ProductRatingSummary,
   ProductReviewStatsProvider,
@@ -317,19 +318,15 @@ export default async function ProductDetailPage({ params }: Props) {
         </nav>
 
         {/* ── Top section: image + info ─────────────────────────────────── */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
-
-          {/* Left: images */}
-          <div className="relative z-0">
+        <ProductTopLayout
+          gallery={
             <ProductImages
               images={product.images}
               productName={product.name}
               gradient={product.gradient}
             />
-          </div>
-
-          {/* Right: product info */}
-          <div className="bento-card relative z-10 p-5 sm:p-7 flex flex-col gap-5">
+          }
+        >
 
             {/* Stock (base SKU only — variant stock is in the buy box) */}
             {product.variants.length === 0 &&
@@ -410,8 +407,7 @@ export default async function ProductDetailPage({ params }: Props) {
                 category: product.category,
               })}
             />
-          </div>
-        </div>
+        </ProductTopLayout>
 
         {/* ── Specifications ──────────────────────────────────────────────── */}
         {product.hasSpecifications && (
