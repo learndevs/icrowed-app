@@ -4,6 +4,7 @@ import {
   getActiveCategorySitemapEntries,
   getActiveProductSitemapEntries,
   getActiveStoreLocations,
+  getPublishedBlogPosts,
 } from "@icrowd/database/queries";
 import { listGuides } from "@/lib/guides";
 import { siteUrl } from "@/lib/seo";
@@ -22,6 +23,7 @@ const STATIC_ROUTES: { path: string; priority: number; changeFrequency: Metadata
   { path: "/privacy", priority: 0.5, changeFrequency: "monthly" },
   { path: "/locations", priority: 0.8, changeFrequency: "monthly" },
   { path: "/guides", priority: 0.8, changeFrequency: "weekly" },
+  { path: "/blog", priority: 0.85, changeFrequency: "weekly" },
   { path: "/iphone-price-sri-lanka", priority: 0.95, changeFrequency: "daily" },
 ];
 
@@ -44,11 +46,12 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   try {
-    const [products, brands, categories, locations] = await Promise.all([
+    const [products, brands, categories, locations, blogPosts] = await Promise.all([
       getActiveProductSitemapEntries(),
       getActiveBrandSitemapEntries(),
       getActiveCategorySitemapEntries(),
       getActiveStoreLocations().catch(() => []),
+      getPublishedBlogPosts().catch(() => []),
     ]);
 
     const productEntries: MetadataRoute.Sitemap = products.map((row) => ({
@@ -79,9 +82,17 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: row.slug === "kandy" ? 0.9 : 0.8,
     }));
 
+    const blogEntries: MetadataRoute.Sitemap = blogPosts.map((row) => ({
+      url: `${base}/blog/${row.slug}`,
+      lastModified: row.updatedAt,
+      changeFrequency: "weekly" as const,
+      priority: row.postType === "review" ? 0.75 : 0.7,
+    }));
+
     return [
       ...staticEntries,
       ...guideEntries,
+      ...blogEntries,
       ...productEntries,
       ...brandEntries,
       ...categoryEntries,

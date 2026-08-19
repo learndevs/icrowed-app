@@ -22,6 +22,7 @@ import {
   ArrowLeft,
   ChevronRight,
   LogOut,
+  FileText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -64,6 +65,7 @@ const SECTIONS: NavSection[] = [
     title: "Marketing",
     items: [
       { href: "/admin/offers", label: "Offers & Banners", icon: Megaphone },
+      { href: "/admin/blog", label: "Blog & Reviews", icon: FileText },
       { href: "/admin/coupons", label: "Coupons", icon: Ticket },
       { href: "/admin/email-templates", label: "Email Templates", icon: Mail },
     ],

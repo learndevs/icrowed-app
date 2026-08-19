@@ -50,6 +50,7 @@ const ACCORDION_SECTIONS = [
       { label: "Our Locations", href: "/locations" },
       { label: "Kandy Shop", href: "/locations/kandy" },
       { label: "Buying Guides", href: "/guides" },
+      { label: "Blog & Reviews", href: "/blog" },
       { label: "Featured", href: "/products?featured=true" },
     ],
   },

@@ -104,7 +104,7 @@ function DroneHero() {
             />
           </div>
           <h2 className="type-hero-title text-zinc-900">
-            Dones
+            Drones
           </h2>
         </div>
         <p className="type-hero-subtitle mt-2 text-zinc-700 max-w-[260px]">

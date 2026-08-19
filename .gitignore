@@ -43,3 +43,5 @@ apps/web/public/uploads/offers/*
 !apps/web/public/uploads/offers/.gitkeep
 apps/web/public/uploads/bank-slips/*
 !apps/web/public/uploads/bank-slips/.gitkeep
+apps/web/public/uploads/blog/*
+!apps/web/public/uploads/blog/.gitkeep

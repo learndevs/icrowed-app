@@ -16,6 +16,7 @@ import { ProductSearchSheet } from "@/components/layout/ProductSearchSheet";
 const NAV_LINKS = [
   { href: "/products", label: "All Products" },
   { href: "/categories", label: "Categories" },
+  { href: "/blog", label: "Blog" },
   { href: "/offers", label: "Offers" },
 ];
 

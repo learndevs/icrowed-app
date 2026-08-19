@@ -30,6 +30,12 @@ const nextConfig: NextConfig = {
         destination: "/iphone-price-sri-lanka",
         permanent: true,
       },
+      {
+        // Deactivated product URL should not 404 in Search Console; send to closest category.
+        source: "/products/macbook-air-13-inch-m4-chip",
+        destination: "/categories/macbooks",
+        permanent: true,
+      },
     ];
   },
   async headers() {
@@ -50,6 +56,10 @@ const nextConfig: NextConfig = {
       {
         protocol: "https",
         hostname: "images.unsplash.com",
+      },
+      {
+        protocol: "https",
+        hostname: "img.youtube.com",
       },
       ...(appHost
         ? [

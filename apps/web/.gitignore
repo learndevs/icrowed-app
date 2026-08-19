@@ -47,3 +47,5 @@ next-env.d.ts
 !/public/uploads/offers/.gitkeep
 /public/uploads/bank-slips/*
 !/public/uploads/bank-slips/.gitkeep
+/public/uploads/blog/*
+!/public/uploads/blog/.gitkeep

@@ -23,3 +23,4 @@ export * from "./storeLocations";
 export * from "./notifications";
 export * from "./auditLogs";
 export * from "./emailTemplates";
+export * from "./blogPosts";
