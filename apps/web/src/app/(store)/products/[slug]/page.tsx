@@ -317,10 +317,10 @@ export default async function ProductDetailPage({ params }: Props) {
         </nav>
 
         {/* ── Top section: image + info ─────────────────────────────────── */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+        <div className="mb-8 grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1.15fr)_minmax(380px,0.85fr)] lg:items-start lg:gap-8 xl:grid-cols-[minmax(0,1.25fr)_minmax(420px,0.75fr)]">
 
           {/* Left: images */}
-          <div className="relative z-0">
+          <div className="relative z-0 lg:sticky lg:top-24">
             <ProductImages
               images={product.images}
               productName={product.name}
@@ -329,7 +329,11 @@ export default async function ProductDetailPage({ params }: Props) {
           </div>
 
           {/* Right: product info */}
-          <div className="bento-card relative z-10 p-5 sm:p-7 flex flex-col gap-5">
+          <div
+            tabIndex={0}
+            aria-label="Product details. Scroll for more information."
+            className="relative z-10 flex flex-col gap-5 rounded-[2rem] border border-sky-100 bg-white p-5 shadow-[0_18px_55px_rgba(15,23,42,0.08)] outline-none sm:p-7 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto lg:overscroll-contain lg:[scrollbar-color:rgb(186_230_253)_transparent] lg:[scrollbar-width:thin] lg:focus-visible:ring-2 lg:focus-visible:ring-sky-500 lg:focus-visible:ring-offset-2"
+          >
 
             {/* Stock (base SKU only — variant stock is in the buy box) */}
             {product.variants.length === 0 &&
