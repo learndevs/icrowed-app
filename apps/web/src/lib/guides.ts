@@ -135,6 +135,38 @@ export const GUIDES: Guide[] = [
     ],
   },
   {
+    slug: "anker-power-banks-price-sri-lanka",
+    title: "Anker Power Bank Price in Sri Lanka — Original & Best Deals (2026)",
+    description:
+      "Anker power bank price in Sri Lanka at iCrowd — original products, warranty, island-wide delivery, and Kandy/Kottawa pickup. Compare LKR pricing and choose the right capacity.",
+    updatedAt: "2026-08-19",
+    links: [
+      { label: "Shop Anker", href: "/products/brands/anker" },
+      { label: "Power banks", href: "/categories/powerbanks" },
+      { label: "Chargers", href: "/categories/charging-adapters" },
+      { label: "Kottawa pickup", href: "/locations/kottawa" },
+      { label: "Contact / WhatsApp", href: "/contact" },
+    ],
+    sections: [
+      {
+        heading: "Anker power bank price in Sri Lanka — live LKR on iCrowd",
+        body: "If you searched “Anker power bank price in Sri Lanka”, you want the real LKR price for the exact model you’re buying. iCrowd shows live prices and real stock on each power bank product page, so your comparison is accurate and up to date. Every listing is an original, authorized-channel Anker product with the warranty coverage for that model.",
+      },
+      {
+        heading: "Choose by capacity + charging needs (phone vs laptop)",
+        body: "For everyday phone charging while commuting, a compact capacity is usually the best balance of backup power and portability. If you need power for larger devices or longer trips, look for PD (Power Delivery) support so one power bank can charge more than one device. Wattage matters: match the charger/power bank output to what your phone or laptop supports for the best charging benefit.",
+      },
+      {
+        heading: "Best price in Sri Lanka — how we keep pricing consistent",
+        body: "We don’t rely on a fixed static “printed list”. Prices change with stock, exchange rates, and promotions, so iCrowd keeps the current price shown on each product page. That’s the number you’ll see at checkout, with delivery and pickup options clearly listed before you pay.",
+      },
+      {
+        heading: "Island-wide delivery + pickup options",
+        body: "All Anker power banks ship with island-wide delivery across Sri Lanka. If you’re near Kandy, visit the shop to see the selection in person; if you want faster collection without courier transit time, choose pickup in Kottawa after checkout. For delivery outside your city, the estimated timeline is shown at checkout.",
+      },
+    ],
+  },
+  {
     slug: "buy-iphone-kandy",
     title: "Buy iPhone in Kandy — iPhone Shop Kandy | iCrowd",
     description:
@@ -254,6 +286,7 @@ export const GUIDES: Guide[] = [
       { label: "Shop UGREEN", href: "/products/brands/ugreen" },
       { label: "Power banks", href: "/categories/powerbanks" },
       { label: "Chargers", href: "/categories/charging-adapters" },
+      { label: "UGREEN chargers guide", href: "/guides/ugreen-chargers-price-sri-lanka" },
     ],
     sections: [
       {
@@ -271,6 +304,38 @@ export const GUIDES: Guide[] = [
       {
         heading: "Delivery and pickup",
         body: "All UGREEN products ship island-wide across Sri Lanka, with pickup also available at our Kandy shop and our Kottawa and Matara pickup points. Prices and stock are updated on each product page, so what you see when you order is the current price. Message us on WhatsApp with the exact UGREEN model you’re considering and we’ll recommend the best match for your phone and charger setup.",
+      },
+    ],
+  },
+  {
+    slug: "ugreen-chargers-price-sri-lanka",
+    title: "UGREEN Charger Price in Sri Lanka — Nexode & Uno (2026)",
+    description:
+      "UGREEN charger price in Sri Lanka at iCrowd — original products, best deals, island-wide delivery. Compare Nexode GaN chargers and Uno options with live LKR pricing.",
+    updatedAt: "2026-08-19",
+    links: [
+      { label: "Shop UGREEN", href: "/products/brands/ugreen" },
+      { label: "Chargers (charging-adapters)", href: "/categories/charging-adapters" },
+      { label: "Power banks", href: "/categories/powerbanks" },
+      { label: "UGREEN power banks guide", href: "/guides/ugreen-power-banks-sri-lanka" },
+      { label: "Contact / WhatsApp", href: "/contact" },
+    ],
+    sections: [
+      {
+        heading: "UGREEN charger price in Sri Lanka — live LKR from iCrowd",
+        body: "UGREEN chargers are popular in Sri Lanka because you can buy compact fast chargers that match modern devices. If you searched “UGREEN charger price in Sri Lanka”, iCrowd shows the current LKR price and live stock on every charger product page, so you can compare models safely. Every listing is an original, authorized-channel product with warranty coverage.",
+      },
+      {
+        heading: "Nexode (GaN) vs Uno — which charging style suits you?",
+        body: "Nexode chargers use GaN technology to pack higher wattage into a smaller charger body, which is great if you want one compact charger for fast charging. Uno-style chargers are more straightforward for everyday charging needs. Either way, check the wattage on the product page and match it to your phone/tablet/laptop charging capability so you get the real fast-charging benefit.",
+      },
+      {
+        heading: "Best price in Sri Lanka — updated with stock and promotions",
+        body: "Prices change with stock, exchange rates, and promotions, so we keep the current price shown on each charger product page instead of using a fixed old list. The LKR price you see is the price you’ll get at checkout.",
+      },
+      {
+        heading: "Island-wide delivery + pickup in Sri Lanka",
+        body: "All UGREEN chargers ship island-wide across Sri Lanka. Pickup is available at our Kandy shop and also through Kottawa and Matara pickup points. If you’re comparing multiple charger models, message us on WhatsApp with the exact device model you’re charging and we’ll recommend the best match.",
       },
     ],
   },
