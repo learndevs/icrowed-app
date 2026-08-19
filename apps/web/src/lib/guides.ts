@@ -12,31 +12,34 @@ export type Guide = {
 export const GUIDES: Guide[] = [
   {
     slug: "anker-earbuds-price-sri-lanka",
-    title: "Anker Earbuds Price in Sri Lanka (2026)",
+    title: "Anker Earbuds Sri Lanka — Price & Best Soundcore Models (2026)",
     description:
-      "Current Anker Soundcore earbuds prices in Sri Lanka at iCrowd — compare models, warranty, and pickup in Kandy, Kottawa & Matara.",
-    updatedAt: "2026-08-03",
+      "Anker earbuds Sri Lanka — Soundcore price guide at iCrowd. Compare models, check LKR pricing, warranty, and pickup in Kandy, Kottawa & Matara.",
+    updatedAt: "2026-08-19",
     links: [
       { label: "Shop Anker", href: "/products/brands/anker" },
       { label: "Earbuds category", href: "/categories/earbuds" },
+      { label: "Soundcore P20i", href: "/products/anker-soundcore-p20i" },
+      { label: "Soundcore Liberty 4 NC", href: "/products/anker-soundcore-liberty-4-nc" },
+      { label: "Soundcore Space A40", href: "/products/anker-soundcore-space-a40" },
       { label: "Contact / WhatsApp", href: "/contact" },
     ],
     sections: [
       {
-        heading: "Why buy Anker earbuds in Sri Lanka from iCrowd?",
-        body: "Anker Soundcore earbuds are some of the most searched audio products in Sri Lanka, and for good reason — the Soundcore line balances battery life, call quality and price better than most competing brands at the same budget. At iCrowd every Anker earbud we list is a genuine, authorised-channel product, not a grey-market import, so you get the warranty coverage Anker intends for the model. Pricing is shown in LKR on every product page, updated as stock and promotions change, so what you see is what you pay at checkout.",
+        heading: "Anker earbuds Sri Lanka — buy Soundcore with live LKR pricing",
+        body: "Searching “Anker earbuds Sri Lanka” usually means you want the current Soundcore price in Sri Lanka, fast. iCrowd shows live LKR pricing on each earbud product page (not a fixed outdated list) so you can compare the exact model you want and order with confidence. Every listing is genuine and comes with the warranty coverage for that model. Visit our shop for pickup in Kandy, or choose Kottawa/Matara pickup — or order island-wide delivery.",
       },
       {
-        heading: "Anker Soundcore R50i, R60i NC and Liberty series — how to choose",
-        body: "The entry-level Soundcore R-series (R50i, R60i NC) suits everyday commuting and calls, with the 'NC' models adding active noise cancellation for buses, trains and open offices. Step up to the Liberty 4 NC or Liberty 5 ANC if you want stronger noise cancellation, spatial audio, and longer battery life for flights or long work sessions. If you mainly listen at the gym, the P-series (P20i, P30i, P40i) trades some noise cancellation for a lighter, sweat-resistant fit. Match the model to how you'll actually use it rather than buying the most expensive option by default.",
+        heading: "Which Soundcore earbuds match your use?",
+        body: "Use-case is more important than the model name. If you mainly want comfortable everyday true wireless at a strong price, choose the Anker Soundcore P20i for punchy bass and clear calls. If you need noise reduction for buses, offices, or open spaces, pick the Anker Soundcore Liberty 4 NC for adaptive ANC and long battery life. For daily commutes and heavier noise environments, the Anker Soundcore Space A40 gives adaptive ANC performance with up to 50 hours total playtime.",
       },
       {
-        heading: "How pricing works",
-        body: "Prices change with stock levels, exchange rates and Anker's own promotions, so we keep the live price on each product page rather than a fixed printed list. Open any Anker earbuds product page for the current price in Sri Lanka, real-time stock, and the exact warranty period for that model. Use our Anker brand page to compare every model side by side by price, from the most affordable R-series up to the noise-cancelling Liberty range.",
+        heading: "Anker earbuds price in Sri Lanka — how to compare models",
+        body: "Prices change with stock levels and exchange rates, so iCrowd keeps the current Soundcore price on each product page. For “Anker earbuds price Sri Lanka” comparisons, open the model pages for P20i / Liberty 4 NC / Space A40 and compare in LKR with the same checkout experience. This avoids guessing from spec sheets and ensures you see the real warranty coverage and availability for that exact model.",
       },
       {
-        heading: "Pickup & delivery",
-        body: "Order online and collect at our Kottawa or Matara pickup points, visit the Kandy shop to try before you buy, or choose island-wide courier delivery at checkout. Delivery charges and estimated timelines are shown before you pay, and pickup orders are usually ready within a day of confirmation — message us on WhatsApp to arrange a time.",
+        heading: "Pickup & delivery across Sri Lanka",
+        body: "Order online and pick up at Kandy, Kottawa or Matara, or choose island-wide courier delivery at checkout. Pickup orders are usually ready within about a day of confirmation. For the fastest buy decision, message us on WhatsApp with your exact model (P20i / Liberty 4 NC / Space A40) and we’ll confirm stock and the final LKR price.",
       },
     ],
   },

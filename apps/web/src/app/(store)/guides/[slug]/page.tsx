@@ -65,7 +65,6 @@ export default async function GuideDetailPage({ params }: Props) {
         <h1 className="text-3xl sm:text-4xl font-black text-black tracking-tight leading-tight">
           {guide.title}
         </h1>
-        <p className="mt-3 text-sm text-zinc-500">Updated {guide.updatedAt}</p>
         <p className="mt-4 text-base text-zinc-600 leading-relaxed">{guide.description}</p>
 
         <div className="mt-8 space-y-8">

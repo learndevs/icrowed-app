@@ -448,7 +448,6 @@ export function ProductReviews({
                         </span>
                       )}
                     </div>
-                    <span className="text-xs text-gray-400 shrink-0">{formatDate(review.createdAt)}</span>
                   </div>
 
                   <StarDisplay rating={review.rating} />
