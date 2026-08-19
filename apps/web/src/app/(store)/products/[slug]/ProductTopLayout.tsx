@@ -7,11 +7,12 @@ const STICKY_TOP_PX = 96;
 
 export function ProductTopLayout({
   gallery,
+  fixed,
   children,
-}: Readonly<{ gallery: ReactNode; children: ReactNode }>) {
+}: Readonly<{ gallery: ReactNode; fixed: ReactNode; children: ReactNode }>) {
   const sectionRef = useRef<HTMLElement>(null);
   const galleryRef = useRef<HTMLDivElement>(null);
-  const detailsRef = useRef<HTMLDivElement>(null);
+  const scrollingDetailsRef = useRef<HTMLDivElement>(null);
   const detailsContentRef = useRef<HTMLDivElement>(null);
   const overflowRef = useRef(0);
   const [runwayHeight, setRunwayHeight] = useState<number>();
@@ -20,9 +21,9 @@ export function ProductTopLayout({
     const media = window.matchMedia(DESKTOP_QUERY);
     const section = sectionRef.current;
     const galleryElement = galleryRef.current;
-    const detailsElement = detailsRef.current;
+    const scrollingDetails = scrollingDetailsRef.current;
     const detailsContent = detailsContentRef.current;
-    if (!section || !galleryElement || !detailsElement || !detailsContent) return;
+    if (!section || !galleryElement || !scrollingDetails || !detailsContent) return;
 
     let frame = 0;
 
@@ -30,7 +31,7 @@ export function ProductTopLayout({
       frame = 0;
       if (!media.matches) return;
       const progress = STICKY_TOP_PX - section.getBoundingClientRect().top;
-      detailsElement.scrollTop = Math.max(0, Math.min(progress, overflowRef.current));
+      scrollingDetails.scrollTop = Math.max(0, Math.min(progress, overflowRef.current));
     };
 
     const requestSync = () => {
@@ -40,13 +41,13 @@ export function ProductTopLayout({
     const measure = () => {
       if (!media.matches) {
         overflowRef.current = 0;
-        detailsElement.scrollTop = 0;
+        scrollingDetails.scrollTop = 0;
         setRunwayHeight(undefined);
         return;
       }
 
       const visibleHeight = galleryElement.offsetHeight;
-      const overflow = Math.max(detailsContent.scrollHeight - visibleHeight, 0);
+      const overflow = Math.max(detailsContent.scrollHeight - scrollingDetails.clientHeight, 0);
       overflowRef.current = overflow;
       setRunwayHeight(visibleHeight + overflow);
       requestSync();
@@ -54,6 +55,7 @@ export function ProductTopLayout({
 
     const resizeObserver = new ResizeObserver(measure);
     resizeObserver.observe(galleryElement);
+    resizeObserver.observe(scrollingDetails);
     resizeObserver.observe(detailsContent);
     media.addEventListener("change", measure);
     window.addEventListener("scroll", requestSync, { passive: true });
@@ -75,12 +77,17 @@ export function ProductTopLayout({
         </div>
 
         <div className="relative min-h-0">
-          <div
-            ref={detailsRef}
-            className="bento-card relative z-10 h-full overflow-visible lg:absolute lg:inset-0 lg:overflow-hidden"
-          >
-            <div ref={detailsContentRef} className="flex flex-col gap-5 p-5 sm:p-7">
-              {children}
+          <div className="bento-card relative z-10 h-full overflow-visible lg:absolute lg:inset-0 lg:overflow-hidden">
+            <div className="flex h-full flex-col p-5 sm:p-7">
+              <div className="flex shrink-0 flex-col gap-5">{fixed}</div>
+              <div
+                ref={scrollingDetailsRef}
+                className="min-h-0 flex-1 overflow-visible lg:overflow-hidden"
+              >
+                <div ref={detailsContentRef} className="flex flex-col gap-5 pt-5">
+                  {children}
+                </div>
+              </div>
             </div>
           </div>
         </div>

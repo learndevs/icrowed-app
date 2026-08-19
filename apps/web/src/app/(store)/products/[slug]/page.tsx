@@ -326,7 +326,8 @@ export default async function ProductDetailPage({ params }: Props) {
               gradient={product.gradient}
             />
           }
-        >
+          fixed={
+            <>
 
             {/* Stock (base SKU only — variant stock is in the buy box) */}
             {product.variants.length === 0 &&
@@ -383,6 +384,9 @@ export default async function ProductDetailPage({ params }: Props) {
                 })(),
               }}
             />
+            </>
+          }
+        >
 
             {/* Feature highlights — bullet list */}
             {hasShortDescription(product.featureBullets) && (
