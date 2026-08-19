@@ -31,18 +31,18 @@ export default async function OffersPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-sky-50/80 via-white to-white">
       <div className="mx-auto max-w-[1400px] space-y-8 px-4 py-6 sm:px-5 sm:py-10 lg:px-8">
-        <header className="relative overflow-hidden rounded-[2rem] bg-gradient-to-br from-sky-600 via-blue-600 to-indigo-700 px-6 py-10 text-white shadow-[0_20px_60px_rgba(2,132,199,0.22)] sm:px-10 sm:py-14">
-          <div className="absolute -right-16 -top-20 h-64 w-64 rounded-full bg-cyan-300/20 blur-3xl" />
-          <div className="absolute -bottom-24 left-1/3 h-56 w-56 rounded-full bg-indigo-300/20 blur-3xl" />
+        <header className="relative overflow-hidden rounded-[2rem] border border-sky-100 bg-gradient-to-br from-white via-sky-50 to-indigo-100 px-6 py-10 text-zinc-900 shadow-[0_20px_60px_rgba(14,165,233,0.12)] sm:px-10 sm:py-14">
+          <div className="absolute -right-16 -top-20 h-64 w-64 rounded-full bg-cyan-300/30 blur-3xl" />
+          <div className="absolute -bottom-24 left-1/3 h-56 w-56 rounded-full bg-indigo-300/25 blur-3xl" />
           <div className="relative max-w-2xl">
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-bold uppercase tracking-widest backdrop-blur-sm">
-              <Sparkles className="h-3.5 w-3.5 text-cyan-200" />
+            <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-sky-200 bg-white/70 px-3 py-1.5 text-xs font-bold uppercase tracking-widest text-sky-700 shadow-sm backdrop-blur-sm">
+              <Sparkles className="h-3.5 w-3.5 text-sky-500" />
               Limited-time savings
             </div>
             <h1 className="text-3xl font-black leading-tight tracking-tight sm:text-5xl">
               Offers &amp; Deals
             </h1>
-            <p className="mt-3 max-w-xl text-sm leading-relaxed text-sky-100 sm:text-base">
+            <p className="mt-3 max-w-xl text-sm leading-relaxed text-zinc-600 sm:text-base">
               Discover exclusive prices on phones, accessories and more. Grab your favourites
               before these offers end.
             </p>
