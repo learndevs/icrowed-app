@@ -246,10 +246,10 @@ export const GUIDES: Guide[] = [
   },
   {
     slug: "ugreen-power-banks-sri-lanka",
-    title: "UGREEN Power Bank Price in Sri Lanka",
+    title: "UGREEN Power Banks & Chargers Price in Sri Lanka (2026)",
     description:
-      "UGREEN power bank and charger prices in Sri Lanka at iCrowd — Nexode, Uno and PB-series models compared, with delivery and pickup.",
-    updatedAt: "2026-08-03",
+      "UGREEN power banks and chargers price in Sri Lanka at iCrowd — Nexode, Uno and PB-series compared. Check LKR pricing, warranty, and Kandy/Kottawa/Matara pickup.",
+    updatedAt: "2026-08-19",
     links: [
       { label: "Shop UGREEN", href: "/products/brands/ugreen" },
       { label: "Power banks", href: "/categories/powerbanks" },
@@ -257,20 +257,20 @@ export const GUIDES: Guide[] = [
     ],
     sections: [
       {
-        heading: "Why UGREEN is worth comparing before you buy",
-        body: "UGREEN has become one of the most searched charging brands in Sri Lanka, particularly by model number — buyers often already know they want a specific power bank like the PB526 or PB532 and just need the current LKR price. iCrowd stocks the UGREEN Nexode, Uno and PB-series power banks and chargers with live pricing and stock on every product page, so you can check the exact model you're after rather than a generic listing.",
+        heading: "UGREEN power bank price in Sri Lanka — and charger prices too",
+        body: "If you searched “UGREEN power bank price in Sri Lanka”, you probably also want the matching charger and charging accessories. iCrowd shows live LKR pricing and real stock on every UGREEN product page (not a stale static list), so you can compare Nexode, Uno and PB-series models confidently. Each listing includes warranty details, and you can order island-wide delivery or choose pickup in Kandy, Kottawa or Matara.",
       },
       {
-        heading: "PB-series power banks — matching capacity to how you travel",
-        body: "UGREEN's PB-series spans compact 10,000mAh units with a built-in cable for daily carry, up to 20,000mAh-plus models aimed at laptop charging on longer trips. If you're mainly topping up a phone between meetings, a 10,000mAh model with a built-in cable (no separate cable to lose) is the most convenient. For weekend trips or laptop charging, step up to a 20,000mAh PD model so a single power bank covers your phone and laptop without carrying two chargers.",
+        heading: "PB-series power banks — capacity + built-in cable convenience",
+        body: "UGREEN's PB-series ranges from compact 10,000mAh units (with a built-in cable for daily carry) up to 20,000mAh-plus models that are aimed at laptop charging on longer trips. For phone-focused travel, a built-in cable model keeps you from losing extra cables. For mixed phone + laptop needs, choose a PD model so one power bank can cover both without carrying multiple chargers.",
       },
       {
-        heading: "Nexode and GaN chargers",
-        body: "UGREEN's Nexode line uses GaN (gallium nitride) technology to pack higher wattage into a smaller charger body than older designs — useful if you're charging a MacBook or fast-charging Android phone and want one compact charger instead of the bulky brick that came in the box. Check the wattage listed on each product page against your device's maximum charging speed before buying, since a higher-wattage charger won't charge faster than your device supports.",
+        heading: "UGREEN charger price in Sri Lanka — Nexode GaN + Uno options",
+        body: "When you compare UGREEN charger prices in Sri Lanka, focus on wattage and compatibility. Nexode uses GaN technology to deliver higher output in a smaller body, which is useful if you want one compact charger for fast-charging phones or a laptop. Uno-style options are great when you want straightforward everyday charging. Always check the listed wattage on the product page and match it to your device’s maximum charging speed so you get the real charging benefit.",
       },
       {
         heading: "Delivery and pickup",
-        body: "All UGREEN products ship island-wide across Sri Lanka, with pickup also available at our Kandy shop and our Kottawa and Matara pickup points. Prices and stock are updated on each product page, so what you see when you order is the current price — message us on WhatsApp if you're comparing two specific models and want a recommendation.",
+        body: "All UGREEN products ship island-wide across Sri Lanka, with pickup also available at our Kandy shop and our Kottawa and Matara pickup points. Prices and stock are updated on each product page, so what you see when you order is the current price. Message us on WhatsApp with the exact UGREEN model you’re considering and we’ll recommend the best match for your phone and charger setup.",
       },
     ],
   },

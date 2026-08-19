@@ -24,6 +24,8 @@ export const DEFAULT_KEYWORDS = [
   "Anker earbuds Sri Lanka",
   "AirPods Pro price Sri Lanka",
   "power banks Sri Lanka",
+  "UGREEN power bank price in Sri Lanka",
+  "UGREEN charger Sri Lanka",
   "DJI drone Sri Lanka",
   "DJI Mini price Sri Lanka",
   "phone accessories Sri Lanka",

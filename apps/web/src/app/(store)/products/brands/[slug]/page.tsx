@@ -32,6 +32,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       ? "Buy Apple in Sri Lanka at iCrowd — iPhone 17 Pro Max, 16 Pro Max, AirPods and more with live LKR prices, Kandy shop and island-wide delivery."
       : slug === "anker"
         ? "Buy Anker in Sri Lanka — Soundcore earbuds, chargers and power banks with live LKR prices, Kottawa pickup and island-wide delivery at iCrowd."
+        : slug === "ugreen"
+          ? "Buy UGREEN in Sri Lanka — power banks and chargers with live LKR prices, Kandy pickup, and island-wide delivery at iCrowd."
         : `Buy ${brand.name} in Sri Lanka — prices, warranty, island-wide delivery, and pickup in Kandy, Kottawa & Matara at iCrowd.`);
   return buildPageMetadata({
     title:
