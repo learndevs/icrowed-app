@@ -13,7 +13,7 @@ function AdminLoginForm() {
   const params = useSearchParams();
   const next = params.get("next") ?? "/admin";
 
-  const [email, setEmail] = useState("admin@icrowed.local");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -55,7 +55,7 @@ function AdminLoginForm() {
           </div>
           <h1 className="text-xl font-bold">Admin sign in</h1>
           <p className="text-sm text-[var(--muted)] mt-1">
-            Postgres credentials (no Supabase Auth)
+            Staff accounts only
           </p>
         </div>
 

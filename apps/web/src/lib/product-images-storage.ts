@@ -16,8 +16,6 @@ const EXT_BY_TYPE: Record<string, string> = {
   "image/gif": "gif",
 };
 
-const SUPABASE_BUCKET = "product-images";
-
 /** Next.js app root (apps/web), stable regardless of PM2 cwd. */
 export function resolveWebAppRoot(): string {
   const fromEnv = process.env.ICROWD_WEB_ROOT?.trim();
@@ -116,12 +114,7 @@ export function localPathFromProductImageUrl(url: string): string | null {
 
 export async function deleteProductImageFile(url: string): Promise<void> {
   const localPath = localPathFromProductImageUrl(url);
-  if (localPath) {
-    await unlink(localPath).catch(() => {});
-    return;
-  }
-
-  await deleteLegacySupabaseProductImage(url);
+  if (localPath) await unlink(localPath).catch(() => {});
 }
 
 /** Remove entire product folder (all images for one product). */
@@ -129,26 +122,4 @@ export async function deleteAllProductImagesForProduct(productId: string): Promi
   if (!UUID_RE.test(productId)) return;
   const dir = path.join(resolveProductImagesUploadRoot(), productId);
   await rm(dir, { recursive: true, force: true }).catch(() => {});
-}
-
-async function deleteLegacySupabaseProductImage(url: string): Promise<void> {
-  const marker = `/storage/v1/object/public/${SUPABASE_BUCKET}/`;
-  const idx = url.indexOf(marker);
-  if (idx < 0) return;
-
-  const storagePath = url.slice(idx + marker.length);
-  const urlEnv = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
-  if (!urlEnv || !key) return;
-
-  try {
-    const { createClient } = await import("@supabase/supabase-js");
-    const supabase = createClient(urlEnv, key, {
-      auth: { autoRefreshToken: false, persistSession: false },
-    });
-    const { error } = await supabase.storage.from(SUPABASE_BUCKET).remove([storagePath]);
-    if (error) console.warn("[legacy supabase image delete]", error.message);
-  } catch (err) {
-    console.warn("[legacy supabase image delete]", err);
-  }
 }

@@ -3,8 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
-import { ChevronLeft, CheckCircle2, AlertCircle, User, Mail, Phone, Shield } from "lucide-react";
-import Link from "next/link";
+import { CheckCircle2, AlertCircle, User, Mail, Phone, ShieldCheck } from "lucide-react";
+import { AccountPageHeader } from "@/components/account/AccountPageHeader";
 
 interface ProfileData {
   fullName: string;
@@ -63,155 +63,120 @@ export default function ProfilePage() {
   const initials = getInitials(profile.fullName, profile.email);
 
   return (
-    <div className="bento-bg min-h-screen">
-      <div className="px-3 sm:px-5 lg:px-8 py-6 max-w-350 mx-auto">
+    <div>
+      <AccountPageHeader
+        eyebrow="Account"
+        title="Profile"
+        subtitle="Manage your personal details"
+        icon={User}
+      />
 
-        {/* Breadcrumb */}
-        <Link
-          href="/account"
-          className="inline-flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 transition-colors mb-6"
-        >
-          <ChevronLeft className="w-3.5 h-3.5" />
-          Back to Account
-        </Link>
-
-        {/* Page title */}
-        <div className="mb-6">
-          <div className="flex items-center gap-2 mb-1">
-            <div className="w-7 h-7 rounded-lg bg-teal-500 flex items-center justify-center">
-              <User className="w-3.5 h-3.5 text-white" />
-            </div>
-            <span className="text-xs font-bold tracking-widest text-teal-500 uppercase">Account</span>
+      {loading ? (
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+          <div className="acct-glass p-6 animate-pulse space-y-4">
+            <div className="w-20 h-20 rounded-3xl bg-black/5 mx-auto" />
+            <div className="h-4 bg-black/5 rounded-full w-32 mx-auto" />
+            <div className="h-3 bg-black/5 rounded-full w-40 mx-auto" />
           </div>
-          <h1 className="text-3xl sm:text-4xl font-black text-gray-900 leading-tight">Profile</h1>
-          <p className="text-gray-400 text-sm mt-1">Manage your personal details</p>
+          <div className="xl:col-span-2 acct-glass p-6 animate-pulse space-y-4">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="space-y-1.5">
+                <div className="h-3 bg-black/5 rounded-full w-20" />
+                <div className="h-11 bg-black/5 rounded-xl w-full" />
+              </div>
+            ))}
+          </div>
         </div>
-
-        {loading ? (
-          /* Skeleton */
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="bento-card p-6 animate-pulse space-y-4">
-              <div className="w-20 h-20 rounded-3xl bg-gray-100 mx-auto" />
-              <div className="h-4 bg-gray-100 rounded-full w-32 mx-auto" />
-              <div className="h-3 bg-gray-100 rounded-full w-40 mx-auto" />
+      ) : (
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+          {/* Identity */}
+          <div className="acct-glass p-6 flex flex-col items-center text-center acct-rise">
+            <div className="w-24 h-24 rounded-[28px] bg-gradient-to-br from-neutral-900 to-[var(--brand-600)] flex items-center justify-center shadow-xl shadow-sky-900/20 mb-4">
+              {profile.fullName || profile.email ? (
+                <span className="text-white font-black text-3xl">{initials}</span>
+              ) : (
+                <User className="w-9 h-9 text-white/80" />
+              )}
             </div>
-            <div className="lg:col-span-2 bento-card p-6 animate-pulse space-y-4">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="space-y-1.5">
-                  <div className="h-3 bg-gray-100 rounded-full w-20" />
-                  <div className="h-11 bg-gray-100 rounded-xl w-full" />
+            <p className="font-black text-neutral-900 text-lg">{profile.fullName || "No name set"}</p>
+            <p className="text-sm text-neutral-500 mt-1 truncate w-full">{profile.email}</p>
+
+            <div className="w-full mt-6 pt-5 border-t border-black/5 space-y-3 text-left">
+              {[
+                { icon: Mail, text: profile.email || "—" },
+                { icon: Phone, text: profile.phone || "Not set" },
+                { icon: ShieldCheck, text: "Customer account" },
+              ].map(({ icon: Icon, text }) => (
+                <div key={text} className="flex items-center gap-3 text-sm">
+                  <span className="w-8 h-8 rounded-lg bg-sky-50 border border-sky-100 flex items-center justify-center shrink-0">
+                    <Icon className="w-4 h-4 text-[var(--brand-600)]" />
+                  </span>
+                  <span className="text-neutral-600 truncate">{text}</span>
                 </div>
               ))}
             </div>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-            {/* ── Left: Identity panel ── */}
-            <div className="flex flex-col gap-4">
-              <div className="bento-card p-6 flex flex-col items-center text-center">
-                <div className="w-20 h-20 rounded-3xl bg-linear-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-md mb-4">
-                  {profile.fullName || profile.email ? (
-                    <span className="text-white font-black text-2xl">{initials}</span>
-                  ) : (
-                    <User className="w-8 h-8 text-white/80" />
-                  )}
-                </div>
-                <p className="font-black text-gray-900 text-lg">{profile.fullName || "No name set"}</p>
-                <p className="text-sm text-gray-400 mt-1 truncate w-full">{profile.email}</p>
-              </div>
+          {/* Form */}
+          <div className="xl:col-span-2 acct-glass p-6 sm:p-8 acct-rise" style={{ animationDelay: "60ms" }}>
+            <h2 className="font-black text-neutral-900 text-lg mb-6">Edit details</h2>
 
-              {/* Info pills */}
-              <div className="bento-card p-5 space-y-3">
-                <p className="text-xs font-bold tracking-widest text-gray-400 uppercase">Details</p>
-                <div className="flex items-center gap-3 text-sm">
-                  <div className="w-8 h-8 rounded-lg bg-indigo-50 flex items-center justify-center shrink-0">
-                    <Mail className="w-4 h-4 text-indigo-500" />
-                  </div>
-                  <span className="text-gray-600 truncate">{profile.email || "—"}</span>
+            <form onSubmit={handleSave} className="space-y-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div className="sm:col-span-2">
+                  <label className="text-sm font-semibold text-neutral-700 mb-1.5 block">Full name</label>
+                  <input
+                    type="text"
+                    className="acct-input"
+                    placeholder="Jone Doe"
+                    value={profile.fullName}
+                    onChange={(e) => setProfile({ ...profile, fullName: e.target.value })}
+                  />
                 </div>
-                <div className="flex items-center gap-3 text-sm">
-                  <div className="w-8 h-8 rounded-lg bg-teal-50 flex items-center justify-center shrink-0">
-                    <Phone className="w-4 h-4 text-teal-500" />
-                  </div>
-                  <span className="text-gray-600">{profile.phone || "Not set"}</span>
+
+                <div>
+                  <label className="text-sm font-semibold text-neutral-700 mb-1.5 block">Phone</label>
+                  <input
+                    type="tel"
+                    className="acct-input"
+                    placeholder="+94 77 123 4567"
+                    value={profile.phone}
+                    onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
+                  />
                 </div>
-                <div className="flex items-center gap-3 text-sm">
-                  <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
-                    <Shield className="w-4 h-4 text-amber-500" />
-                  </div>
-                  <span className="text-gray-600">Customer</span>
+
+                <div>
+                  <label className="text-sm font-semibold text-neutral-700 mb-1.5 block">
+                    Email
+                    <span className="ml-2 text-xs font-normal text-neutral-400">cannot be changed</span>
+                  </label>
+                  <input type="email" disabled className="acct-input" value={profile.email} />
                 </div>
               </div>
-            </div>
 
-            {/* ── Right: Edit form ── */}
-            <div className="lg:col-span-2 bento-card p-6">
-              <h2 className="font-black text-gray-900 text-lg mb-5">Edit Details</h2>
-
-              <form onSubmit={handleSave} className="space-y-5">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                  <div className="sm:col-span-2">
-                    <label className="text-sm font-semibold text-gray-700 mb-1.5 block">Full Name</label>
-                    <input
-                      type="text"
-                      className="w-full h-11 px-3.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white"
-                      placeholder="Jone Doe"
-                      value={profile.fullName}
-                      onChange={(e) => setProfile({ ...profile, fullName: e.target.value })}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-semibold text-gray-700 mb-1.5 block">Phone</label>
-                    <input
-                      type="tel"
-                      className="w-full h-11 px-3.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white"
-                      placeholder="+94 77 123 4567"
-                      value={profile.phone}
-                      onChange={(e) => setProfile({ ...profile, phone: e.target.value })}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-semibold text-gray-700 mb-1.5 block">
-                      Email
-                      <span className="ml-2 text-xs font-normal text-gray-400">cannot be changed</span>
-                    </label>
-                    <input
-                      type="email"
-                      disabled
-                      className="w-full h-11 px-3.5 rounded-xl border border-gray-100 bg-gray-50 text-sm text-gray-400 cursor-not-allowed"
-                      value={profile.email}
-                    />
-                  </div>
+              {error && (
+                <div className="flex items-center gap-2.5 px-3.5 py-3 rounded-xl bg-red-50/80 border border-red-100 text-red-600 text-sm">
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  {error}
                 </div>
+              )}
 
-                {error && (
-                  <div className="flex items-center gap-2.5 px-3.5 py-3 rounded-xl bg-red-50 border border-red-100 text-red-600 text-sm">
-                    <AlertCircle className="w-4 h-4 shrink-0" />
-                    {error}
-                  </div>
-                )}
-
-                {saved && (
-                  <div className="flex items-center gap-2.5 px-3.5 py-3 rounded-xl bg-green-50 border border-green-100 text-green-700 text-sm">
-                    <CheckCircle2 className="w-4 h-4 shrink-0" />
-                    Profile updated successfully.
-                  </div>
-                )}
-
-                <div className="pt-2 border-t border-gray-100 flex justify-end">
-                  <Button type="submit" className="h-11 px-8 text-sm font-semibold" disabled={saving}>
-                    {saving ? "Saving…" : "Save Changes"}
-                  </Button>
+              {saved && (
+                <div className="flex items-center gap-2.5 px-3.5 py-3 rounded-xl bg-sky-50/80 border border-sky-100 text-[var(--brand-800)] text-sm">
+                  <CheckCircle2 className="w-4 h-4 shrink-0" />
+                  Profile updated successfully.
                 </div>
-              </form>
-            </div>
+              )}
 
+              <div className="pt-5 border-t border-black/5 flex justify-end">
+                <Button type="submit" className="h-11 px-8 text-sm font-semibold rounded-full" disabled={saving}>
+                  {saving ? "Saving…" : "Save changes"}
+                </Button>
+              </div>
+            </form>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }

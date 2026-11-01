@@ -19,3 +19,4 @@ export * from "./store_settings";
 export * from "./store_locations";
 export * from "./notifications";
 export * from "./blog_posts";
+export * from "./loyalty";

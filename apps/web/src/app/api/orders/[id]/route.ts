@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db, orders, orderStatusHistory } from "@icrowd/database";
 import { eq } from "drizzle-orm";
+import { awardPointsForOrder, reverseOrderLoyalty } from "@icrowd/database/queries";
 import { requireAdmin } from "@/lib/admin";
 import { logAudit } from "@/lib/audit";
 import { sendEmail } from "@/lib/email";
@@ -63,6 +64,19 @@ export async function PATCH(
         note: adminNote ?? null,
         changedBy: changedBy ?? null,
       });
+    }
+
+    // Loyalty: credit points on delivery, undo them on cancellation / refund
+    if (status !== undefined && status !== before?.status) {
+      try {
+        if (status === "delivered") {
+          await awardPointsForOrder(id);
+        } else if (status === "cancelled" || status === "refunded") {
+          await reverseOrderLoyalty(id);
+        }
+      } catch (err) {
+        console.error("[loyalty] order status hook failed", err);
+      }
     }
 
     // Send status-driven emails (non-blocking)

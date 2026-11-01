@@ -5,9 +5,9 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Badge } from "@/components/ui/Badge";
 import {
-  MapPin, Plus, Pencil, Trash2, Star, X, Check, ChevronLeft, AlertCircle,
+  MapPin, Plus, Pencil, Trash2, Star, X, Check, AlertCircle,
 } from "lucide-react";
-import Link from "next/link";
+import { AccountPageHeader } from "@/components/account/AccountPageHeader";
 
 interface Address {
   id: string;
@@ -44,11 +44,9 @@ const EMPTY_FORM: FormState = {
 
 const LABEL_OPTIONS = ["Home", "Work", "Other"];
 
-const inputCls =
-  "w-full h-11 px-3.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white";
-const selectCls =
-  "w-full h-11 px-3.5 rounded-xl border border-gray-200 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all bg-gray-50 focus:bg-white appearance-none";
-const labelCls = "text-sm font-semibold text-gray-700 mb-1.5 block";
+const inputCls = "acct-input";
+const selectCls = "acct-input appearance-none";
+const labelCls = "text-sm font-semibold text-neutral-700 mb-1.5 block";
 
 function AddressForm({
   form, setForm, onSubmit, saving, onCancel, submitLabel,
@@ -70,47 +68,47 @@ function AddressForm({
           </select>
         </div>
         <div>
-          <label className={labelCls}>Recipient Name <span className="text-red-400">*</span></label>
+          <label className={labelCls}>Recipient Name <span className="text-[var(--brand-600)]">*</span></label>
           <input required className={inputCls} placeholder="Jone Doe" value={form.recipientName}
             onChange={(e) => setForm({ ...form, recipientName: e.target.value })} />
         </div>
         <div className="sm:col-span-2">
-          <label className={labelCls}>Phone <span className="text-red-400">*</span></label>
+          <label className={labelCls}>Phone <span className="text-[var(--brand-600)]">*</span></label>
           <input required type="tel" className={inputCls} placeholder="+94 77 123 4567" value={form.phone}
             onChange={(e) => setForm({ ...form, phone: e.target.value })} />
         </div>
         <div className="sm:col-span-2">
-          <label className={labelCls}>Address Line 1 <span className="text-red-400">*</span></label>
+          <label className={labelCls}>Address Line 1 <span className="text-[var(--brand-600)]">*</span></label>
           <input required className={inputCls} placeholder="123 Main Street" value={form.addressLine1}
             onChange={(e) => setForm({ ...form, addressLine1: e.target.value })} />
         </div>
         <div className="sm:col-span-2">
           <label className={labelCls}>
-            Address Line 2 <span className="text-xs font-normal text-gray-400">optional</span>
+            Address Line 2 <span className="text-xs font-normal text-neutral-400">optional</span>
           </label>
           <input className={inputCls} placeholder="Apartment, Suite, etc." value={form.addressLine2}
             onChange={(e) => setForm({ ...form, addressLine2: e.target.value })} />
         </div>
         <div>
-          <label className={labelCls}>City <span className="text-red-400">*</span></label>
+          <label className={labelCls}>City <span className="text-[var(--brand-600)]">*</span></label>
           <input required className={inputCls} placeholder="Colombo" value={form.city}
             onChange={(e) => setForm({ ...form, city: e.target.value })} />
         </div>
         <div>
-          <label className={labelCls}>District <span className="text-red-400">*</span></label>
+          <label className={labelCls}>District <span className="text-[var(--brand-600)]">*</span></label>
           <input required className={inputCls} placeholder="Colombo" value={form.district}
             onChange={(e) => setForm({ ...form, district: e.target.value })} />
         </div>
         <div>
           <label className={labelCls}>
-            Province <span className="text-xs font-normal text-gray-400">optional</span>
+            Province <span className="text-xs font-normal text-neutral-400">optional</span>
           </label>
           <input className={inputCls} placeholder="Western" value={form.province}
             onChange={(e) => setForm({ ...form, province: e.target.value })} />
         </div>
         <div>
           <label className={labelCls}>
-            Postal Code <span className="text-xs font-normal text-gray-400">optional</span>
+            Postal Code <span className="text-xs font-normal text-neutral-400">optional</span>
           </label>
           <input className={inputCls} placeholder="00100" value={form.postalCode}
             onChange={(e) => setForm({ ...form, postalCode: e.target.value })} />
@@ -119,19 +117,19 @@ function AddressForm({
           <label className="flex items-center gap-2.5 cursor-pointer group">
             <input
               type="checkbox"
-              className="w-4 h-4 rounded accent-indigo-600"
+              className="w-4 h-4 rounded accent-[var(--brand-600)]"
               checked={form.isDefault}
               onChange={(e) => setForm({ ...form, isDefault: e.target.checked })}
             />
-            <span className="text-sm text-gray-700 group-hover:text-gray-900 transition-colors">
+            <span className="text-sm text-neutral-700 group-hover:text-neutral-900 transition-colors">
               Set as default delivery address
             </span>
           </label>
         </div>
       </div>
-      <div className="flex justify-end gap-3 pt-2 border-t border-gray-100">
-        <Button type="button" variant="outline" onClick={onCancel}>Cancel</Button>
-        <Button type="submit" disabled={saving}>{saving ? "Saving…" : submitLabel}</Button>
+      <div className="flex justify-end gap-3 pt-2 border-t border-black/5">
+        <Button type="button" variant="outline" className="rounded-full bg-white/60" onClick={onCancel}>Cancel</Button>
+        <Button type="submit" className="rounded-full" disabled={saving}>{saving ? "Saving…" : submitLabel}</Button>
       </div>
     </form>
   );
@@ -248,46 +246,22 @@ export default function AddressesPage() {
   }
 
   return (
-    <div className="bento-bg min-h-screen">
-      <div className="px-3 sm:px-5 lg:px-8 py-6 max-w-350 mx-auto space-y-5">
-
-        {/* ── Page header — matches Offers / Categories page pattern ── */}
-        <div>
-          {/* Breadcrumb */}
-          <Link
-            href="/account"
-            className="inline-flex items-center gap-1 text-xs text-gray-400 hover:text-gray-600 transition-colors mb-3"
+    <div className="space-y-5">
+      <AccountPageHeader
+        eyebrow="Delivery"
+        title="Saved addresses"
+        subtitle="Manage your delivery addresses for faster checkout"
+        icon={MapPin}
+        action={
+          <Button
+            onClick={() => { setShowAdd((v) => !v); setEditingId(null); setError(null); }}
+            className="shrink-0 rounded-full"
           >
-            <ChevronLeft className="w-3.5 h-3.5" />
-            Back to Account
-          </Link>
-
-          {/* Title row */}
-          <div className="flex items-end justify-between gap-4">
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <div className="w-7 h-7 rounded-lg bg-amber-500 flex items-center justify-center">
-                  <MapPin className="w-3.5 h-3.5 text-white" />
-                </div>
-                <span className="text-xs font-bold tracking-widest text-amber-500 uppercase">Delivery</span>
-              </div>
-              <h1 className="text-3xl sm:text-4xl font-black text-gray-900 leading-tight">
-                Saved Addresses
-              </h1>
-              <p className="text-gray-400 text-sm mt-1">
-                Manage your delivery addresses for faster checkout
-              </p>
-            </div>
-
-            <Button
-              onClick={() => { setShowAdd((v) => !v); setEditingId(null); setError(null); }}
-              className="shrink-0"
-            >
-              <Plus className="w-4 h-4" />
-              Add Address
-            </Button>
-          </div>
-        </div>
+            <Plus className="w-4 h-4" />
+            Add address
+          </Button>
+        }
+      />
 
         {/* ── Error banner ── */}
         {error && (
@@ -302,10 +276,10 @@ export default function AddressesPage() {
 
         {/* ── Add form ── */}
         {showAdd && (
-          <div className="bento-card p-6">
-            <h3 className="font-bold text-gray-900 text-base mb-5 flex items-center gap-2">
-              <span className="w-6 h-6 rounded-lg bg-indigo-100 flex items-center justify-center">
-                <MapPin className="w-3.5 h-3.5 text-indigo-600" />
+          <div className="acct-glass p-6 sm:p-8">
+            <h3 className="font-bold text-neutral-900 text-base mb-5 flex items-center gap-2">
+              <span className="w-6 h-6 rounded-lg bg-neutral-900 flex items-center justify-center">
+                <MapPin className="w-3.5 h-3.5 text-sky-300" />
               </span>
               New Address
             </h3>
@@ -321,14 +295,14 @@ export default function AddressesPage() {
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
             {[1, 2, 3].map((i) => (
-              <div key={i} className="bento-card p-5 animate-pulse">
+              <div key={i} className="acct-glass p-5 animate-pulse">
                 <div className="flex items-start gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-gray-100 shrink-0" />
+                  <div className="w-10 h-10 rounded-xl bg-black/5 shrink-0" />
                   <div className="flex-1 space-y-2.5 pt-0.5">
-                    <div className="h-3.5 w-20 bg-gray-100 rounded-full" />
-                    <div className="h-3 w-32 bg-gray-100 rounded-full" />
-                    <div className="h-3 w-28 bg-gray-100 rounded-full" />
-                    <div className="h-3 w-40 bg-gray-100 rounded-full" />
+                    <div className="h-3.5 w-20 bg-black/5 rounded-full" />
+                    <div className="h-3 w-32 bg-black/5 rounded-full" />
+                    <div className="h-3 w-28 bg-black/5 rounded-full" />
+                    <div className="h-3 w-40 bg-black/5 rounded-full" />
                   </div>
                 </div>
               </div>
@@ -337,15 +311,15 @@ export default function AddressesPage() {
 
         ) : addressList.length === 0 && !showAdd ? (
           /* ── Empty state ── */
-          <div className="bento-card p-16 text-center">
-            <div className="w-20 h-20 rounded-3xl bg-amber-50 flex items-center justify-center mx-auto mb-5">
-              <MapPin className="w-10 h-10 text-amber-400" />
+          <div className="acct-glass p-16 text-center">
+            <div className="w-20 h-20 rounded-3xl bg-sky-50 border border-sky-100 flex items-center justify-center mx-auto mb-5">
+              <MapPin className="w-10 h-10 text-[var(--brand-600)]" />
             </div>
-            <p className="font-black text-gray-900 text-lg mb-1">No saved addresses yet</p>
-            <p className="text-sm text-gray-400 mb-7 max-w-xs mx-auto leading-relaxed">
+            <p className="font-black text-neutral-900 text-lg mb-1">No saved addresses yet</p>
+            <p className="text-sm text-neutral-500 mb-7 max-w-xs mx-auto leading-relaxed">
               Save a delivery address to speed up your checkout experience.
             </p>
-            <Button onClick={() => setShowAdd(true)}>
+            <Button className="rounded-full" onClick={() => setShowAdd(true)}>
               <Plus className="w-4 h-4" /> Add Your First Address
             </Button>
           </div>
@@ -356,13 +330,13 @@ export default function AddressesPage() {
             {addressList.map((a) => (
               <div
                 key={a.id}
-                className={`bento-card overflow-hidden ${a.isDefault ? "ring-2 ring-indigo-500 ring-offset-2" : ""}`}
+                className={`acct-glass acct-glass-hover overflow-hidden ${a.isDefault ? "ring-2 ring-[var(--brand-500)] ring-offset-2 ring-offset-transparent" : ""}`}
               >
                 {editingId === a.id ? (
                   /* Edit form inside card */
                   <div className="p-5">
-                    <h3 className="font-bold text-gray-900 text-sm mb-4 flex items-center gap-2">
-                      <Pencil className="w-3.5 h-3.5 text-indigo-500" /> Edit Address
+                    <h3 className="font-bold text-neutral-900 text-sm mb-4 flex items-center gap-2">
+                      <Pencil className="w-3.5 h-3.5 text-[var(--brand-600)]" /> Edit Address
                     </h3>
                     <AddressForm
                       form={editForm} setForm={setEditForm}
@@ -375,10 +349,10 @@ export default function AddressesPage() {
                     {/* Card header: label + badge + actions */}
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2">
-                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${a.isDefault ? "bg-indigo-100 text-indigo-600" : "bg-gray-100 text-gray-400"}`}>
+                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${a.isDefault ? "bg-neutral-900 text-sky-300" : "bg-black/5 text-neutral-400"}`}>
                           <MapPin className="w-4 h-4" />
                         </div>
-                        <span className="font-bold text-sm text-gray-900">{a.label}</span>
+                        <span className="font-bold text-sm text-neutral-900">{a.label}</span>
                         {a.isDefault && <Badge variant="primary">Default</Badge>}
                       </div>
 
@@ -389,7 +363,7 @@ export default function AddressesPage() {
                             title="Set as default"
                             disabled={settingDefaultId === a.id}
                             onClick={() => handleSetDefault(a.id)}
-                            className="h-8 w-8 rounded-lg flex items-center justify-center text-gray-300 hover:text-amber-500 hover:bg-amber-50 transition-colors disabled:opacity-40"
+                            className="h-8 w-8 rounded-lg flex items-center justify-center text-neutral-400 hover:text-[var(--brand-600)] hover:bg-sky-50 transition-colors disabled:opacity-40"
                           >
                             <Star className="w-4 h-4" />
                           </button>
@@ -397,7 +371,7 @@ export default function AddressesPage() {
                         <button
                           title="Edit"
                           onClick={() => { startEdit(a); setError(null); }}
-                          className="h-8 w-8 rounded-lg flex items-center justify-center text-gray-300 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+                          className="h-8 w-8 rounded-lg flex items-center justify-center text-neutral-400 hover:text-[var(--brand-600)] hover:bg-sky-50 transition-colors"
                         >
                           <Pencil className="w-4 h-4" />
                         </button>
@@ -417,7 +391,7 @@ export default function AddressesPage() {
                             </button>
                             <button
                               onClick={() => setConfirmDeleteId(null)}
-                              className="h-5 w-5 rounded flex items-center justify-center text-gray-400 hover:bg-gray-100 transition-colors"
+                              className="h-5 w-5 rounded flex items-center justify-center text-neutral-400 hover:bg-black/5 transition-colors"
                             >
                               <X className="w-3 h-3" />
                             </button>
@@ -426,7 +400,7 @@ export default function AddressesPage() {
                           <button
                             title="Delete"
                             onClick={() => setConfirmDeleteId(a.id)}
-                            className="h-8 w-8 rounded-lg flex items-center justify-center text-gray-300 hover:text-red-500 hover:bg-red-50 transition-colors"
+                            className="h-8 w-8 rounded-lg flex items-center justify-center text-neutral-400 hover:text-red-500 hover:bg-red-50 transition-colors"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -435,16 +409,16 @@ export default function AddressesPage() {
                     </div>
 
                     {/* Divider */}
-                    <div className="border-t border-gray-100 mb-3" />
+                    <div className="border-t border-black/5 mb-3" />
 
                     {/* Address body */}
                     <div className="space-y-0.5 flex-1">
-                      <p className="text-sm font-semibold text-gray-900">{a.recipientName}</p>
-                      <p className="text-sm text-gray-500">{a.phone}</p>
-                      <p className="text-sm text-gray-500 mt-1">
+                      <p className="text-sm font-semibold text-neutral-900">{a.recipientName}</p>
+                      <p className="text-sm text-neutral-500">{a.phone}</p>
+                      <p className="text-sm text-neutral-500 mt-1">
                         {a.addressLine1}{a.addressLine2 ? `, ${a.addressLine2}` : ""}
                       </p>
-                      <p className="text-sm text-gray-500">
+                      <p className="text-sm text-neutral-500">
                         {a.city}, {a.district}
                         {a.province ? `, ${a.province}` : ""}
                         {a.postalCode ? ` · ${a.postalCode}` : ""}
@@ -456,7 +430,6 @@ export default function AddressesPage() {
             ))}
           </div>
         )}
-      </div>
     </div>
   );
 }

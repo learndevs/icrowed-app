@@ -374,7 +374,7 @@ const paths: Record<string, PathItem> = {
   "/api/auth/callback": {
     get: {
       tags: ["Auth"],
-      summary: "Supabase OAuth callback",
+      summary: "Better Auth endpoints (sign-in, sign-up, OAuth callback, sessions)",
       operationId: "authCallback",
       parameters: [
         queryParam("code", stringSchema),
@@ -863,7 +863,7 @@ export function getOpenApiSpec(origin = "http://localhost:3000") {
       title: "iCrowd Backend API",
       version: "1.0.0",
       description:
-        "OpenAPI documentation for the iCrowd Next.js backend routes. Admin operations require an authenticated admin Supabase session.",
+        "OpenAPI documentation for the iCrowd Next.js backend routes. Admin operations require a signed-in staff session (Better Auth cookie).",
     },
     servers: [{ url: origin }],
     tags: [
@@ -895,9 +895,9 @@ export function getOpenApiSpec(origin = "http://localhost:3000") {
         cookieAuth: {
           type: "apiKey",
           in: "cookie",
-          name: "sb-access-token",
+          name: "better-auth.session_token",
           description:
-            "Supabase SSR auth cookies are used by the application. Cookie names may vary by Supabase project.",
+            "Better Auth session cookie (better-auth.session_token).",
         },
       },
       schemas: {

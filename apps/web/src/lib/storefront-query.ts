@@ -5,7 +5,7 @@ const BASE_DELAY_MS = 400;
 
 /**
  * Run a storefront DB query with retries. On persistent failure, throws so Next.js
- * ISR does not cache an empty catalog page after a transient Supabase timeout.
+ * ISR does not cache an empty catalog page after a transient database timeout.
  */
 export async function queryStorefront<T>(
   label: string,

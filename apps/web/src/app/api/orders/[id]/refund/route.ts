@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db, orders, orderStatusHistory } from "@icrowd/database";
 import { eq } from "drizzle-orm";
+import { reverseOrderLoyalty } from "@icrowd/database/queries";
 import { requireAdmin } from "@/lib/admin";
 import { logAudit } from "@/lib/audit";
 import { notifyAdmins } from "@/lib/notify";
@@ -65,6 +66,10 @@ export async function POST(
       status: "refunded",
       note: adminNote ?? (stripeRefundId ? `Stripe refund ${stripeRefundId}` : "Manual refund processed"),
     });
+
+    await reverseOrderLoyalty(id).catch((err) =>
+      console.error("[loyalty] refund reversal failed", err),
+    );
 
     // Send refund confirmation email (non-blocking)
     if (updated.customerEmail) {

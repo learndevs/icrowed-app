@@ -4,7 +4,7 @@ import * as schema from "./schema";
 
 /**
  * Forcing TLS on every connection breaks typical local Postgres (no SSL).
- * Supabase / managed hosts need relaxed TLS verification.
+ * Managed hosts usually need relaxed TLS verification.
  */
 function sslForConnectionString(connectionString: string): PoolConfig["ssl"] {
   const s = connectionString.trim().toLowerCase();
@@ -20,15 +20,11 @@ function sslForConnectionString(connectionString: string): PoolConfig["ssl"] {
 const connectionString = process.env.DATABASE_URL?.trim();
 if (!connectionString) {
   throw new Error(
-    "DATABASE_URL is not set. Add a Postgres URL to apps/web/.env.local (same file as your Supabase keys).",
+    "DATABASE_URL is not set. Add a Postgres URL to apps/web/.env.local .",
   );
 }
 
-/**
- * Supabase session pooler (:5432) caps concurrent clients at ~15 (EMAXCONNSESSION).
- * Use transaction pooler (:6543?pgbouncer=true) for the app; keep :5432 for migrations only.
- * min: 1 + keepAlive avoids ~1s cold-connect penalty on VPS (US → Singapore).
- */
+/** min: 1 + keepAlive avoids a cold-connect penalty on the first request. */
 const pool = new Pool({
   connectionString,
   ssl: sslForConnectionString(connectionString),

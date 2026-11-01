@@ -1,14 +1,7 @@
-import { NextResponse } from "next/server";
-import { ADMIN_SESSION_COOKIE } from "@/lib/admin-session";
+import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@/lib/auth";
 
-export async function POST() {
-  const res = NextResponse.json({ ok: true });
-  res.cookies.set(ADMIN_SESSION_COOKIE, "", {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    maxAge: 0,
-  });
-  return res;
+export async function POST(req: NextRequest) {
+  await auth.api.signOut({ headers: req.headers }).catch(() => {});
+  return NextResponse.json({ ok: true });
 }

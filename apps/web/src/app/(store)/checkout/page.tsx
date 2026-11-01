@@ -1,9 +1,10 @@
 "use client";
 
+import { LOYALTY_NAME, LOYALTY_POINTS } from "@/lib/loyalty-brand";
 import { useState, useEffect } from "react";
+import { authClient } from "@/lib/auth-client";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/context/CartContext";
-import { createClient } from "@/lib/supabase/client";
 import { formatPrice } from "@/lib/utils";
 import { Button } from "@/components/ui/Button";
 import { BankDetailsCard } from "@/components/checkout/BankDetailsCard";
@@ -82,6 +83,16 @@ interface SavedAddress {
   isDefault: boolean;
 }
 
+type LoyaltyInfo = {
+  enabled: boolean;
+  balance: number;
+  pointValue: number;
+  minRedeemPoints: number;
+  maxRedeemPercent: number;
+  earnRate: number;
+  earnThreshold: number;
+};
+
 export default function CheckoutPage() {
   const router = useRouter();
   const { items, subtotal, coupon, removeCoupon, clearCart } = useCart();
@@ -102,14 +113,26 @@ export default function CheckoutPage() {
   const [bankSlipFile, setBankSlipFile] = useState<File | null>(null);
   const [customerEmail, setCustomerEmail] = useState("");
 
+  const { data: session } = authClient.useSession();
+  const [loyalty, setLoyalty] = useState<LoyaltyInfo | null>(null);
+  const [usePoints, setUsePoints] = useState(false);
+
   useEffect(() => {
-    createClient()
-      .auth.getUser()
-      .then(({ data: { user } }) => {
-        if (user?.email) setCustomerEmail(user.email);
-      })
+    const email = session?.user?.email;
+    if (email) setCustomerEmail((prev) => prev || email);
+  }, [session?.user?.email]);
+
+  useEffect(() => {
+    if (!session?.user) {
+      setLoyalty(null);
+      setUsePoints(false);
+      return;
+    }
+    fetch("/api/loyalty")
+      .then(async (res) => (res.ok ? ((await res.json()) as LoyaltyInfo) : null))
+      .then(setLoyalty)
       .catch(() => {});
-  }, []);
+  }, [session?.user]);
 
   useEffect(() => {
     fetch("/api/bank-details")
@@ -170,7 +193,48 @@ export default function CheckoutPage() {
     ? computeDeliveryFee(selectedDelivery, subtotal, freeShippingMinSubtotal)
     : 0;
   const couponDiscount = coupon?.discount ?? 0;
-  const total = subtotal + shippingFee - couponDiscount;
+  const maxPointsForOrder =
+    loyalty?.enabled && loyalty.pointValue > 0
+      ? Math.min(
+          loyalty.balance,
+          Math.floor((subtotal * loyalty.maxRedeemPercent) / 100 / loyalty.pointValue),
+        )
+      : 0;
+  const canRedeem = Boolean(loyalty) && maxPointsForOrder >= (loyalty?.minRedeemPoints ?? 0) && maxPointsForOrder > 0;
+  const pointsToRedeem = usePoints && canRedeem ? maxPointsForOrder : 0;
+  const pointsDiscount = pointsToRedeem * (loyalty?.pointValue ?? 0);
+  const total = subtotal + shippingFee - couponDiscount - pointsDiscount;
+
+  const pointsCard = loyalty?.enabled && loyalty.balance > 0 && (
+      <label
+        className={`flex items-start gap-3 px-3 py-2.5 rounded-xl border text-xs ${
+          canRedeem ? "border-amber-200 bg-amber-50 cursor-pointer" : "border-gray-100 bg-gray-50 text-gray-400"
+        }`}
+      >
+        <input
+          type="checkbox"
+          className="mt-0.5"
+          disabled={!canRedeem}
+          checked={usePoints && canRedeem}
+          onChange={(e) => setUsePoints(e.target.checked)}
+        />
+        <span>
+          {canRedeem ? (
+            <>
+              Use <strong>{maxPointsForOrder.toLocaleString()}</strong> {LOYALTY_POINTS}
+              (− {formatPrice(maxPointsForOrder * loyalty.pointValue)})
+              <br />
+              <span className="text-gray-500">{LOYALTY_NAME} balance: {loyalty.balance.toLocaleString()} points</span>
+            </>
+          ) : (
+            <>
+              You have {loyalty.balance.toLocaleString()} {LOYALTY_POINTS}. Redemption starts at{" "}
+              {loyalty.minRedeemPoints.toLocaleString()} points.
+            </>
+          )}
+        </span>
+      </label>
+  );
 
   const STEPS = [
     { key: "address", label: "Address" },
@@ -210,16 +274,10 @@ export default function CheckoutPage() {
     setError(null);
 
     try {
-      const supabase = createClient();
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
       const orderRes = await fetch("/api/orders", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userId: user?.id ?? null,
           customerName: address.fullName,
           customerEmail: customerEmail.trim(),
           customerPhone: address.phone,
@@ -234,6 +292,7 @@ export default function CheckoutPage() {
           shippingCost: shippingFee,
           discount: couponDiscount,
           couponCode: coupon?.code ?? null,
+          pointsToRedeem,
           customerNote: customerNote || null,
           items: items.map((i) => ({
             productId: i.productId,
@@ -453,6 +512,7 @@ export default function CheckoutPage() {
                   }`}
                 />
               </button>
+              {pointsCard && <div className="mt-2">{pointsCard}</div>}
               {summaryOpen && (
                 <div className="mt-2 bg-white rounded-xl border border-gray-100 shadow-sm p-4 space-y-3 text-sm">
                   {items.map((item) => (
@@ -496,6 +556,12 @@ export default function CheckoutPage() {
                       <div className="flex justify-between text-emerald-600">
                         <span>Coupon ({coupon.code})</span>
                         <span>− {formatPrice(coupon.discount)}</span>
+                      </div>
+                    )}
+                    {pointsDiscount > 0 && (
+                      <div className="flex justify-between text-amber-600">
+                        <span>{LOYALTY_NAME} points ({pointsToRedeem.toLocaleString()})</span>
+                        <span>− {formatPrice(pointsDiscount)}</span>
                       </div>
                     )}
                     <div className="flex justify-between font-bold text-gray-900 border-t border-gray-100 pt-2">
@@ -1069,6 +1135,8 @@ export default function CheckoutPage() {
                   </div>
                 )}
 
+                {pointsCard}
+
                 {/* Item list */}
                 <div className="space-y-3">
                   {items.map((item) => (
@@ -1118,6 +1186,12 @@ export default function CheckoutPage() {
                         {coupon.code}
                       </span>
                       <span>− {formatPrice(coupon.discount)}</span>
+                    </div>
+                  )}
+                  {pointsDiscount > 0 && (
+                    <div className="flex justify-between text-amber-600">
+                      <span>{LOYALTY_NAME} points ({pointsToRedeem.toLocaleString()})</span>
+                      <span>− {formatPrice(pointsDiscount)}</span>
                     </div>
                   )}
                   <div className="border-t border-gray-100 pt-2 flex justify-between font-bold text-gray-900 text-base">

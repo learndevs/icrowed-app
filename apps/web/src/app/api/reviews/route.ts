@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@supabase/ssr";
-import { cookies } from "next/headers";
 import { createReview, getAllReviews, getPendingReviews, hasUserPurchasedProduct } from "@icrowd/database/queries";
-import { clientEnv } from "@icrowd/env";
+import { getSessionUser } from "@/lib/session";
 import { requireAdmin } from "@/lib/admin";
 import { notifyAdmins } from "@/lib/notify";
 
@@ -43,23 +41,7 @@ export async function POST(req: NextRequest) {
     let userId: string | null = null;
     let isVerifiedPurchase = false;
 
-    const cookieStore = await cookies();
-    const supabase = createServerClient(
-      clientEnv.NEXT_PUBLIC_SUPABASE_URL,
-      clientEnv.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-      {
-        cookies: {
-          getAll: () => cookieStore.getAll(),
-          setAll: (toSet) => {
-            for (const { name: cookieName, value, options } of toSet) {
-              cookieStore.set(cookieName, value, options);
-            }
-          },
-        },
-      },
-    );
-
-    const { data: { user } } = await supabase.auth.getUser();
+    const user = await getSessionUser();
     if (user) {
       userId = user.id;
       isVerifiedPurchase = await hasUserPurchasedProduct(user.id, productId);

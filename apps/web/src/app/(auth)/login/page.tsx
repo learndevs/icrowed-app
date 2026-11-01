@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/client";
+import { authClient } from "@/lib/auth-client";
+import { GoogleButton, OrDivider } from "@/components/auth/GoogleButton";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Eye, EyeOff, Smartphone } from "lucide-react";
@@ -21,10 +22,6 @@ function LoginForm() {
     }
   }, [next, router]);
 
-  if (next.startsWith("/admin")) {
-    return null;
-  }
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -35,16 +32,23 @@ function LoginForm() {
       : null
   );
 
+  if (next.startsWith("/admin")) {
+    return null;
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
-    const supabase = createClient();
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await authClient.signIn.email({ email, password });
 
     if (error) {
-      setError(error.message);
+      setError(
+        error.status === 403
+          ? "Please verify your email first. We just sent you a new verification link."
+          : (error.message ?? "Could not sign in."),
+      );
       setLoading(false);
       return;
     }
@@ -66,6 +70,9 @@ function LoginForm() {
             {error}
           </p>
         )}
+
+        <GoogleButton next={next} onError={setError} />
+        <OrDivider />
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
@@ -101,6 +108,12 @@ function LoginForm() {
                 {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
               </button>
             </div>
+          </div>
+
+          <div className="text-right -mt-2">
+            <Link href="/forgot-password" className="text-xs text-[var(--color-primary)] hover:underline">
+              Forgot password?
+            </Link>
           </div>
 
           <Button type="submit" className="w-full" size="lg" disabled={loading}>

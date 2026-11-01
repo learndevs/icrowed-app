@@ -23,6 +23,7 @@ import {
   ChevronRight,
   LogOut,
   FileText,
+  Gem,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -67,6 +68,7 @@ const SECTIONS: NavSection[] = [
       { href: "/admin/offers", label: "Offers & Banners", icon: Megaphone },
       { href: "/admin/blog", label: "Blog & Reviews", icon: FileText },
       { href: "/admin/coupons", label: "Coupons", icon: Ticket },
+      { href: "/admin/loyalty", label: "iAxis Loyalty", icon: Gem },
       { href: "/admin/email-templates", label: "Email Templates", icon: Mail },
     ],
   },

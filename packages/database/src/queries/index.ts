@@ -24,3 +24,4 @@ export * from "./notifications";
 export * from "./auditLogs";
 export * from "./emailTemplates";
 export * from "./blogPosts";
+export * from "./loyalty";

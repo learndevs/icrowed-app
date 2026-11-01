@@ -8,7 +8,7 @@ import {
   useReducer,
   useRef,
 } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { authClient } from "@/lib/auth-client";
 
 const STORAGE_KEY = "icrowd_wishlist";
 
@@ -57,53 +57,58 @@ export function WishlistProvider({ children }: { children: React.ReactNode }) {
   const [state, dispatch] = useReducer(reducer, { ids: new Set<string>(), synced: false });
   const userIdRef = useRef<string | null>(null);
 
-  // Load from localStorage + sync with server on mount
+  const { data: session, isPending } = authClient.useSession();
+  const uid = session?.user?.id ?? null;
+  const prevUidRef = useRef<string | null>(null);
+
+  // Show the locally saved wishlist immediately
   useEffect(() => {
     const local = loadLocal();
     if (local.length > 0) dispatch({ type: "SET", ids: local });
+  }, []);
 
-    const supabase = createClient();
-    supabase.auth.getUser().then(async ({ data }) => {
-      const uid = data.user?.id ?? null;
-      userIdRef.current = uid;
-      if (uid) {
-        try {
-          const res = await fetch("/api/wishlist");
-          if (res.ok) {
-            const { productIds } = await res.json() as { productIds: string[] };
-            // Merge local + server
-            const merged = Array.from(new Set([...local, ...productIds]));
-            dispatch({ type: "SET", ids: merged });
-            // Persist merged back to local
-            saveLocal(merged);
-            // Push any local-only items to server
-            const serverSet = new Set(productIds);
-            for (const id of local) {
-              if (!serverSet.has(id)) {
-                fetch("/api/wishlist", {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({ productId: id }),
-                }).catch(() => null);
-              }
-            }
-          }
-        } catch {
-          // silently fail — use local state
-        }
-      }
-      dispatch({ type: "SYNCED" });
-    });
+  // Sync with the server once we know who is signed in
+  useEffect(() => {
+    if (isPending) return;
+    userIdRef.current = uid;
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      userIdRef.current = session?.user?.id ?? null;
-      if (event === "SIGNED_OUT") {
+    if (!uid) {
+      if (prevUidRef.current) {
         dispatch({ type: "SET", ids: [] });
         saveLocal([]);
       }
-    });
-    return () => subscription.unsubscribe();
-  }, []);
+      prevUidRef.current = null;
+      dispatch({ type: "SYNCED" });
+      return;
+    }
+    prevUidRef.current = uid;
+
+    const local = loadLocal();
+    (async () => {
+      try {
+        const res = await fetch("/api/wishlist");
+        if (res.ok) {
+          const { productIds } = await res.json() as { productIds: string[] };
+          const merged = Array.from(new Set([...local, ...productIds]));
+          dispatch({ type: "SET", ids: merged });
+          saveLocal(merged);
+          const serverSet = new Set(productIds);
+          for (const id of local) {
+            if (!serverSet.has(id)) {
+              fetch("/api/wishlist", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ productId: id }),
+              }).catch(() => null);
+            }
+          }
+        }
+      } catch {
+        // silently fail — use local state
+      }
+      dispatch({ type: "SYNCED" });
+    })();
+  }, [uid, isPending]);
 
   const toggle = useCallback(async (productId: string) => {
     const alreadyIn = state.ids.has(productId);

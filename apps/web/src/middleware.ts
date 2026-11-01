@@ -1,66 +1,38 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@supabase/ssr";
-import {
-  ADMIN_SESSION_COOKIE,
-  getAdminSessionFromRequest,
-} from "@/lib/admin-session";
-
-function hasSupabaseSessionCookie(req: NextRequest): boolean {
-  return req.cookies.getAll().some((c) => c.name.startsWith("sb-") && c.name.includes("auth-token"));
-}
+import { getSessionCookie } from "better-auth/cookies";
 
 function isAdminPublicPath(pathname: string): boolean {
   return pathname === "/admin/login";
 }
 
-export default async function middleware(req: NextRequest) {
-  const res = NextResponse.next({ request: req });
-  const pathname = req.nextUrl.pathname;
-  const isAdminRoute = pathname.startsWith("/admin");
+/**
+ * Fast cookie-presence gate only. The real session + role check happens in
+ * the admin layout and in requireAdmin()/requireStaff() for API routes.
+ */
+export default function middleware(req: NextRequest) {
+  const { pathname, search } = req.nextUrl;
 
-  if (isAdminRoute) {
-    const adminSession = await getAdminSessionFromRequest(req);
-    if (!isAdminPublicPath(pathname) && !adminSession) {
-      const nextPath = `${req.nextUrl.pathname}${req.nextUrl.search}`;
+  if (pathname.startsWith("/admin") && !isAdminPublicPath(pathname)) {
+    if (!getSessionCookie(req)) {
       const loginUrl = new URL(
-        `/admin/login?next=${encodeURIComponent(nextPath)}`,
+        `/admin/login?next=${encodeURIComponent(`${pathname}${search}`)}`,
         req.url,
       );
       return NextResponse.redirect(loginUrl);
     }
-    return res;
   }
 
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-  if (!url || !key) return res;
-
-  if (!hasSupabaseSessionCookie(req)) {
-    return res;
+  if (pathname.startsWith("/account") && !getSessionCookie(req)) {
+    const loginUrl = new URL(
+      `/login?next=${encodeURIComponent(`${pathname}${search}`)}`,
+      req.url,
+    );
+    return NextResponse.redirect(loginUrl);
   }
 
-  const supabase = createServerClient(url, key, {
-    cookies: {
-      getAll() {
-        return req.cookies.getAll();
-      },
-      setAll(cookiesToSet) {
-        cookiesToSet.forEach(({ name, value, options }) => {
-          req.cookies.set(name, value);
-          res.cookies.set(name, value, options);
-        });
-      },
-    },
-  });
-
-  await supabase.auth.getUser();
-
-  return res;
+  return NextResponse.next();
 }
 
 export const config = {
-  matcher: [
-    "/((?!_next/static|_next/image|favicon\\.ico|uploads/|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
-  ],
+  matcher: ["/admin/:path*", "/account/:path*"],
 };

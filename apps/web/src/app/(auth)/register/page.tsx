@@ -1,16 +1,16 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/client";
+import { authClient } from "@/lib/auth-client";
+import { GoogleButton, OrDivider } from "@/components/auth/GoogleButton";
 import { Button } from "@/components/ui/Button";
 import { Card, CardContent } from "@/components/ui/Card";
 import { Eye, EyeOff, Smartphone } from "lucide-react";
 import { Suspense } from "react";
 
 function RegisterForm() {
-  const router = useRouter();
   const params = useSearchParams();
   const next = params.get("next") ?? "/";
 
@@ -33,18 +33,16 @@ function RegisterForm() {
     setLoading(true);
     setError(null);
 
-    const supabase = createClient();
-    const { error } = await supabase.auth.signUp({
+    const { error } = await authClient.signUp.email({
+      name: fullName,
       email,
       password,
-      options: {
-        data: { full_name: fullName, phone },
-        emailRedirectTo: `${window.location.origin}/api/auth/callback?next=${next}`,
-      },
+      phone: phone || undefined,
+      callbackURL: next,
     });
 
     if (error) {
-      setError(error.message);
+      setError(error.message ?? "Could not create your account.");
       setLoading(false);
       return;
     }
@@ -85,6 +83,9 @@ function RegisterForm() {
             {error}
           </p>
         )}
+
+        <GoogleButton next={next} onError={setError} label="Sign up with Google" />
+        <OrDivider />
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>

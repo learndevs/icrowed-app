@@ -1,12 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
-import { db, addresses, profiles } from "@icrowd/database";
+import { getSessionUser } from "@/lib/session";
+import { db, addresses } from "@icrowd/database";
 import { eq, desc } from "drizzle-orm";
 
 async function getAuthUser() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  return user;
+  return getSessionUser();
 }
 
 export async function GET() {
@@ -36,11 +34,6 @@ export async function POST(req: NextRequest) {
   if (!recipientName || !phone || !addressLine1 || !city || !district) {
     return NextResponse.json({ error: "recipientName, phone, addressLine1, city and district are required" }, { status: 400 });
   }
-
-  // Ensure profile exists (upsert with minimal data)
-  await db.insert(profiles)
-    .values({ id: user.id, email: user.email ?? "", fullName: user.user_metadata?.full_name ?? null })
-    .onConflictDoNothing();
 
   // If new address is default, unset existing default first
   if (isDefault) {

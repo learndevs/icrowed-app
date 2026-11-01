@@ -6,10 +6,9 @@ import { usePathname, useRouter } from "next/navigation";
 import { Heart, ShoppingCart, Search, User, LogOut, Package } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useWishlist } from "@/context/WishlistContext";
-import { useEffect, useState } from "react";
-import { createClient } from "@/lib/supabase/client";
+import { useState } from "react";
+import { authClient } from "@/lib/auth-client";
 import { cn } from "@/lib/utils";
-import type { User as SupabaseUser } from "@supabase/supabase-js";
 import { MobileBottomNav } from "@/components/layout/MobileBottomNav";
 import { ProductSearchSheet } from "@/components/layout/ProductSearchSheet";
 
@@ -25,28 +24,22 @@ export default function Header() {
   const { count: wishlistCount } = useWishlist();
   const pathname = usePathname();
   const router = useRouter();
-  const [user, setUser] = useState<SupabaseUser | null>(null);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
 
-  useEffect(() => {
-    const supabase = createClient();
-    supabase.auth.getUser().then(({ data }) => setUser(data.user));
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, session) => {
-      setUser(session?.user ?? null);
-    });
-    return () => subscription.unsubscribe();
-  }, []);
+  const { data: session, isPending } = authClient.useSession();
+  const user = session?.user ?? null;
+  const showGuestLinks = !user && !isPending;
+  const nextParam = pathname && pathname !== "/" ? `?next=${encodeURIComponent(pathname)}` : "";
 
   async function handleSignOut() {
-    const supabase = createClient();
-    await supabase.auth.signOut();
+    await authClient.signOut();
     setUserMenuOpen(false);
     router.push("/");
     router.refresh();
   }
 
-  const displayName = (user?.user_metadata?.full_name as string | undefined)?.split(" ")[0] ?? user?.email?.split("@")[0];
+  const displayName = user?.name?.split(" ")[0] || user?.email?.split("@")[0];
 
   return (
     <>
@@ -101,6 +94,30 @@ export default function Header() {
                 <User className="w-5 h-5" />
                 <span>Account</span>
               </Link>
+            )}
+
+            {showGuestLinks && (
+              <>
+                <Link
+                  href={`/login${nextParam}`}
+                  className="md:hidden h-10 px-3 flex items-center gap-2 rounded-lg text-[var(--muted)] hover:text-[var(--foreground)] transition-colors text-sm font-medium"
+                >
+                  <User className="w-5 h-5" />
+                  <span>Sign in</span>
+                </Link>
+                <Link
+                  href={`/login${nextParam}`}
+                  className="hidden md:flex h-10 px-4 items-center rounded-lg text-sm font-medium text-[var(--muted)] hover:text-[var(--foreground)] hover:bg-[var(--surface)] transition-colors"
+                >
+                  Sign in
+                </Link>
+                <Link
+                  href={`/register${nextParam}`}
+                  className="hidden md:flex h-10 px-4 items-center rounded-lg bg-[var(--color-primary)] text-white text-sm font-semibold hover:opacity-90 transition-opacity"
+                >
+                  Sign up
+                </Link>
+              </>
             )}
 
             <button

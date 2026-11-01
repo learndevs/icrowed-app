@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 const serverSchema = z.object({
-  /** Postgres connection string (Supabase "URI" from dashboard, or local). */
+  /** Postgres connection string. */
   DATABASE_URL: z
     .string()
     .min(1)
@@ -9,7 +9,10 @@ const serverSchema = z.object({
       (s) => /^postgres(ql)?:\/\//i.test(s.trim()),
       "DATABASE_URL must start with postgres:// or postgresql://",
     ),
-  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
+  /** Signs Better Auth sessions — generate with `openssl rand -base64 32`. */
+  BETTER_AUTH_SECRET: z.string().min(16),
+  GOOGLE_CLIENT_ID: z.string().optional(),
+  GOOGLE_CLIENT_SECRET: z.string().optional(),
   STRIPE_SECRET_KEY: z.string().startsWith("sk_"),
   STRIPE_WEBHOOK_SECRET: z.string().startsWith("whsec_"),
   RESEND_API_KEY: z.string().startsWith("re_"),
@@ -26,8 +29,6 @@ const serverSchema = z.object({
 });
 
 const clientSchema = z.object({
-  NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1),
   /** Empty until you add a real key (`pk_test_…` / `pk_live_…`). Required for card checkout in the browser. */
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z
     .string()
@@ -54,8 +55,6 @@ const clientSchema = z.object({
 
 // Client env — safe to expose to the browser
 export const clientEnv = clientSchema.parse({
-  NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
-  NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
   NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
   NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION,
@@ -66,21 +65,14 @@ export const clientEnv = clientSchema.parse({
 export function getServerEnv() {
   return serverSchema.parse({
     DATABASE_URL: process.env.DATABASE_URL,
-    SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
+    BETTER_AUTH_SECRET: process.env.BETTER_AUTH_SECRET,
+    GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID,
+    GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET,
     STRIPE_SECRET_KEY: process.env.STRIPE_SECRET_KEY,
     STRIPE_WEBHOOK_SECRET: process.env.STRIPE_WEBHOOK_SECRET,
     RESEND_API_KEY: process.env.RESEND_API_KEY,
     EMAIL_FROM: process.env.EMAIL_FROM,
   });
-}
-
-/** Supabase Storage admin ops (e.g. product images) — does not require Stripe/Resend. */
-export function getSupabaseServiceRoleKey(): string {
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
-  if (!key) {
-    throw new Error("SUPABASE_SERVICE_ROLE_KEY is not set in apps/web/.env.local");
-  }
-  return key;
 }
 
 export type ServerEnv = z.infer<typeof serverSchema>;

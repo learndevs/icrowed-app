@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import {
-  ADMIN_SESSION_COOKIE,
-  adminSessionCookieOptions,
-  createAdminSessionToken,
-} from "@/lib/admin-session";
-import { verifyStaffCredentials } from "@/lib/admin-auth";
+import { APIError } from "better-auth/api";
+import { db, profiles } from "@icrowd/database";
+import { sql } from "drizzle-orm";
+import { auth } from "@/lib/auth";
 import { publicAdminLoginError } from "@/lib/admin-login-errors";
 
 export async function POST(req: NextRequest) {
@@ -21,25 +19,33 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const staff = await verifyStaffCredentials(email.trim(), password);
-    if (!staff) {
+    const [profile] = await db
+      .select({ role: profiles.role, isActive: profiles.isActive })
+      .from(profiles)
+      .where(sql`lower(${profiles.email}) = ${email.trim().toLowerCase()}`);
+
+    if (
+      !profile?.isActive ||
+      (profile.role !== "admin" && profile.role !== "operator")
+    ) {
       return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
     }
 
-    const token = await createAdminSessionToken({
-      sub: staff.userId,
-      email: staff.email,
-      role: staff.role,
-    });
+    try {
+      await auth.api.signInEmail({
+        body: { email: email.trim().toLowerCase(), password },
+        headers: req.headers,
+      });
+    } catch (err) {
+      if (err instanceof APIError) {
+        return NextResponse.json({ error: "Invalid email or password" }, { status: 401 });
+      }
+      throw err;
+    }
 
-    const res = NextResponse.json({ ok: true, role: staff.role });
-    res.cookies.set(ADMIN_SESSION_COOKIE, token, adminSessionCookieOptions());
-    return res;
+    return NextResponse.json({ ok: true, role: profile.role });
   } catch (err) {
     console.error("[POST /api/admin/auth/login]", err);
-    return NextResponse.json(
-      { error: publicAdminLoginError(500) },
-      { status: 500 },
-    );
+    return NextResponse.json({ error: publicAdminLoginError(500) }, { status: 500 });
   }
 }

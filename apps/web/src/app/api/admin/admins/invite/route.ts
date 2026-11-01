@@ -1,53 +1,35 @@
 import { NextRequest, NextResponse } from "next/server";
-import { db, profiles } from "@icrowd/database";
+import crypto from "crypto";
+import { hashPassword } from "better-auth/crypto";
+import { db, profiles, authAccounts } from "@icrowd/database";
 import { eq } from "drizzle-orm";
 import { requireAdmin } from "@/lib/admin";
 import { logAudit } from "@/lib/audit";
-import { getSupabaseAdmin } from "@/lib/supabase/admin-client";
+import { auth } from "@/lib/auth";
 
 export async function POST(req: NextRequest) {
-  const auth = await requireAdmin();
-  if (auth instanceof NextResponse) return auth;
+  const authz = await requireAdmin();
+  if (authz instanceof NextResponse) return authz;
 
   try {
-    const { email, fullName, role } = (await req.json()) as {
+    const { email: rawEmail, fullName, role } = (await req.json()) as {
       email?: string;
       fullName?: string;
       role?: "admin" | "operator";
     };
+    const email = rawEmail?.trim().toLowerCase();
     if (!email) {
       return NextResponse.json({ error: "email is required" }, { status: 400 });
     }
     if (role !== "admin" && role !== "operator") {
       return NextResponse.json(
         { error: "role must be admin or operator" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
-    const admin = getSupabaseAdmin();
+    const [existing] = await db.select().from(profiles).where(eq(profiles.email, email));
 
-    const redirectTo = `${process.env.NEXT_PUBLIC_APP_URL ?? ""}/auth/callback?next=/admin`;
-    const { data, error } = await admin.auth.admin.inviteUserByEmail(email, {
-      redirectTo,
-      data: { fullName },
-    });
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
-    }
-    const newUser = data.user;
-    if (!newUser) {
-      return NextResponse.json(
-        { error: "Invite returned no user" },
-        { status: 500 }
-      );
-    }
-
-    // Ensure profile row exists with the correct role.
-    const [existing] = await db
-      .select()
-      .from(profiles)
-      .where(eq(profiles.id, newUser.id));
     let profile;
     if (existing) {
       [profile] = await db
@@ -55,26 +37,42 @@ export async function POST(req: NextRequest) {
         .set({
           role,
           fullName: fullName ?? existing.fullName,
+          emailVerified: true,
+          isActive: true,
           updatedAt: new Date(),
         })
-        .where(eq(profiles.id, newUser.id))
+        .where(eq(profiles.id, existing.id))
         .returning();
     } else {
       [profile] = await db
         .insert(profiles)
-        .values({
-          id: newUser.id,
-          email,
-          fullName: fullName ?? null,
-          role,
-        })
+        .values({ email, fullName: fullName ?? null, role, emailVerified: true })
         .returning();
     }
 
+    // Give the account a credential with an unguessable password; the invitee sets
+    // their own through the reset link emailed below.
+    const [credential] = await db
+      .select({ id: authAccounts.id })
+      .from(authAccounts)
+      .where(eq(authAccounts.userId, profile.id));
+    if (!credential) {
+      await db.insert(authAccounts).values({
+        userId: profile.id,
+        accountId: profile.id,
+        providerId: "credential",
+        password: await hashPassword(crypto.randomBytes(32).toString("hex")),
+      });
+    }
+
+    await auth.api.requestPasswordReset({
+      body: { email, redirectTo: "/reset-password" },
+    });
+
     await logAudit({
-      actor: { userId: auth.userId, email: auth.email },
+      actor: { userId: authz.userId, email: authz.email },
       entityType: "admin",
-      entityId: newUser.id,
+      entityId: profile.id,
       action: "create",
       summary: `Invited ${email} as ${role}`,
       metadata: { role, email },

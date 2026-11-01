@@ -8,8 +8,16 @@ import {
   prepareAndReserveOrderItems,
   OrderItemError,
 } from "@icrowd/database";
+import {
+  computeRedemption,
+  getLoyaltyBalance,
+  getLoyaltySettings,
+  redeemPointsForOrder,
+  LoyaltyError,
+} from "@icrowd/database/queries";
 import { eq, sql } from "drizzle-orm";
 import { requireAdmin } from "@/lib/admin";
+import { getSessionUser } from "@/lib/session";
 import { generateOrderNumber } from "@/lib/utils";
 import { sendEmail } from "@/lib/email";
 import { orderConfirmationTemplate } from "@/lib/email-templates/orderConfirmation";
@@ -43,8 +51,10 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
+    // The account is always taken from the session, never from the request body.
+    const sessionUser = await getSessionUser();
+    const userId = sessionUser?.id ?? null;
     const {
-      userId,
       customerName,
       customerEmail,
       customerPhone,
@@ -60,7 +70,15 @@ export async function POST(req: NextRequest) {
       discount = 0,
       couponCode,
       customerNote,
+      pointsToRedeem = 0,
     } = body;
+
+    if (Number(pointsToRedeem) > 0 && !userId) {
+      return NextResponse.json(
+        { error: "Sign in to redeem iAxis points" },
+        { status: 401 },
+      );
+    }
 
     if (!deliveryTypeId) {
       return NextResponse.json({ error: "deliveryTypeId is required" }, { status: 400 });
@@ -77,7 +95,7 @@ export async function POST(req: NextRequest) {
 
     const orderNumber = generateOrderNumber();
 
-    const { order, preparedItems, subtotal, validatedShippingCost, deliveryType } =
+    const { order, preparedItems, subtotal, validatedShippingCost, deliveryType, finalDiscount, total } =
       await db.transaction(async (tx) => {
         const preparedItems = await prepareAndReserveOrderItems(items, tx);
 
@@ -96,7 +114,19 @@ export async function POST(req: NextRequest) {
           throw new OrderItemError("Shipping cost mismatch");
         }
 
-        const total = subtotal + validatedShippingCost - Number(discount);
+        let redemption = { points: 0, discount: 0 };
+        if (userId && Number(pointsToRedeem) > 0) {
+          redemption = computeRedemption(
+            Number(pointsToRedeem),
+            await getLoyaltyBalance(userId, tx),
+            subtotal,
+            await getLoyaltySettings(tx),
+          );
+        }
+
+        const finalDiscount = Number(discount) + redemption.discount;
+        const total = subtotal + validatedShippingCost - finalDiscount;
+        if (total < 0) throw new OrderItemError("Discount exceeds the order total");
 
         const [inserted] = await tx
           .insert(orders)
@@ -113,7 +143,9 @@ export async function POST(req: NextRequest) {
             shippingProvince: shippingProvince ?? null,
             subtotal: String(subtotal),
             shippingCost: String(validatedShippingCost),
-            discount: String(discount),
+            discount: String(finalDiscount),
+            loyaltyPointsRedeemed: redemption.points,
+            loyaltyDiscount: String(redemption.discount),
             couponCode: couponCode ?? null,
             total: String(total),
             paymentMethod,
@@ -140,6 +172,15 @@ export async function POST(req: NextRequest) {
           );
         }
 
+        if (userId && redemption.points > 0) {
+          await redeemPointsForOrder(tx, {
+            userId,
+            orderId: inserted.id,
+            points: redemption.points,
+            orderNumber,
+          });
+        }
+
         if (couponCode) {
           await tx
             .update(coupons)
@@ -153,10 +194,10 @@ export async function POST(req: NextRequest) {
           subtotal,
           validatedShippingCost,
           deliveryType,
+          finalDiscount,
+          total,
         };
       });
-
-    const total = subtotal + validatedShippingCost - Number(discount);
 
     // Send order confirmation email (non-blocking)
     if (customerEmail) {
@@ -174,7 +215,7 @@ export async function POST(req: NextRequest) {
           })),
           subtotal,
           shippingCost: validatedShippingCost,
-          discount,
+          discount: finalDiscount,
           total,
           shippingAddress: [shippingAddressLine1, shippingAddressLine2, shippingCity, shippingDistrict, shippingProvince]
             .filter(Boolean)
@@ -196,7 +237,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ order, orderNumber }, { status: 201 });
   } catch (err) {
-    if (err instanceof OrderItemError) {
+    if (err instanceof OrderItemError || err instanceof LoyaltyError) {
       return NextResponse.json({ error: err.message }, { status: 400 });
     }
     const message = err instanceof Error ? err.message : String(err);

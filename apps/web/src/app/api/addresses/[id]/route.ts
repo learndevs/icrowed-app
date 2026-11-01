@@ -1,12 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { getSessionUser } from "@/lib/session";
 import { db, addresses } from "@icrowd/database";
 import { eq, and } from "drizzle-orm";
 
 async function getAuthUser() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  return user;
+  return getSessionUser();
 }
 
 export async function PATCH(

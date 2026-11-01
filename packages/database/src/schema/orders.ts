@@ -44,6 +44,11 @@ export const orders = pgTable("orders", {
   shippingCost: decimal("shipping_cost", { precision: 10, scale: 2 }).default("0").notNull(),
   discount: decimal("discount", { precision: 10, scale: 2 }).default("0").notNull(),
   couponCode: varchar("coupon_code", { length: 50 }),
+  /** Loyalty points spent on this order and the LKR value they covered (included in `discount`). */
+  loyaltyPointsRedeemed: integer("loyalty_points_redeemed").default(0).notNull(),
+  loyaltyDiscount: decimal("loyalty_discount", { precision: 10, scale: 2 }).default("0").notNull(),
+  /** Points awarded once the order is delivered. */
+  loyaltyPointsEarned: integer("loyalty_points_earned").default(0).notNull(),
   total: decimal("total", { precision: 10, scale: 2 }).notNull(),
 
   // Payment

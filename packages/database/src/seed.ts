@@ -1,69 +1,50 @@
 /**
- * Seed script — uses Supabase REST API (PostgREST) so it works even when the
- * direct PostgreSQL port is blocked. Loads env from (in order, first wins):
- *   apps/web/.env.local, repo .env.local, packages/database/.env.local
+ * Seed script — writes straight to Postgres via DATABASE_URL. Loads env from
+ * (in order, first wins): apps/web/.env.local, repo .env.local, packages/database/.env.local
  *
  *   npm run db:seed          (from packages/database)
  *   npm run db:seed -w @icrowd/database  (from repo root)
  *   npm run db:seed          (from repo root — see root package.json)
  *
  * Includes Apple brand, 10 Figma categories, iPhones + AirPods + images.
- * The Next.js storefront needs DATABASE_URL in apps/web/.env.local to read products.
  */
 import * as dotenv from "dotenv";
 import path from "path";
+import { Client } from "pg";
 
-// Prefer apps/web — most devs only keep Supabase keys there.
 dotenv.config({ path: path.resolve(__dirname, "../../../apps/web/.env.local") });
 dotenv.config({ path: path.resolve(__dirname, "../../../.env.local") });
 dotenv.config({ path: path.resolve(__dirname, "../.env.local") });
 
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-
-// Service role key is preferred (bypasses RLS). Fall back to anon key if the
-// service role value is missing or still a placeholder (doesn't start with eyJ).
-const isValidJwt = (v?: string) => typeof v === "string" && v.startsWith("eyJ");
-const SUPABASE_KEY = isValidJwt(process.env.SUPABASE_SERVICE_ROLE_KEY)
-  ? process.env.SUPABASE_SERVICE_ROLE_KEY
-  : process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-if (!SUPABASE_URL || !isValidJwt(SUPABASE_KEY)) {
-  console.error("❌ Missing NEXT_PUBLIC_SUPABASE_URL or a valid Supabase API key");
+const DATABASE_URL = process.env.DIRECT_URL ?? process.env.DATABASE_URL;
+if (!DATABASE_URL) {
+  console.error("❌ DATABASE_URL is not set in apps/web/.env.local");
   process.exit(1);
 }
 
-const KEY = SUPABASE_KEY as string;
+const client = new Client({
+  connectionString: DATABASE_URL,
+  ssl: /localhost|127\.0\.0\.1|sslmode=disable/i.test(DATABASE_URL)
+    ? false
+    : { rejectUnauthorized: false },
+});
 
-const headers = {
-  apikey: KEY,
-  Authorization: `Bearer ${KEY}`,
-  "Content-Type": "application/json",
-  // ignore-duplicates — still often 409 on unique(slug) in bulk; we insert row-by-row and skip 409.
-  Prefer: "resolution=ignore-duplicates,return=minimal",
-};
+const q = (name: string) => `"${name.replace(/"/g, '""')}"`;
 
-/** Insert one row at a time so duplicates only skip that row; tolerate 409 / 23505 (already exists). */
+type Row = Record<string, unknown>;
+
+/** Insert one row at a time so duplicates only skip that row. Returns the number skipped. */
 async function upsert(table: string, rows: unknown[]): Promise<number> {
-  if (rows.length === 0) return 0;
   let skipped = 0;
-  for (const row of rows) {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
-      method: "POST",
-      headers,
-      body: JSON.stringify([row]),
-    });
-    if (res.ok) continue;
-    const text = await res.text();
-    const duplicate =
-      res.status === 409 ||
-      text.includes("23505") ||
-      text.includes("duplicate key") ||
-      text.includes("already exists");
-    if (duplicate) {
-      skipped++;
-      continue;
-    }
-    throw new Error(`${table}: ${res.status} ${text}`);
+  for (const row of rows as Row[]) {
+    const cols = Object.keys(row);
+    const res = await client.query(
+      `INSERT INTO ${q(table)} (${cols.map(q).join(", ")}) VALUES (${cols
+        .map((_, i) => `$${i + 1}`)
+        .join(", ")}) ON CONFLICT DO NOTHING`,
+      cols.map((c) => row[c]),
+    );
+    if (res.rowCount === 0) skipped++;
   }
   return skipped;
 }
@@ -1359,20 +1340,19 @@ const SHOP_SHIPPING_RATES = [
   },
 ];
 
-/** Bulk upsert by primary key (updates existing rows, e.g. new `category_id`). */
+/** Upsert by primary key (updates existing rows, e.g. new `category_id`). */
 async function mergeUpsertTable(table: string, rows: unknown[]): Promise<void> {
-  if (rows.length === 0) return;
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
-    method: "POST",
-    headers: {
-      ...headers,
-      Prefer: "resolution=merge-duplicates,return=minimal",
-    },
-    body: JSON.stringify(rows),
-  });
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`${table} merge-upsert: ${res.status} ${text}`);
+  for (const row of rows as Row[]) {
+    const cols = Object.keys(row);
+    const updates = cols.filter((c) => c !== "id");
+    await client.query(
+      `INSERT INTO ${q(table)} (${cols.map(q).join(", ")}) VALUES (${cols
+        .map((_, i) => `$${i + 1}`)
+        .join(", ")}) ON CONFLICT (id) DO UPDATE SET ${updates
+        .map((c) => `${q(c)} = EXCLUDED.${q(c)}`)
+        .join(", ")}`,
+      cols.map((c) => row[c]),
+    );
   }
 }
 
@@ -1390,34 +1370,19 @@ async function archiveConflictingSlugs(
   canonical: readonly { id: string; slug: string }[],
 ): Promise<void> {
   for (const { id: keepId, slug } of canonical) {
-    const q = `slug=eq.${encodeURIComponent(slug)}&id=neq.${keepId}&select=id`;
-    const listRes = await fetch(`${SUPABASE_URL}/rest/v1/${table}?${q}`, {
-      headers: { ...headers, Accept: "application/json" },
-    });
-    if (!listRes.ok) {
-      const text = await listRes.text();
-      throw new Error(`${table} archive list (${slug}): ${listRes.status} ${text}`);
-    }
-    const rows = (await listRes.json()) as { id: string }[];
-    for (const row of rows) {
-      const archivedSlug = `${slug}-archived-${row.id.replace(/-/g, "")}`;
-      const patchRes = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${row.id}`, {
-        method: "PATCH",
-        headers: { ...headers, Prefer: "return=minimal" },
-        body: JSON.stringify({ is_active: false, slug: archivedSlug }),
-      });
-      if (!patchRes.ok) {
-        const text = await patchRes.text();
-        throw new Error(`${table} archive patch (${row.id}): ${patchRes.status} ${text}`);
-      }
-    }
+    await client.query(
+      `UPDATE ${q(table)} SET is_active = false, slug = $1 || '-archived-' || replace(id::text, '-', '')
+       WHERE slug = $1 AND id <> $2`,
+      [slug, keepId],
+    );
   }
 }
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 async function seed() {
-  console.log("🌱 Seeding database via Supabase REST API...\n");
+  await client.connect();
+  console.log("🌱 Seeding database...\n");
 
   process.stdout.write("  → categories (merge) … ");
   await archiveConflictingSlugs(
@@ -1475,7 +1440,9 @@ async function seed() {
   console.log("\n✅ Seed complete.");
 }
 
-seed().catch((err) => {
-  console.error("\n❌ Seed failed:", err.message ?? err);
-  process.exit(1);
-});
+seed()
+  .catch((err) => {
+    console.error("\n❌ Seed failed:", err.message ?? err);
+    process.exitCode = 1;
+  })
+  .finally(() => client.end());
