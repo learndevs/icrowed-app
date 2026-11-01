@@ -35,6 +35,11 @@
   --color-error:   #dc2626;
   --color-info:    #0891b2;
 
+  /* Font families (files come from @fontsource, imported in layout.tsx) */
+  --font-inter: "Inter";
+  --font-roboto: "Roboto";
+  --font-playfair: "Playfair Display";
+
   /* Typography — Figma iCrowd (Roboto + Playfair accent) */
   --app-font-family: var(--font-roboto), system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
   --app-font-display: var(--font-playfair), "Times New Roman", Georgia, serif;

@@ -2,7 +2,6 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Inter } from "next/font/google";
 import { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import type { StoreContactInfo } from "@/lib/contact-page";
@@ -10,13 +9,6 @@ import {
   ContactDetails,
   ContactSocialLinks,
 } from "@/components/contact/ContactDetails";
-
-const inter = Inter({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  display: "swap",
-  adjustFontFallback: false,
-});
 
 const SECTION_HEADING_CLASS =
   "text-sm font-semibold uppercase tracking-wide text-black mb-4";
@@ -244,7 +236,7 @@ function FooterBottom({
 
 export default function Footer({ contactInfo }: { contactInfo: StoreContactInfo }) {
   return (
-    <footer className="bg-[#E6E6E6]" style={{ fontFamily: inter.style.fontFamily }}>
+    <footer className="bg-[#E6E6E6]" style={{ fontFamily: "var(--font-inter), system-ui, sans-serif" }}>
       <div className="mx-auto max-w-[1400px] px-4 pb-10 pt-8 sm:px-5 lg:px-8">
 
         {/* ── Mobile ─────────────────────────────────────────────────── */}
