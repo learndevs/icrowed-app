@@ -18,6 +18,10 @@ import { orders } from "./orders";
 export const loyaltySettings = pgTable("loyalty_settings", {
   id: integer("id").primaryKey().default(1),
   enabled: boolean("enabled").default(true).notNull(),
+  /** percentage: points from earn rate/mode. fixed: `fixedPoints` per order. */
+  earnType: varchar("earn_type", { length: 20 }).default("percentage").notNull(),
+  /** Flat points awarded per qualifying order when earnType = fixed. */
+  fixedPoints: integer("fixed_points").default(100).notNull(),
   /** Points earned per currency unit (0.01 → 1 point per LKR 100). */
   earnRate: decimal("earn_rate", { precision: 8, scale: 4 }).default("0.01").notNull(),
   /** Minimum order total (LKR) before points are earned; also the block size in `per_block` mode. */

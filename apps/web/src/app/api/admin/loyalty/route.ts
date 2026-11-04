@@ -41,6 +41,8 @@ export async function PUT(req: NextRequest) {
     const before = await getLoyaltySettings();
     const settings = await updateLoyaltySettings({
       enabled: Boolean(s.enabled),
+      earnType: s.earnType === "fixed" ? "fixed" : "percentage",
+      fixedPoints: Math.floor(num(s.fixedPoints, 0, 1_000_000, "Fixed points")),
       earnRate: String(num(s.earnRate, 0, 1, "Earn rate")),
       earnThreshold: String(num(s.earnThreshold, 0, 100_000_000, "Earn threshold")),
       earnMode: mode,

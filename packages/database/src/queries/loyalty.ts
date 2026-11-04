@@ -129,12 +129,16 @@ export function tierForSpend(tiers: LoyaltyTierRow[], spend: number): LoyaltyTie
 // ─── Maths ────────────────────────────────────────────────────────────────────
 export function calculateEarnedPoints(
   orderTotal: number,
-  settings: Pick<LoyaltySettingsRow, "enabled" | "earnRate" | "earnThreshold" | "earnMode">,
+  settings: Pick<LoyaltySettingsRow, "enabled" | "earnRate" | "earnThreshold" | "earnMode" | "earnType" | "fixedPoints">,
   multiplier = 1,
 ): number {
   if (!settings.enabled) return 0;
   const rate = Number(settings.earnRate);
   const threshold = Number(settings.earnThreshold);
+  if (settings.earnType === "fixed") {
+    if (orderTotal <= 0 || orderTotal < threshold) return 0;
+    return Math.max(0, Math.floor(settings.fixedPoints));
+  }
   if (!(rate > 0) || orderTotal <= 0 || orderTotal < threshold) return 0;
   const base =
     settings.earnMode === "per_block" && threshold > 0

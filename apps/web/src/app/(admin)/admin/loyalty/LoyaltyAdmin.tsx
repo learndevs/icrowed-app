@@ -10,6 +10,8 @@ import { FormField } from "@/components/ui/FormField";
 
 type Settings = {
   enabled: boolean;
+  earnType: "percentage" | "fixed";
+  fixedPoints: number;
   earnRate: number;
   earnThreshold: number;
   earnMode: "whole_order" | "per_block";
@@ -100,7 +102,9 @@ export function LoyaltyAdmin({
     s.earnMode === "per_block" && s.earnThreshold > 0
       ? Math.floor(example / s.earnThreshold) * s.earnThreshold
       : example;
-  const examplePoints = example >= s.earnThreshold ? Math.floor(exampleBase * s.earnRate) : 0;
+  const fixed = s.earnType === "fixed";
+  const examplePoints =
+    example < s.earnThreshold ? 0 : fixed ? s.fixedPoints : Math.floor(exampleBase * s.earnRate);
 
   return (
     <div className="space-y-6">
@@ -113,30 +117,56 @@ export function LoyaltyAdmin({
             description="When off, no points are earned or redeemed. Existing balances are kept."
           />
 
-          <div className="grid sm:grid-cols-2 gap-4">
-            <FormField label="Earn rate" hint="Points per LKR 1 spent. 0.01 = 1 point per LKR 100.">
-              <Input type="number" step="0.0001" min={0} max={1} value={s.earnRate}
-                onChange={(e) => set("earnRate", num(e.target.value))} />
-            </FormField>
-            <FormField label="Earn threshold (LKR)" hint="Orders below this earn nothing.">
-              <Input type="number" min={0} value={s.earnThreshold}
-                onChange={(e) => set("earnThreshold", num(e.target.value))} />
-            </FormField>
-          </div>
-
-          <FormField label="How points are calculated">
+          <FormField label="Earning method">
             <select
               className="w-full h-10 px-3 rounded-lg border border-gray-200 bg-white text-sm"
-              value={s.earnMode}
-              onChange={(e) => set("earnMode", e.target.value as Settings["earnMode"])}
+              value={s.earnType}
+              onChange={(e) => set("earnType", e.target.value as Settings["earnType"])}
             >
-              <option value="whole_order">Whole order total × rate (once the threshold is reached)</option>
-              <option value="per_block">Each full threshold block × rate</option>
+              <option value="percentage">Percentage of order total (earn rate)</option>
+              <option value="fixed">Fixed points per transaction</option>
             </select>
           </FormField>
+
+          {fixed ? (
+            <div className="grid sm:grid-cols-2 gap-4">
+              <FormField label="Fixed points per order" hint="Every qualifying order earns exactly this many points. Tier multipliers do not apply.">
+                <Input type="number" min={0} value={s.fixedPoints}
+                  onChange={(e) => set("fixedPoints", num(e.target.value))} />
+              </FormField>
+              <FormField label="Minimum order (LKR)" hint="Orders below this earn nothing. Set 0 to reward every order.">
+                <Input type="number" min={0} value={s.earnThreshold}
+                  onChange={(e) => set("earnThreshold", num(e.target.value))} />
+              </FormField>
+            </div>
+          ) : (
+            <>
+              <div className="grid sm:grid-cols-2 gap-4">
+                <FormField label="Earn rate" hint="Points per LKR 1 spent. 0.01 = 1 point per LKR 100.">
+                  <Input type="number" step="0.0001" min={0} max={1} value={s.earnRate}
+                    onChange={(e) => set("earnRate", num(e.target.value))} />
+                </FormField>
+                <FormField label="Earn threshold (LKR)" hint="Orders below this earn nothing.">
+                  <Input type="number" min={0} value={s.earnThreshold}
+                    onChange={(e) => set("earnThreshold", num(e.target.value))} />
+                </FormField>
+              </div>
+
+              <FormField label="How points are calculated">
+                <select
+                  className="w-full h-10 px-3 rounded-lg border border-gray-200 bg-white text-sm"
+                  value={s.earnMode}
+                  onChange={(e) => set("earnMode", e.target.value as Settings["earnMode"])}
+                >
+                  <option value="whole_order">Whole order total × rate (once the threshold is reached)</option>
+                  <option value="per_block">Each full threshold block × rate</option>
+                </select>
+              </FormField>
+            </>
+          )}
           <p className="text-xs text-gray-500">
             Example: an order of LKR {example.toLocaleString()} earns <strong>{examplePoints}</strong> points
-            at the base tier.
+            {fixed ? "(fixed)." : "at the base tier."}
           </p>
 
           <div className="grid sm:grid-cols-3 gap-4 pt-2">

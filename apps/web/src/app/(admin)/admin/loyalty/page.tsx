@@ -40,6 +40,8 @@ export default async function AdminLoyaltyPage() {
       <LoyaltyAdmin
         initialSettings={{
           enabled: settings.enabled,
+          earnType: settings.earnType === "fixed" ? "fixed" : "percentage",
+          fixedPoints: settings.fixedPoints,
           earnRate: Number(settings.earnRate),
           earnThreshold: Number(settings.earnThreshold),
           earnMode: settings.earnMode === "per_block" ? "per_block" : "whole_order",
