@@ -26,7 +26,7 @@ mkdir -p "${APP_DIR}/apps/web/public/uploads/products"
 chown -R icrowd:icrowd "${APP_DIR}/apps/web/public/uploads" 2>/dev/null || true
 
 echo "==> Building Next.js app..."
-npm run build --workspace=web
+NODE_OPTIONS="--max-old-space-size=1024" npm run build --workspace=web
 
 echo "==> Restarting PM2 (${PM2_NAME})..."
 if pm2 describe "${PM2_NAME}" >/dev/null 2>&1; then
