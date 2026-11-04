@@ -174,8 +174,8 @@ export function LoyaltyAdmin({
               <Input type="number" step="0.01" min={0} value={s.pointValue}
                 onChange={(e) => set("pointValue", num(e.target.value))} />
             </FormField>
-            <FormField label="Minimum to redeem" hint="Points.">
-              <Input type="number" min={0} value={s.minRedeemPoints}
+            <FormField label="Minimum to redeem" hint="Points. Cannot be lower than 500.">
+              <Input type="number" min={500} value={s.minRedeemPoints}
                 onChange={(e) => set("minRedeemPoints", num(e.target.value))} />
             </FormField>
             <FormField label="Max % of order" hint="Share of subtotal points can pay.">

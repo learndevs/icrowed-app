@@ -46,7 +46,7 @@ export default async function AdminLoyaltyPage() {
           earnThreshold: Number(settings.earnThreshold),
           earnMode: settings.earnMode === "per_block" ? "per_block" : "whole_order",
           pointValue: Number(settings.pointValue),
-          minRedeemPoints: settings.minRedeemPoints,
+          minRedeemPoints: Math.max(500, settings.minRedeemPoints),
           maxRedeemPercent: settings.maxRedeemPercent,
         }}
         initialTiers={tiers.map((t) => ({

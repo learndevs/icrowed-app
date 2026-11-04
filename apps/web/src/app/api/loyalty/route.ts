@@ -13,7 +13,7 @@ export async function GET() {
     balance: s.balance,
     tier: s.tier ? { name: s.tier.name, earnMultiplier: Number(s.tier.earnMultiplier) } : null,
     pointValue: Number(s.settings.pointValue),
-    minRedeemPoints: s.settings.minRedeemPoints,
+    minRedeemPoints: Math.max(500, s.settings.minRedeemPoints),
     maxRedeemPercent: s.settings.maxRedeemPercent,
     earnRate: Number(s.settings.earnRate),
     earnThreshold: Number(s.settings.earnThreshold),

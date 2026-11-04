@@ -126,6 +126,13 @@ export function tierForSpend(tiers: LoyaltyTierRow[], spend: number): LoyaltyTie
   return match;
 }
 
+/** Customers can never redeem fewer than this many points in one go. */
+export const MIN_REDEEM_FLOOR = 500;
+
+export function effectiveMinRedeem(settings: Pick<LoyaltySettingsRow, "minRedeemPoints">): number {
+  return Math.max(MIN_REDEEM_FLOOR, settings.minRedeemPoints);
+}
+
 // ─── Maths ────────────────────────────────────────────────────────────────────
 export function calculateEarnedPoints(
   orderTotal: number,
@@ -160,8 +167,9 @@ export function computeRedemption(
   if (!settings.enabled || points <= 0) return { points: 0, discount: 0 };
   const pointValue = Number(settings.pointValue);
   if (!(pointValue > 0)) return { points: 0, discount: 0 };
-  if (points < settings.minRedeemPoints) {
-    throw new LoyaltyError(`Minimum redemption is ${settings.minRedeemPoints} points`);
+  const minRedeem = effectiveMinRedeem(settings);
+  if (points < minRedeem) {
+    throw new LoyaltyError(`Minimum redemption is ${minRedeem} points`);
   }
   if (points > balance) throw new LoyaltyError("Not enough loyalty points");
   const maxDiscount = (subtotal * settings.maxRedeemPercent) / 100;

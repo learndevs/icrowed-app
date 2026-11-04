@@ -47,7 +47,7 @@ export async function PUT(req: NextRequest) {
       earnThreshold: String(num(s.earnThreshold, 0, 100_000_000, "Earn threshold")),
       earnMode: mode,
       pointValue: String(num(s.pointValue, 0, 100_000, "Point value")),
-      minRedeemPoints: Math.floor(num(s.minRedeemPoints, 0, 1_000_000, "Minimum redeem points")),
+      minRedeemPoints: Math.floor(num(s.minRedeemPoints, 500, 1_000_000, "Minimum redeem points")),
       maxRedeemPercent: Math.floor(num(s.maxRedeemPercent, 0, 100, "Max redeem percent")),
     });
 
